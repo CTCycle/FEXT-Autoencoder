@@ -29,7 +29,6 @@ ultricies nisl, vel lacinia velit justo sed sapien. Mauris euismod, velit vel ti
 justo velit ultricies nisl, vel lacinia velit justo sed sapien. 
 ''')
 
-
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
 # Load the csv with data and transform the tokenized text column to convert the
@@ -51,11 +50,12 @@ subset_images = df_images.sample(n=GlobVar.num_samples, random_state=36)
 test_data = subset_images.sample(n=GlobVar.num_test_samples, random_state=36)
 train_data = subset_images.drop(test_data.index)
 
-
 print(f'''
 -------------------------------------------------------------------------------
-The number of samples in the dataset is {GlobVar.num_samples}
-The batch size is {GlobVar.batch_size}
+Number of samples in the dataset = {GlobVar.num_samples}
+Train samples = {GlobVar.num_samples - GlobVar.num_test_samples}
+Test samples = {GlobVar.num_test_samples}
+Batch size = {GlobVar.batch_size}
 -------------------------------------------------------------------------------
 ''')
 
@@ -63,11 +63,11 @@ The batch size is {GlobVar.batch_size}
 #==============================================================================
 # module for the selection of different operations
 #==============================================================================
-trainworker = ModelTraining(device = GlobVar.training_device, seed = GlobVar.seed)
+trainworker = ModelTraining(device = GlobVar.training_device, seed = GlobVar.seed, use_mixed_precision=True)
 
 # define model data generator (train data)
 #------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, GlobVar.batch_size, GlobVar.pic_size, shuffle=True)
+train_generator = DataGenerator(train_data, GlobVar.batch_size, GlobVar.pic_size, augmentation=False, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (train data)
@@ -78,7 +78,7 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # define model data generator (test data)
 #------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, GlobVar.batch_size, GlobVar.pic_size, shuffle=True)
+test_generator = DataGenerator(test_data, GlobVar.batch_size, GlobVar.pic_size, augmentation=False, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (test data)
@@ -98,10 +98,42 @@ model.summary(expand_nested=True)
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
 model_savepath = preprocessor.model_savefolder(GlobVar.model_path, modelworker.model_name)
-plot_path = os.path.join(model_savepath, 'model_layout.png')       
-plot_model(model, to_file = plot_path, show_shapes = True, 
-           show_layer_names = True, show_layer_activations = True, 
-           expand_nested = True, rankdir = 'TB', dpi = 400) 
+if GlobVar.generate_model_graph == True:
+    plot_path = os.path.join(model_savepath, 'model_layout.png')       
+    plot_model(model, to_file = plot_path, show_shapes = True, 
+               show_layer_names = True, show_layer_activations = True, 
+               expand_nested = True, rankdir = 'TB', dpi = 400)
+
+# [TRAINING WITH FEXT]
+#==============================================================================
+# Setting callbacks and training routine for the features extraction model. 
+# use command prompt on the model folder and (upon activating environment), 
+# use the bash command: python -m tensorboard.main --logdir tensorboard/
+#==============================================================================
+
+# initialize the callbacks
+#------------------------------------------------------------------------------
+
+RTH_callback = RealTimeHistory(model_savepath, validation=True)
+
+# training loop and model saving at end
+#------------------------------------------------------------------------------
+print(f'''Start model training for {GlobVar.epochs} epochs and batch size of {GlobVar.batch_size}
+       ''')
+if GlobVar.use_tensorboard == True:
+    log_path = os.path.join(model_savepath, 'tensorboard')
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1)
+    training = model.fit(train_dataset, epochs = GlobVar.epochs,
+                         validation_data=test_dataset, 
+                         callbacks = [tensorboard_callback, RTH_callback],
+                         workers = 6, use_multiprocessing=True) 
+else:
+    training = model.fit(train_dataset, epochs = GlobVar.epochs,
+                         validation_data=test_dataset, 
+                         callbacks = [RTH_callback],
+                         workers = 6, use_multiprocessing=True) 
+
+model.save(model_savepath)
 
 # save model parameters in txt files
 #------------------------------------------------------------------------------
@@ -113,51 +145,23 @@ parameters = {'Number of samples' : GlobVar.num_samples,
 
 trainworker.model_parameters(parameters, model_savepath)
 
-# [TRAINING WITH FEXT]
-#==============================================================================
-# Setting callbacks and training routine for the features extraction model. 
-# use command prompt on the model folder and (upon activating environment), 
-# use the bash command: python -m tensorboard.main --logdir tensorboard/
-#==============================================================================
-
-# initialize the callbacks
-#------------------------------------------------------------------------------
-log_path = os.path.join(model_savepath, 'tensorboard')
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1)
-RTH_callback = RealTimeHistory(model_savepath, validation=True)
-
-# training loop and model saving at end
-#------------------------------------------------------------------------------
-print(f'''Start model training for {GlobVar.epochs} epochs and batch size of {GlobVar.batch_size}
-       ''')
-steps_per_epoch = int((GlobVar.num_samples-GlobVar.num_test_samples)/GlobVar.batch_size)
-val_steps_per_epoch = int((GlobVar.num_test_samples)/GlobVar.batch_size)
-training = model.fit(train_dataset, epochs = GlobVar.epochs, steps_per_epoch=steps_per_epoch,
-                     validation_data=test_dataset, validation_steps=val_steps_per_epoch,
-                     callbacks = [tensorboard_callback, RTH_callback])                                                                
-
-model.save(model_savepath)
-
 # [FEXT MODEL VALIDATION]
 #==============================================================================
-# Training the LSTM model using the functions specified in the designated class.
-# The model is saved using keras saving procedures in order to store weights and
-# other information
+# ...
 #==============================================================================
 validator = ModelValidation(model)
 
 # extract batch of real and reconstructed images and perform visual validation (train set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(train_data, GlobVar.batch_size, GlobVar.pic_size, 
-                              batch_size=6, transform=False, shuffle=False)
+val_generator = DataGenerator(train_data, 6, GlobVar.pic_size, augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'train', model_savepath)
 
 # extract batch of real and reconstructed images and perform visual validation (test set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, GlobVar.batch_size, GlobVar.pic_size, 
-                              batch_size=6, transform=False, shuffle=False)
+val_generator = DataGenerator(test_data, 6, GlobVar.pic_size, augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'test', model_savepath)
+
