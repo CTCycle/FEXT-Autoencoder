@@ -7,7 +7,6 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
 from keras import layers 
-from keras.preprocessing.image import ImageDataGenerator
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -27,14 +26,14 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.validation = validation            
     #--------------------------------------------------------------------------
     def on_epoch_end(self, epoch, logs = {}):
-        if epoch % 2 == 0:                    
+        if epoch % 5 == 0:                    
             self.epochs.append(epoch)
             self.loss_hist.append(logs[list(logs.keys())[0]])
             self.metric_hist.append(logs[list(logs.keys())[1]])
             if self.validation==True:
                 self.loss_val_hist.append(logs[list(logs.keys())[2]])            
                 self.metric_val_hist.append(logs[list(logs.keys())[3]])
-        if epoch % 5 == 0:            
+        if epoch % 10 == 0:            
             #------------------------------------------------------------------
             fig_path = os.path.join(self.plot_path, 'training_history.jpeg')
             plt.subplot(2, 1, 1)
@@ -64,12 +63,12 @@ class RealTimeHistory(keras.callbacks.Callback):
 #==============================================================================
 class AutoEncoderModel:
 
-    def __init__(self, learning_rate, picture_size=(144, 144, 3)): 
+    def __init__(self, learning_rate, picture_size=(144, 144, 3), compression_size=1000): 
         self.model_name = 'FEXT'
         self.learning_rate = learning_rate
         self.num_channels = 3
-        self.picture_size = picture_size + (self.num_channels,)             
-        
+        self.picture_size = picture_size + (self.num_channels,) 
+        self.compression_size = compression_size      
 
     # feat extraction model based on convolution/deconvolution
     #========================================================================== 
@@ -77,45 +76,55 @@ class AutoEncoderModel:
                  
         image_input = layers.Input(shape = self.picture_size, name = 'image_input')
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(image_input)        
-        #----------------------------------------------------------------------
-        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2D(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(image_input)          
+        layer = layers.Conv2D(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         #----------------------------------------------------------------------            
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer) 
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer) 
-        #----------------------------------------------------------------------          
-        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)           
+        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         #----------------------------------------------------------------------            
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer)        
         #---------------------------------------------------------------------- 
-        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #---------------------------------------------------------------------- 
-        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
+        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)       
         layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #---------------------------------------------------------------------- 
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #---------------------------------------------------------------------- 
-        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
+        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #---------------------------------------------------------------------- 
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer) 
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #---------------------------------------------------------------------- 
-        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
+        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)       
         layer = layers.Conv2D(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------
         output = layers.MaxPooling2D((2, 2), padding = 'same', name = 'encoder_output')(layer)              
 
         self.encoder = Model(inputs = image_input, outputs = output, name = 'FeatEXT_encoder') 
 
-        return self.encoder   
+        return self.encoder  
+
+    # feat extraction model based on convolution/deconvolution
+    #========================================================================== 
+    def FEXT_bottleneck(self):
+
+        bottleneck_input = layers.Input(shape = self.encoder.layers[-1].output_shape[1:]) 
+        #----------------------------------------------------------------------
+        layer = layers.flatten()(bottleneck_input)  
+        #----------------------------------------------------------------------
+        layer = layers.Dense(512, activation='relu')(layer)
+        layer = layers.Dense(760, activation='relu')(layer)
+        layer = layers.Dense(1024, activation='relu')(layer)
+        #----------------------------------------------------------------------
+        output = layers.Dense(self.compression_size, activation='relu')(layer)
+
+        self.bottleneck = Model(inputs = bottleneck_input, outputs = output, name = 'FeatEXT_bottleneck')
+
+        return self.bottleneck
 
     # feat extraction model based on convolution/deconvolution
     #========================================================================== 
@@ -123,41 +132,33 @@ class AutoEncoderModel:
         
         vector_input = layers.Input(shape = self.encoder.layers[-1].output_shape[1:]) 
         #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='nearest')(vector_input)
+        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(vector_input)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
+        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------                
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='nearest')(layer)
+        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
+        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = layers.Conv2DTranspose(512, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------       
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='nearest')(layer)
+        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
+        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='nearest')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='nearest')(layer)              
+        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
         layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer) 
+        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)              
+        #----------------------------------------------------------------------
+        layer = layers.Conv2DTranspose(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)         
+        layer = layers.Conv2DTranspose(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer) 
         #----------------------------------------------------------------------
         output = layers.Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
         
@@ -175,12 +176,13 @@ class AutoEncoderModel:
        
         image_input = layers.Input(shape = self.picture_size)         
         #----------------------------------------------------------------------
-        encoder_block = encoder(image_input)
+        encoder_block = encoder(image_input)        
         decoder_block = decoder(encoder_block)
         #----------------------------------------------------------------------
         self.model = Model(inputs = image_input, outputs = decoder_block, name = 'FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
+        metric = keras.metrics.Poisson()
         self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], run_eagerly=False) 
 
         return self.model
@@ -191,13 +193,14 @@ class AutoEncoderModel:
 #==============================================================================
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, dataframe, batch_size=6, image_size=(244, 244), shuffle=True):        
+    def __init__(self, dataframe, batch_size, image_size=(244, 244), shuffle=True, augmentation=True):        
         self.dataframe = dataframe
         self.path_col = 'images path'       
         self.num_of_samples = dataframe.shape[0]
         self.image_size = image_size
         self.batch_size = batch_size  
-        self.batch_index = 0              
+        self.batch_index = 0 
+        self.augmentation = augmentation             
         self.shuffle = shuffle
         self.on_epoch_end()       
 
@@ -226,21 +229,28 @@ class DataGenerator(keras.utils.Sequence):
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 
-    # define method to load images and perform data augmentation    
+    # define method perform data augmentation    
     #--------------------------------------------------------------------------
-    def __images_generation(self, path):
-        image = tf.io.read_file(path)
-        image = tf.image.decode_image(image, channels=3)
-        resized_image = tf.image.resize(image, self.image_size)
-        rgb_image = tf.reverse(resized_image, axis=[-1])
-        norm_image = rgb_image / 255.0              
-        pp_image = tf.keras.preprocessing.image.random_shift(norm_image, 0.2, 0.3)
+    def __images_augmentation(self, image):
+        pp_image = tf.keras.preprocessing.image.random_shift(image, 0.2, 0.3)
         pp_image = tf.image.random_flip_left_right(pp_image)
         pp_image = tf.image.random_flip_up_down(pp_image)
 
-        return pp_image    
+        return pp_image        
+
+    # define method to load images 
+    #--------------------------------------------------------------------------
+    def __images_generation(self, path):
+        image = tf.io.read_file(path)
+        rgb_image = tf.image.decode_image(image, channels=3)
+        rgb_image = tf.image.resize(rgb_image, self.image_size)        
+        if self.augmentation==True:
+            rgb_image = self.__images_augmentation(rgb_image)
+        rgb_image = rgb_image / 255.0        
+
+        return rgb_image    
     
-    # define method to call the elements of the generator    
+    # define method to call the next elements of the generator    
     #--------------------------------------------------------------------------
     def next(self):
         next_index = (self.batch_index + 1) % self.__len__()
@@ -255,7 +265,7 @@ class DataGenerator(keras.utils.Sequence):
 #==============================================================================
 class ModelTraining:    
        
-    def __init__(self, device = 'default', seed=42):                     
+    def __init__(self, device = 'default', seed=42, use_mixed_precision=False):                     
         np.random.seed(seed)
         tf.random.set_seed(seed)         
         self.available_devices = tf.config.list_physical_devices()
@@ -267,13 +277,17 @@ class ModelTraining:
             print(dev)
         print()
         print('-------------------------------------------------------------------------------')
-        if device == 'GPU':            
-            policy = keras.mixed_precision.Policy('mixed_float16')
-            keras.mixed_precision.set_global_policy(policy) 
+        if device == 'GPU':
             self.physical_devices = tf.config.list_physical_devices('GPU')
-            tf.config.experimental.set_memory_growth(self.physical_devices[0], True)           
-            tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
-            print('GPU is set as active device')
+            if not self.physical_devices:
+                print('No GPU found. Falling back to CPU')
+                tf.config.set_visible_devices([], 'GPU')
+            else:
+                if use_mixed_precision == True:
+                    policy = keras.mixed_precision.Policy('mixed_float16')
+                    keras.mixed_precision.set_global_policy(policy) 
+                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')                 
+                print('GPU is set as active device')
             print('-------------------------------------------------------------------------------')
             print()        
         elif device == 'CPU':
@@ -287,30 +301,9 @@ class ModelTraining:
         path = os.path.join(savepath, 'model_parameters.txt')      
         with open(path, 'w') as f:
             for key, value in parameters_dict.items():
-                f.write(f'{key}: {value}\n')     
-           
+                f.write(f'{key}: {value}\n') 
 
-    # custom generator to feed the model during training
     #========================================================================== 
-    def FEXT_generator(self, dataframe, x_col, pic_size, batch_size, transform=True, shuffle=True):
-        
-        if transform==True:
-            datagen = ImageDataGenerator(rescale=1./255, horizontal_flip=True, 
-                                         rotation_range=20, width_shift_range=0.1,
-                                         height_shift_range=0.1)
-        else:
-            datagen = ImageDataGenerator(rescale=1./255)
-        
-        generator = datagen.flow_from_dataframe(dataframe, 
-                                                x_col=x_col, 
-                                                target_size=pic_size, 
-                                                batch_size=batch_size, 
-                                                class_mode='input',
-                                                shuffle=shuffle)
-        
-        return generator
-
-     #========================================================================== 
     def load_pretrained_model(self, path):
         
         model_folders = []
@@ -331,8 +324,7 @@ class ModelTraining:
               print()
            except:
               continue
-           break
-                         
+           break                         
         while dir_index not in index_list:
            try:
                dir_index = int(input('Input is not valid! Try again: '))

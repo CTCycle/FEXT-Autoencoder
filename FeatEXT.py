@@ -19,7 +19,6 @@ Features Extraction FeatEXT
 -------------------------------------------------------------------------------
 ... 
 ''')
-
 user_operations = UserOperations()
 operations_menu = {'1': 'Pretrain features extractor', 
                    '2': 'Extract features from images',                   
