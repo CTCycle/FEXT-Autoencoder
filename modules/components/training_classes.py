@@ -63,12 +63,14 @@ class RealTimeHistory(keras.callbacks.Callback):
 #==============================================================================
 class AutoEncoderModel:
 
-    def __init__(self, learning_rate, picture_size=(144, 144, 3), compression_size=1000): 
+    def __init__(self, learning_rate, picture_size=(144, 144, 3), 
+                 compression_size=1000, XLA_state=False): 
         self.model_name = 'FEXT'
         self.learning_rate = learning_rate
         self.num_channels = 3
         self.picture_size = picture_size + (self.num_channels,) 
-        self.compression_size = compression_size      
+        self.compression_size = compression_size 
+        self.XLA_state = XLA_state     
 
     # feat extraction model based on convolution/deconvolution
     #========================================================================== 
@@ -183,7 +185,8 @@ class AutoEncoderModel:
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.Poisson()
-        self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], run_eagerly=False) 
+        self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], 
+                           run_eagerly=False, jit_compile=self.XLA_state) 
 
         return self.model
 
@@ -335,7 +338,7 @@ class ModelTraining:
         model_path = os.path.join(path, model_folders[dir_index - 1])
         model = keras.models.load_model(model_path)        
         
-        return model  
+        return model
         
 
 # [VALIDATION OF PRETRAINED MODELS]

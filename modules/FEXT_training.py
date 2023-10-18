@@ -1,8 +1,8 @@
 import os
 import sys
 import pandas as pd
-import tensorflow as tf
 from keras.utils import plot_model
+import tensorflow as tf
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
@@ -14,8 +14,10 @@ from modules.components.data_classes import PreProcessing
 from modules.components.training_classes import ModelTraining, RealTimeHistory, AutoEncoderModel, ModelValidation, DataGenerator
 import modules.global_variables as GlobVar
 
-# [INTRODUCTION MESSAGE]
+# [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
+# Load the csv with data and transform the tokenized text column to convert the
+# strings into a series of integers
 #==============================================================================
 print('''
 -------------------------------------------------------------------------------
@@ -29,11 +31,6 @@ ultricies nisl, vel lacinia velit justo sed sapien. Mauris euismod, velit vel ti
 justo velit ultricies nisl, vel lacinia velit justo sed sapien. 
 ''')
 
-# [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
-#==============================================================================
-# Load the csv with data and transform the tokenized text column to convert the
-# strings into a series of integers
-#==============================================================================
 preprocessor = PreProcessing()
 images_paths = []
 for root, dirs, files in os.walk(GlobVar.images_path):
@@ -63,41 +60,50 @@ Batch size = {GlobVar.batch_size}
 #==============================================================================
 # module for the selection of different operations
 #==============================================================================
-trainworker = ModelTraining(device = GlobVar.training_device, seed = GlobVar.seed, use_mixed_precision=True)
+trainworker = ModelTraining(device = GlobVar.training_device, seed = GlobVar.seed, 
+                            use_mixed_precision=GlobVar.use_mixed_precision)
 
 # define model data generator (train data)
 #------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, GlobVar.batch_size, GlobVar.pic_size, augmentation=False, shuffle=True)
+train_generator = DataGenerator(train_data, GlobVar.batch_size, GlobVar.pic_size, 
+                                augmentation=False, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (train data)
 #------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-train_dataset = tf.data.Dataset.from_generator(lambda : train_generator, output_signature=output_signature)
+output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
+                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
+train_dataset = tf.data.Dataset.from_generator(lambda : train_generator, 
+                                               output_signature=output_signature)
 train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # define model data generator (test data)
 #------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, GlobVar.batch_size, GlobVar.pic_size, augmentation=False, shuffle=True)
+test_generator = DataGenerator(test_data, GlobVar.batch_size, GlobVar.pic_size, 
+                               augmentation=False, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (test data)
 #------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-test_dataset = tf.data.Dataset.from_generator(lambda : test_generator, output_signature=output_signature)
+output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
+                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
+test_dataset = tf.data.Dataset.from_generator(lambda : test_generator, 
+                                              output_signature=output_signature)
 test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # [BUILD FEATURES EXTRACTION MODEL]
 #==============================================================================
 # ....
 #==============================================================================
-modelworker = AutoEncoderModel(GlobVar.learning_rate, GlobVar.pic_size)
+modelworker = AutoEncoderModel(GlobVar.learning_rate, GlobVar.pic_size, 
+                               XLA_state=GlobVar.XLA_acceleration)
 model = modelworker.FEXT_model() 
 model.summary(expand_nested=True)
 
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
-model_savepath = preprocessor.model_savefolder(GlobVar.model_path, modelworker.model_name)
+model_savepath = preprocessor.model_savefolder(GlobVar.model_path, 
+                                               modelworker.model_name)
 if GlobVar.generate_model_graph == True:
     plot_path = os.path.join(model_savepath, 'model_layout.png')       
     plot_model(model, to_file = plot_path, show_shapes = True, 
@@ -111,18 +117,19 @@ if GlobVar.generate_model_graph == True:
 # use the bash command: python -m tensorboard.main --logdir tensorboard/
 #==============================================================================
 
-# initialize the callbacks
+# initialize the real time history callback
 #------------------------------------------------------------------------------
-
 RTH_callback = RealTimeHistory(model_savepath, validation=True)
 
-# training loop and model saving at end
+# training loop (with or without tensorboard callback), saves the model at the end of
+# the training
 #------------------------------------------------------------------------------
 print(f'''Start model training for {GlobVar.epochs} epochs and batch size of {GlobVar.batch_size}
        ''')
 if GlobVar.use_tensorboard == True:
     log_path = os.path.join(model_savepath, 'tensorboard')
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1)
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, 
+                                                          histogram_freq=1)
     training = model.fit(train_dataset, epochs = GlobVar.epochs,
                          validation_data=test_dataset, 
                          callbacks = [tensorboard_callback, RTH_callback],
@@ -153,14 +160,16 @@ validator = ModelValidation(model)
 
 # extract batch of real and reconstructed images and perform visual validation (train set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(train_data, 6, GlobVar.pic_size, augmentation=False, shuffle=False)
+val_generator = DataGenerator(train_data, 6, GlobVar.pic_size, 
+                              augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'train', model_savepath)
 
 # extract batch of real and reconstructed images and perform visual validation (test set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, 6, GlobVar.pic_size, augmentation=False, shuffle=False)
+val_generator = DataGenerator(test_data, 6, GlobVar.pic_size, 
+                              augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'test', model_savepath)
