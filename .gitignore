@@ -30413,3 +30413,14 @@ images/8247042603.jpg
 images/8248428448.jpg
 images/8251170369.jpg
 images/8251604257.jpg
+models/FEXT_20231016H1709/keras_metadata.pb
+models/FEXT_20231016H1709/model_layout.png
+models/FEXT_20231016H1709/model_parameters.txt
+models/FEXT_20231016H1709/saved_model.pb
+models/FEXT_20231016H1709/test_validation.jpeg
+models/FEXT_20231016H1709/train_validation.jpeg
+models/FEXT_20231016H1709/training_history.jpeg
+models/FEXT_20231016H1709/tensorboard/train/events.out.tfevents.1697468959.BLUEGENE.17396.0.v2
+models/FEXT_20231016H1709/tensorboard/validation/events.out.tfevents.1697469151.BLUEGENE.17396.1.v2
+models/FEXT_20231016H1709/variables/variables.data-00000-of-00001
+models/FEXT_20231016H1709/variables/variables.index
