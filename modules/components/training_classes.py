@@ -1,7 +1,5 @@
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
@@ -78,13 +76,13 @@ class AutoEncoderModel:
                  
         image_input = layers.Input(shape = self.picture_size, name = 'image_input')
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(image_input)          
-        layer = layers.Conv2D(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(image_input)          
+        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         #----------------------------------------------------------------------            
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer) 
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)           
-        layer = layers.Conv2D(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)           
+        layer = layers.Conv2D(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
         #----------------------------------------------------------------------            
         layer = layers.MaxPooling2D((2, 2), padding = 'same')(layer)        
         #---------------------------------------------------------------------- 
@@ -154,13 +152,13 @@ class AutoEncoderModel:
         #----------------------------------------------------------------------
         layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
+        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = layers.Conv2DTranspose(256, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)
         #----------------------------------------------------------------------
         layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)              
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)         
-        layer = layers.Conv2DTranspose(64, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer) 
+        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer)         
+        layer = layers.Conv2DTranspose(128, (3, 3), strides=1, padding = 'same', activation = 'relu')(layer) 
         #----------------------------------------------------------------------
         output = layers.Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
         
@@ -184,8 +182,8 @@ class AutoEncoderModel:
         self.model = Model(inputs = image_input, outputs = decoder_block, name = 'FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
-        metric = keras.metrics.Poisson()
-        self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], 
+        metric = keras.metrics.CosineSimilarity()
+        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
                            run_eagerly=False, jit_compile=self.XLA_state) 
 
         return self.model
