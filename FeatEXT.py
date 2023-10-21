@@ -9,10 +9,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from modules.components.data_classes import UserOperations
 
 # [MAIN MENU]
-# =============================================================================
+#==============================================================================
 # Starting DITK analyzer, checking for dictionary presence and perform conditional
 # import of modules
-# =============================================================================
+#==============================================================================
 print('''
 -------------------------------------------------------------------------------
 Features Extraction FeatEXT
@@ -20,9 +20,10 @@ Features Extraction FeatEXT
 ... 
 ''')
 user_operations = UserOperations()
-operations_menu = {'1': 'Pretrain features extractor', 
-                   '2': 'Extract features from images',                   
-                   '3': 'Exit and close'}
+operations_menu = {'1' : 'Pretrain FEXT-AutoEncoder model',
+                   '2' : 'Evaluate FEXT-AutoEncoder model',
+                   '3' : 'Extract features from images',                   
+                   '4' : 'Exit and close'}
 
 while True:
     print('------------------------------------------------------------------------')
@@ -36,9 +37,14 @@ while True:
         del sys.modules['modules.FEXT_training']
     
     elif op_sel == 2:
+        import modules.FEXT_evaluation
+        del sys.modules['modules.FEXT_evaluation']
+
+    elif op_sel == 3:
         import modules.FEXT_features_extraction
         del sys.modules['modules.FEXT_features_extraction']
 
-    elif op_sel == 3:
+
+    elif op_sel == 4:
         break
 
