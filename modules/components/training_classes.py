@@ -169,7 +169,7 @@ class AutoEncoderModel:
     
     # feat extraction model based on convolution/deconvolution
     #========================================================================== 
-    def FEXT_model(self):
+    def FEXT_AutoEncoder(self):
 
         encoder = self.FEXT_encoder()
         decoder = self.FEXT_decoder() 
@@ -183,7 +183,7 @@ class AutoEncoderModel:
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
-        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
+        self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], 
                            run_eagerly=False, jit_compile=self.XLA_state) 
 
         return self.model
@@ -333,8 +333,8 @@ class ModelTraining:
            except:
                continue  
            
-        model_path = os.path.join(path, model_folders[dir_index - 1])
-        model = keras.models.load_model(model_path)        
+        self.model_path = os.path.join(path, model_folders[dir_index - 1])
+        model = keras.models.load_model(self.model_path)        
         
         return model
         

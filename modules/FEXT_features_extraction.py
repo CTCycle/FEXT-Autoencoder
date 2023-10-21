@@ -1,7 +1,8 @@
 import os
 import sys
 import pandas as pd
-from keras.models import Model, load_model
+import tensorflow as tf
+from keras.models import Model
 from tqdm import tqdm
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
@@ -10,16 +11,10 @@ warnings.simplefilter(action='ignore', category = Warning)
 #==============================================================================
 if __name__ == '__main__':
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
-from modules.components.training_classes import ModelTraining
+from modules.components.training_classes import ModelTraining, DataGenerator
 from modules.components.data_classes import PreProcessing
 import modules.global_variables as GlobVar
-
-# [LOAD TEXT DATA]
-#==============================================================================
-# module for the selection of different operations
-#==============================================================================
-file_loc = os.path.join(GlobVar.data_path, 'images_dataset.csv') 
-dataset = pd.read_csv(file_loc, encoding = 'utf-8', sep = (';' or ',' or ' ' or  ':'), low_memory = False)
+import modules.configurations as cnf
 
 # [ADD PATH TO XRAY DATASET]
 #==============================================================================
@@ -33,23 +28,43 @@ Features Extraction: extraction from pretrained model
 ''')
 
 preprocessor = PreProcessing()
-dataset = preprocessor.images_pathfinder(GlobVar.images_path, dataset, 'id')
-dataset = dataset.sample(n=GlobVar.num_samples)
+
+# find and assign images path
+#------------------------------------------------------------------------------
+images_paths = []
+for root, dirs, files in os.walk(GlobVar.images_path):
+    for file in files:
+        images_paths.append(os.path.join(root, file))
+
+# select a fraction of data for training
+#------------------------------------------------------------------------------
+dataset = pd.DataFrame(images_paths, columns = ['images path'])
+
+# [DEFINE DATA GENERATOR FOR THE IMAGES AND BUILD TF.DATASET]
+#==============================================================================
+# module for the selection of different operations
+#==============================================================================
+trainworker = ModelTraining(device = cnf.training_device, seed = cnf.seed, 
+                            use_mixed_precision=cnf.use_mixed_precision)
+
+# define model data generator (train data)
+#------------------------------------------------------------------------------
+datagenerator = DataGenerator(dataset, cnf.batch_size, cnf.pic_size, 
+                                augmentation=False, shuffle=True)
+x_batch, y_batch = datagenerator.__getitem__(0)
+
+# create tf.dataset from generator and set prefetch (train data)
+#------------------------------------------------------------------------------
+output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
+                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
+train_dataset = tf.data.Dataset.from_generator(lambda : datagenerator, 
+                                               output_signature=output_signature)
+train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # [LOAD PRETRAINED FEXT MODEL]
 #==============================================================================
 # module for the selection of different operations
 #==============================================================================
-print('''
-STEP 1 ----> Features extraction using pretrained FEXT
-''')
-
-# define generator to feed prediction loop
-#------------------------------------------------------------------------------
-trainworker = ModelTraining(device = 'GPU')
-generator = trainworker.FEXT_generator(dataset, 'images_path', GlobVar.pic_size[:-1],
-                                       GlobVar.batch_size, transform=False, shuffle=False)
-
 
 # define truncated model to get bottleneck layer outputs
 #------------------------------------------------------------------------------
@@ -65,8 +80,8 @@ encoder_model.summary()
 # predict compressed image representation
 #------------------------------------------------------------------------------
 features = []
-total_batches = int(dataset.shape[0]/generator.batch_size)
-for i, (X, Y) in tqdm(enumerate(generator), total=total_batches):    
+total_batches = int(dataset.shape[0]/datagenerator.batch_size)
+for i, (X, Y) in tqdm(enumerate(datagenerator), total=total_batches):    
     extracted_features = encoder_model.predict(X, verbose = 0)
     flatten_features = [x.reshape(-1) for x in extracted_features]      
     for batch in flatten_features:         

@@ -1,35 +1,34 @@
 import os
 import sys
 import pandas as pd
-from keras.utils import plot_model
 import tensorflow as tf
+from tqdm import tqdm
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
 # add modules path if this file is launched as __main__
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
 
 # import modules and components
 #------------------------------------------------------------------------------
+from modules.components.training_classes import ModelTraining, ModelValidation, DataGenerator
 from modules.components.data_classes import PreProcessing
-from modules.components.training_classes import ModelTraining, RealTimeHistory, AutoEncoderModel, ModelValidation, DataGenerator
 import modules.global_variables as GlobVar
 import modules.configurations as cnf
 
-# [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
+# [ADD PATH TO XRAY DATASET]
 #==============================================================================
-# Load the csv with data and transform the tokenized text column to convert the
-# strings into a series of integers
+# module for the selection of different operations
 #==============================================================================
 print('''
 -------------------------------------------------------------------------------
-FEXT-AutoEncoder training
+FEXT-AutoEncoder evaluation
 -------------------------------------------------------------------------------
-Add description
-      
+.... 
 ''')
+
 preprocessor = PreProcessing()
 
 # find and assign images path
@@ -93,69 +92,19 @@ test_dataset = tf.data.Dataset.from_generator(lambda : test_generator,
                                               output_signature=output_signature)
 test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
-# [BUILD FEATURES EXTRACTION MODEL]
+# [LOAD PRETRAINED FEXT MODEL]
 #==============================================================================
 # ....
 #==============================================================================
-modelworker = AutoEncoderModel(cnf.learning_rate, cnf.pic_size, XLA_state=cnf.XLA_acceleration)
-model = modelworker.FEXT_AutoEncoder() 
+print('''
+-------------------------------------------------------------------------------
+Load pretrained model
+-------------------------------------------------------------------------------
+''')
+trainworker = ModelTraining(device = cnf.training_device) 
+model = trainworker.load_pretrained_model(GlobVar.model_path)
 model.summary(expand_nested=True)
 
-# generate graphviz plot fo the model layout
-#------------------------------------------------------------------------------
-model_savepath = preprocessor.model_savefolder(GlobVar.model_path, modelworker.model_name)
-if cnf.generate_model_graph == True:
-    plot_path = os.path.join(model_savepath, 'model_layout.png')       
-    plot_model(model, to_file = plot_path, show_shapes = True, 
-               show_layer_names = True, show_layer_activations = True, 
-               expand_nested = True, rankdir = 'TB', dpi = 400)
-
-# [TRAINING WITH FEXT]
-#==============================================================================
-# Setting callbacks and training routine for the features extraction model. 
-# use command prompt on the model folder and (upon activating environment), 
-# use the bash command: python -m tensorboard.main --logdir tensorboard/
-#==============================================================================
-
-# initialize the real time history callback
-#------------------------------------------------------------------------------
-RTH_callback = RealTimeHistory(model_savepath, validation=True)
-
-# training loop (with or without tensorboard callback), saves the model at the end of
-# the training
-#------------------------------------------------------------------------------
-print(f'''Start model training for {cnf.epochs} epochs and batch size of {cnf.batch_size}
-       ''')
-if cnf.use_tensorboard == True:
-    log_path = os.path.join(model_savepath, 'tensorboard')
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, 
-                                                          histogram_freq=1)
-    training = model.fit(train_dataset, epochs = cnf.epochs,
-                         validation_data=test_dataset, 
-                         callbacks = [tensorboard_callback, RTH_callback],
-                         workers = 6, use_multiprocessing=True) 
-else:
-    training = model.fit(train_dataset, epochs = cnf.epochs,
-                         validation_data=test_dataset, 
-                         callbacks = [RTH_callback],
-                         workers = 6, use_multiprocessing=True) 
-
-model.save(model_savepath)
-
-# save model parameters in txt files
-#------------------------------------------------------------------------------
-parameters = {'Number of samples' : cnf.num_samples,
-              'Picture size' : cnf.pic_size,              
-              'Batch size' : cnf.batch_size,
-              'Learning rate' : cnf.learning_rate,
-              'Epochs' : cnf.epochs}
-
-trainworker.model_parameters(parameters, model_savepath)
-
-# [FEXT MODEL VALIDATION]
-#==============================================================================
-# ...
-#==============================================================================
 validator = ModelValidation(model)
 
 # extract batch of real and reconstructed images and perform visual validation (train set)
@@ -164,13 +113,5 @@ val_generator = DataGenerator(train_data, 6, cnf.pic_size,
                               augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
-validator.FEXT_validation(original_images, recostructed_images, 'train', model_savepath)
-
-# extract batch of real and reconstructed images and perform visual validation (test set)
-#------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, 6, cnf.pic_size, 
-                              augmentation=False, shuffle=False)
-original_images, y_val = val_generator.__getitem__(0)
-recostructed_images = list(model.predict(original_images))
-validator.FEXT_validation(original_images, recostructed_images, 'test', model_savepath)
+validator.FEXT_validation(original_images, recostructed_images, 'train', trainworker.model_path)
 
