@@ -2,7 +2,9 @@ import os
 import sys
 import pandas as pd
 import tensorflow as tf
-from tqdm import tqdm
+
+# setting warnings
+#------------------------------------------------------------------------------
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
@@ -16,7 +18,7 @@ if __name__ == '__main__':
 from modules.components.training_classes import ModelTraining, ModelValidation, DataGenerator
 from modules.components.data_classes import PreProcessing
 import modules.global_variables as GlobVar
-import modules.configurations as cnf
+import configurations as cnf
 
 # [ADD PATH TO XRAY DATASET]
 #==============================================================================

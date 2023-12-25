@@ -3,20 +3,23 @@ import sys
 import pandas as pd
 from keras.utils import plot_model
 import tensorflow as tf
+
+# setting warnings
+#------------------------------------------------------------------------------
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
 # add modules path if this file is launched as __main__
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
 
 # import modules and components
 #------------------------------------------------------------------------------
 from modules.components.data_classes import PreProcessing
 from modules.components.training_classes import ModelTraining, RealTimeHistory, AutoEncoderModel, ModelValidation, DataGenerator
 import modules.global_variables as GlobVar
-import modules.configurations as cnf
+import configurations as cnf
 
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================

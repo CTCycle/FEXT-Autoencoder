@@ -4,17 +4,23 @@ import pandas as pd
 import tensorflow as tf
 from keras.models import Model
 from tqdm import tqdm
+
+# setting warnings
+#------------------------------------------------------------------------------
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# [IMPORT MODULES AND CLASSES]
-#==============================================================================
+# add modules path if this file is launched as __main__
+#------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
+
+# import modules and components
+#------------------------------------------------------------------------------ 
 from modules.components.training_classes import ModelTraining, DataGenerator
 from modules.components.data_classes import PreProcessing
 import modules.global_variables as GlobVar
-import modules.configurations as cnf
+import configurations as cnf
 
 # [ADD PATH TO XRAY DATASET]
 #==============================================================================
