@@ -3,27 +3,15 @@ from datetime import datetime
 
 # [CONSOLE USER OPERATIONS]
 #==============================================================================
+# Series of methods to interact with the user through console
 #==============================================================================
-#==============================================================================
-class UserOperations:
+class UserOperations:   
     
-    '''    
-    A class for user operations such as interactions with the console, directories 
-    and files cleaning and other maintenance operations.
-      
-    Methods:
-        
-    menu_selection(menu):         console menu management
-    clear_all_files(folder_path): cleaning files and directories 
-   
-    '''
     
-    #==========================================================================
+    #--------------------------------------------------------------------------
     def menu_selection(self, menu):
         
-        '''        
-        menu_selection(menu)
-        
+        '''         
         Presents a menu to the user and returns the selected option.
         
         Keyword arguments:                      
@@ -37,7 +25,7 @@ class UserOperations:
         '''      
         indexes = [idx + 1 for idx, val in enumerate(menu)]
         for key, value in menu.items():
-            print(F'''{key} - {value}
+            print(f'''{key} - {value}
                   ''')        
         while True:
             try:
@@ -51,31 +39,18 @@ class UserOperations:
                     continue
             break
         
-        return op_sel   
-    
+        return op_sel  
                
-    #==========================================================================
-    def datetime_fetching(self):
-        
-        raw_today_datetime = str(datetime.now())
-        truncated_datetime = raw_today_datetime[:-7]
-        today_datetime = truncated_datetime
-        for rep in ('-', ':', ' '):
-            today_datetime = today_datetime.replace(rep, '_')
             
-        return today_datetime            
 
 # [PREPROCESSING PIPELINE]
 #==============================================================================
+# Series of methods and functions to preprocess data for model training
 #==============================================================================
-#==============================================================================
-class PreProcessing:
-    
-    def __init__(self): 
-        pass         
+class PreProcessing:    
     
 
-    #==========================================================================
+    #--------------------------------------------------------------------------
     def images_pathfinder(self, path, dataframe, id_col):
 
         '''
@@ -103,7 +78,7 @@ class PreProcessing:
         return dataframe  
     
     
-    #==========================================================================
+    #--------------------------------------------------------------------------
     def model_savefolder(self, path, model_name):
 
         '''
