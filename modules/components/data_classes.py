@@ -48,7 +48,6 @@ class UserOperations:
 # Series of methods and functions to preprocess data for model training
 #==============================================================================
 class PreProcessing:    
-    
 
     #--------------------------------------------------------------------------
     def images_pathfinder(self, path, dataframe, id_col):

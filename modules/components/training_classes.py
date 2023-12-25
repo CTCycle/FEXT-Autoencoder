@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
-from keras import layers 
+from keras.layers import Input, Dense, Reshape, Flatten, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -70,93 +70,69 @@ class AutoEncoderModel:
     #-------------------------------------------------------------------------- 
     def FEXT_encoder(self):
                  
-        image_input = layers.Input(shape = self.picture_size, name = 'image_input')
+        image_input = Input(shape = self.picture_size, name = 'image_input')
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(128, (3,3), strides=1, padding = 'same', activation = 'relu')(image_input)          
-        layer = layers.Conv2D(128, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        #----------------------------------------------------------------------            
-        layer = layers.MaxPooling2D((2,2), padding = 'same')(layer) 
+        layer = Conv2D(64, (4,4), strides=1, padding = 'same', activation = 'relu')(image_input)          
+        layer = Conv2D(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                    
+        layer = MaxPooling2D((2,2), padding = 'same')(layer) 
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)           
-        layer = layers.Conv2D(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        #----------------------------------------------------------------------            
-        layer = layers.MaxPooling2D((2,2), padding = 'same')(layer)        
+        layer = Conv2D(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)           
+        layer = Conv2D(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                   
+        layer = MaxPooling2D((2,2), padding = 'same')(layer)        
         #---------------------------------------------------------------------- 
-        layer = layers.Conv2D(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = layers.Conv2D(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = layers.Conv2D(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #---------------------------------------------------------------------- 
-        layer = layers.MaxPooling2D((2,2), padding = 'same')(layer)
+        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = MaxPooling2D((2,2), padding = 'same')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #---------------------------------------------------------------------- 
-        layer = layers.MaxPooling2D((2,2), padding = 'same')(layer) 
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = MaxPooling2D((2,2), padding = 'same')(layer) 
         #----------------------------------------------------------------------
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = layers.Conv2D(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        output = layers.MaxPooling2D((2,2), padding = 'same', name = 'encoder_output')(layer)              
-
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = MaxPooling2D((2,2), padding = 'same')(layer)     
+        #----------------------------------------------------------------------        
+        output = Dense(512, activation = 'tanh')(layer)  
+       
         self.encoder = Model(inputs = image_input, outputs = output, name = 'FeatEXT_encoder') 
 
-        return self.encoder  
-
-    
-    #-------------------------------------------------------------------------- 
-    def FEXT_bottleneck(self):
-
-        bottleneck_input = layers.Input(shape = self.encoder.layers[-1].output_shape[1:]) 
-        #----------------------------------------------------------------------
-        layer = layers.Flatten()(bottleneck_input)  
-        #----------------------------------------------------------------------
-        layer = layers.Dense(512, activation='relu')(layer)
-        layer = layers.Dense(760, activation='relu')(layer)
-        layer = layers.Dense(1024, activation='relu')(layer)
-        #----------------------------------------------------------------------
-        output = layers.Dense(self.compression_size, activation='relu')(layer)
-
-        self.bottleneck = Model(inputs = bottleneck_input, outputs = output, name = 'FeatEXT_bottleneck')
-
-        return self.bottleneck
+        return self.encoder   
+   
 
     
     #--------------------------------------------------------------------------
     def FEXT_decoder(self):        
         
-        vector_input = layers.Input(shape = self.encoder.layers[-1].output_shape[1:]) 
+        vector_input = Input(shape = self.encoder.layers[-1].output_shape[1:]) 
         #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(vector_input)
+        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(vector_input)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------                
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                       
+        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(512, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------       
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)          
+        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)              
         #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = layers.Conv2DTranspose(256, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------
-        layer = layers.UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)              
-        #----------------------------------------------------------------------
-        layer = layers.Conv2DTranspose(128, (3,3), strides=1, padding = 'same', activation = 'relu')(layer)         
-        layer = layers.Conv2DTranspose(128, (3,3), strides=1, padding = 'same', activation = 'relu')(layer) 
-        #----------------------------------------------------------------------
-        output = layers.Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
+        layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)         
+        layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)
+        #----------------------------------------------------------------------         
+        output = Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
         
         self.decoder = Model(inputs = vector_input, outputs = output, name = 'FeatEXT_decoder')
 
@@ -168,7 +144,7 @@ class AutoEncoderModel:
         encoder = self.FEXT_encoder()
         decoder = self.FEXT_decoder() 
        
-        image_input = layers.Input(shape = self.picture_size)         
+        image_input = Input(shape = self.picture_size)         
         #----------------------------------------------------------------------
         encoder_block = encoder(image_input)        
         decoder_block = decoder(encoder_block)
@@ -177,7 +153,7 @@ class AutoEncoderModel:
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
-        self.model.compile(loss = loss, optimizer = opt, metrics = ['accuracy'], 
+        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
                            run_eagerly=False, jit_compile=self.XLA_state) 
 
         return self.model
