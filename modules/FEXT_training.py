@@ -106,7 +106,7 @@ model.summary(expand_nested=True)
 
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
-model_savepath = preprocessor.model_savefolder(GlobVar.model_path, modelworker.model_name)
+model_savepath = preprocessor.model_savefolder(GlobVar.model_path, 'FEXT')
 if cnf.generate_model_graph == True:
     plot_path = os.path.join(model_savepath, 'model_layout.png')       
     plot_model(model, to_file = plot_path, show_shapes = True, 
