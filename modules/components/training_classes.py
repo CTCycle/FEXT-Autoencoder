@@ -1,10 +1,11 @@
 import os
 import numpy as np
+import json
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
-from keras.layers import Input, Dense, Reshape, Flatten, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -54,7 +55,7 @@ class RealTimeHistory(keras.callbacks.Callback):
             plt.close() 
             
 
-# [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
+# [MACHINE LEARNING MODELS]
 #==============================================================================
 # collection of model and submodels
 #==============================================================================
@@ -95,7 +96,7 @@ class AutoEncoderModel:
         layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = MaxPooling2D((2,2), padding = 'same')(layer)     
         #----------------------------------------------------------------------        
-        output = Dense(512, activation = 'tanh')(layer)  
+        output = Dense(1000, activation = 'relu')(layer)  
        
         self.encoder = Model(inputs = image_input, outputs = output, name = 'FeatEXT_encoder') 
 
@@ -113,21 +114,21 @@ class AutoEncoderModel:
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                       
-        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)          
-        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
         layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)
+        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
         layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
         layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(layer)              
+        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)              
         #----------------------------------------------------------------------
         layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)         
         layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)
@@ -268,45 +269,82 @@ class ModelTraining:
             print('CPU is set as active device')
             print('-------------------------------------------------------------------------------')
             print()
-
+    
     #-------------------------------------------------------------------------- 
-    def model_parameters(self, parameters_dict, savepath): 
-        path = os.path.join(savepath, 'model_parameters.txt')      
+    def model_parameters(self, parameters_dict, savepath):
+
+        '''
+        Saves the model parameters to a JSON file. The parameters are provided 
+        as a dictionary and are written to a file named 'model_parameters.json' 
+        in the specified directory.
+
+        Keyword arguments:
+            parameters_dict (dict): A dictionary containing the parameters to be saved.
+            savepath (str): The directory path where the parameters will be saved.
+
+        Returns:
+            None       
+
+        '''
+        path = os.path.join(savepath, 'model_parameters.json')      
         with open(path, 'w') as f:
-            for key, value in parameters_dict.items():
-                f.write(f'{key}: {value}\n') 
+            json.dump(parameters_dict, f)    
 
     #-------------------------------------------------------------------------- 
-    def load_pretrained_model(self, path):
-        
+    def load_pretrained_model(self, path, load_parameters=True):
+
+        '''
+        Load pretrained keras model (in folders) from the specified directory. 
+        If multiple model directories are found, the user is prompted to select one,
+        while if only one model directory is found, that model is loaded directly.
+        If `load_parameters` is True, the function also loads the model parameters 
+        from the target .json file in the same directory. 
+
+        Keyword arguments:
+            path (str): The directory path where the pretrained models are stored.
+            load_parameters (bool, optional): If True, the function also loads the 
+                                              model parameters from a JSON file. 
+                                              Default is True.
+
+        Returns:
+            model (keras.Model): The loaded Keras model.
+
+        '''        
         model_folders = []
         for entry in os.scandir(path):
             if entry.is_dir():
                 model_folders.append(entry.name)
-        model_folders.sort()
-        index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-        print('Please select a pretrained model:') 
-        print()
-        for i, directory in enumerate(model_folders):
-            print('{0} - {1}'.format(i + 1, directory))
+        if len(model_folders) > 1:
+            model_folders.sort()
+            index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
+            print('Please select a pretrained model:') 
+            print()
+            for i, directory in enumerate(model_folders):
+                print(f'{i + 1} - {directory}')        
+            print()               
+            while True:
+                try:
+                    dir_index = int(input('Type the model index to select it: '))
+                    print()
+                except:
+                    continue
+                break                         
+            while dir_index not in index_list:
+                try:
+                    dir_index = int(input('Input is not valid! Try again: '))
+                    print()
+                except:
+                    continue
+            self.model_path = os.path.join(path, model_folders[dir_index - 1])
+
+        elif len(model_folders) == 1:
+            self.model_path = os.path.join(path, model_folders[0])            
         
-        print()               
-        while True:
-           try:
-              dir_index = int(input('Type the model index to select it: '))
-              print()
-           except:
-              continue
-           break                         
-        while dir_index not in index_list:
-           try:
-               dir_index = int(input('Input is not valid! Try again: '))
-               print()
-           except:
-               continue  
-           
-        self.model_path = os.path.join(path, model_folders[dir_index - 1])
-        model = keras.models.load_model(self.model_path)        
+        model = keras.models.load_model(self.model_path)
+        if load_parameters==True:
+            path = os.path.join(self.model_path, 'model_parameters.json')
+            with open(path, 'r') as f:
+                self.model_configuration = json.load(f)            
         
         return model
         
