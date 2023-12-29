@@ -16,7 +16,7 @@ if __name__ == '__main__':
 # import modules and components
 #------------------------------------------------------------------------------
 from modules.components.training_classes import ModelTraining, ModelValidation, DataGenerator
-from modules.components.data_classes import PreProcessing
+from modules.components.data_assets import PreProcessing
 import modules.global_variables as GlobVar
 import configurations as cnf
 
