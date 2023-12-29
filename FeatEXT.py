@@ -6,7 +6,7 @@ warnings.simplefilter(action='ignore', category = Warning)
 # [IMPORT MODULES AND CLASSES]
 # =============================================================================
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from modules.components.data_classes import UserOperations
+from modules.components.data_assets import UserOperations
 
 # [MAIN MENU]
 #==============================================================================
