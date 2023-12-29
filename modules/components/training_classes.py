@@ -7,6 +7,10 @@ from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
 
+# set environment variables
+#------------------------------------------------------------------------------
+os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
+
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 #==============================================================================
@@ -61,49 +65,45 @@ class RealTimeHistory(keras.callbacks.Callback):
 #==============================================================================
 class AutoEncoderModel:
 
-    def __init__(self, learning_rate, picture_size=(144, 144, 3), XLA_state=False):         
+    def __init__(self, learning_rate, picture_size=(144, 144), XLA_state=False):         
         self.learning_rate = learning_rate
         self.num_channels = 3
         self.picture_size = picture_size + (self.num_channels,)         
-        self.XLA_state = XLA_state     
+        self.XLA_state = XLA_state  
 
-    
     #-------------------------------------------------------------------------- 
     def FEXT_encoder(self):
                  
         image_input = Input(shape = self.picture_size, name = 'image_input')
         #----------------------------------------------------------------------
-        layer = Conv2D(64, (4,4), strides=1, padding = 'same', activation = 'relu')(image_input)          
-        layer = Conv2D(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                    
-        layer = MaxPooling2D((2,2), padding = 'same')(layer) 
+        layer = Conv2D(64, (4,4), strides=1, padding='same', activation = 'relu')(image_input)          
+        layer = Conv2D(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)                    
+        layer = MaxPooling2D((2,2), padding='same')(layer) 
         #----------------------------------------------------------------------
-        layer = Conv2D(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)           
-        layer = Conv2D(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                   
-        layer = MaxPooling2D((2,2), padding = 'same')(layer)        
+        layer = Conv2D(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)           
+        layer = Conv2D(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)                   
+        layer = MaxPooling2D((2,2), padding='same')(layer)        
         #---------------------------------------------------------------------- 
-        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = Conv2D(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = MaxPooling2D((2,2), padding = 'same')(layer)
+        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
+        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
+        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = MaxPooling2D((2,2), padding='same')(layer)
         #----------------------------------------------------------------------
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = MaxPooling2D((2,2), padding = 'same')(layer) 
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = MaxPooling2D((2,2), padding='same')(layer) 
         #----------------------------------------------------------------------
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = Conv2D(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = MaxPooling2D((2,2), padding = 'same')(layer)     
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
+        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)
         #----------------------------------------------------------------------        
-        output = Dense(1000, activation = 'relu')(layer)  
+        output = MaxPooling2D((2,2), padding='same')(layer)           
        
         self.encoder = Model(inputs = image_input, outputs = output, name = 'FeatEXT_encoder') 
 
-        return self.encoder   
-   
-
-    
+        return self.encoder
+        
     #--------------------------------------------------------------------------
     def FEXT_decoder(self):        
         
@@ -111,27 +111,27 @@ class AutoEncoderModel:
         #----------------------------------------------------------------------
         layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(vector_input)
         #----------------------------------------------------------------------
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)                       
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)                       
         layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)       
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)          
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)          
         layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
         layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
         #----------------------------------------------------------------------
-        layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(128, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
+        layer = Conv2DTranspose(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
         layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)              
         #----------------------------------------------------------------------
-        layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)         
-        layer = Conv2DTranspose(64, (4,4), strides=1, padding = 'same', activation = 'relu')(layer)
+        layer = Conv2DTranspose(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)         
+        layer = Conv2DTranspose(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)
         #----------------------------------------------------------------------         
         output = Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
         

@@ -9,12 +9,14 @@ seed = 42
 training_device = 'GPU'
 learning_rate = 0.001
 pic_size = (224, 224)
-batch_size = 10
-epochs = 50
+num_channels = 3
+image_shape = pic_size + (num_channels,)
+batch_size = 25
+epochs = 100
 
 #------------------------------------------------------------------------------
-num_samples = 2200
-num_test_samples = 200
+num_samples = 4000
+num_test_samples = 800
 
 
 
