@@ -20,7 +20,7 @@ Features Extraction FeatEXT
 ... 
 ''')
 user_operations = UserOperations()
-operations_menu = {'1' : 'Pretrain FEXT-AutoEncoder model',
+operations_menu = {'1' : 'Pretrain FeXTAutoEncoder model',
                    '2' : 'Evaluate FEXT-AutoEncoder model',
                    '3' : 'Extract features from images',                   
                    '4' : 'Exit and close'}
@@ -41,7 +41,7 @@ while True:
         del sys.modules['modules.FEXT_evaluation']
 
     elif op_sel == 3:
-        import modules.FEXT_features_extraction
+        import modules.FEXT_extraction
         del sys.modules['modules.FEXT_features_extraction']
 
 
