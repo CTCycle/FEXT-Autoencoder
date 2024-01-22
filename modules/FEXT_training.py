@@ -17,7 +17,7 @@ if __name__ == '__main__':
 # import modules and components
 #------------------------------------------------------------------------------
 from modules.components.data_assets import PreProcessing
-from modules.components.training_assets import ModelTraining, RealTimeHistory, AutoEncoderModel, ModelValidation, DataGenerator
+from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, ModelValidation, DataGenerator
 import modules.global_variables as GlobVar
 import configurations as cnf
 
@@ -71,7 +71,7 @@ trainworker = ModelTraining(device = cnf.training_device, seed = cnf.seed,
 # define model data generator (train data)
 #------------------------------------------------------------------------------
 train_generator = DataGenerator(train_data, cnf.batch_size, cnf.pic_size, 
-                                augmentation=False, shuffle=True)
+                                augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (train data)
@@ -85,7 +85,7 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 # define model data generator (test data)
 #------------------------------------------------------------------------------
 test_generator = DataGenerator(test_data, cnf.batch_size, cnf.pic_size, 
-                               augmentation=False, shuffle=True)
+                               augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 
 # create tf.dataset from generator and set prefetch (test data)
@@ -100,8 +100,9 @@ test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 #==============================================================================
 # ....
 #==============================================================================
-modelworker = AutoEncoderModel(cnf.learning_rate, cnf.pic_size, XLA_state=cnf.XLA_acceleration)
-model = modelworker.FEXT_AutoEncoder() 
+modelworker = FeXTAutoEncoder(cnf.learning_rate, cnf.kernel_size, cnf.pic_size, cnf.seed, 
+                              XLA_state=cnf.XLA_acceleration)
+model = modelworker.build() 
 model.summary(expand_nested=True)
 
 # generate graphviz plot fo the model layout
@@ -123,25 +124,20 @@ if cnf.generate_model_graph == True:
 # initialize the real time history callback
 #------------------------------------------------------------------------------
 RTH_callback = RealTimeHistory(model_savepath, validation=True)
+callbacks_list = [RTH_callback]
 
 # training loop (with or without tensorboard callback), saves the model at the end of
 # the training
 #------------------------------------------------------------------------------
 print(f'''Start model training for {cnf.epochs} epochs and batch size of {cnf.batch_size}
        ''')
-if cnf.use_tensorboard == True:
+
+if cnf.use_tensorboard:
     log_path = os.path.join(model_savepath, 'tensorboard')
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_path, 
-                                                          histogram_freq=1)
-    training = model.fit(train_dataset, epochs = cnf.epochs,
-                         validation_data=test_dataset, 
-                         callbacks = [tensorboard_callback, RTH_callback],
-                         workers = 6, use_multiprocessing=True) 
-else:
-    training = model.fit(train_dataset, epochs = cnf.epochs,
-                         validation_data=test_dataset, 
-                         callbacks = [RTH_callback],
-                         workers = 6, use_multiprocessing=True) 
+    callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
+
+training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_dataset, 
+                     callbacks=callbacks_list, workers=6, use_multiprocessing=True)
 
 model.save(model_savepath)
 
@@ -163,16 +159,14 @@ validator = ModelValidation(model)
 
 # extract batch of real and reconstructed images and perform visual validation (train set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(train_data, 6, cnf.pic_size, 
-                              augmentation=False, shuffle=False)
+val_generator = DataGenerator(train_data, 6, cnf.pic_size, augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'train', model_savepath)
 
 # extract batch of real and reconstructed images and perform visual validation (test set)
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, 6, cnf.pic_size, 
-                              augmentation=False, shuffle=False)
+val_generator = DataGenerator(test_data, 6, cnf.pic_size, augmentation=False, shuffle=False)
 original_images, y_val = val_generator.__getitem__(0)
 recostructed_images = list(model.predict(original_images))
 validator.FEXT_validation(original_images, recostructed_images, 'test', model_savepath)

@@ -7,10 +7,6 @@ from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
 
-# set environment variables
-#------------------------------------------------------------------------------
-os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
-
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 #==============================================================================
@@ -58,108 +54,6 @@ class RealTimeHistory(keras.callbacks.Callback):
             plt.savefig(fig_path, bbox_inches = 'tight', format = 'jpeg', dpi = 300)            
             plt.close() 
             
-
-# [MACHINE LEARNING MODELS]
-#==============================================================================
-# collection of model and submodels
-#==============================================================================
-class AutoEncoderModel:
-
-    def __init__(self, learning_rate, picture_size=(144, 144), XLA_state=False):         
-        self.learning_rate = learning_rate
-        self.num_channels = 3
-        self.picture_size = picture_size + (self.num_channels,)         
-        self.XLA_state = XLA_state  
-
-    #-------------------------------------------------------------------------- 
-    def FEXT_encoder(self):
-                 
-        image_input = Input(shape = self.picture_size, name = 'image_input')
-        #----------------------------------------------------------------------
-        layer = Conv2D(64, (4,4), strides=1, padding='same', activation = 'relu')(image_input)          
-        layer = Conv2D(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)                    
-        layer = MaxPooling2D((2,2), padding='same')(layer) 
-        #----------------------------------------------------------------------
-        layer = Conv2D(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)           
-        layer = Conv2D(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)                   
-        layer = MaxPooling2D((2,2), padding='same')(layer)        
-        #---------------------------------------------------------------------- 
-        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
-        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
-        layer = Conv2D(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = MaxPooling2D((2,2), padding='same')(layer)
-        #----------------------------------------------------------------------
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = MaxPooling2D((2,2), padding='same')(layer) 
-        #----------------------------------------------------------------------
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
-        layer = Conv2D(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------        
-        output = MaxPooling2D((2,2), padding='same')(layer)           
-       
-        self.encoder = Model(inputs = image_input, outputs = output, name = 'FeatEXT_encoder') 
-
-        return self.encoder
-        
-    #--------------------------------------------------------------------------
-    def FEXT_decoder(self):        
-        
-        vector_input = Input(shape = self.encoder.layers[-1].output_shape[1:]) 
-        #----------------------------------------------------------------------
-        layer = UpSampling2D(size = (2, 2), interpolation='bilinear')(vector_input)
-        #----------------------------------------------------------------------
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)                       
-        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
-        #----------------------------------------------------------------------
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)       
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(512, (4,4), strides=1, padding='same', activation = 'relu')(layer)          
-        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
-        #----------------------------------------------------------------------
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(256, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)
-        #----------------------------------------------------------------------
-        layer = Conv2DTranspose(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = Conv2DTranspose(128, (4,4), strides=1, padding='same', activation = 'relu')(layer)        
-        layer = UpSampling2D(size = (2,2), interpolation='bilinear')(layer)              
-        #----------------------------------------------------------------------
-        layer = Conv2DTranspose(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)         
-        layer = Conv2DTranspose(64, (4,4), strides=1, padding='same', activation = 'relu')(layer)
-        #----------------------------------------------------------------------         
-        output = Dense(self.num_channels, activation = 'sigmoid', dtype='float32')(layer)              
-        
-        self.decoder = Model(inputs = vector_input, outputs = output, name = 'FeatEXT_decoder')
-
-        return self.decoder      
-    
-    #-------------------------------------------------------------------------- 
-    def FEXT_AutoEncoder(self):
-
-        encoder = self.FEXT_encoder()
-        decoder = self.FEXT_decoder() 
-       
-        image_input = Input(shape = self.picture_size)         
-        #----------------------------------------------------------------------
-        encoder_block = encoder(image_input)        
-        decoder_block = decoder(encoder_block)
-        #----------------------------------------------------------------------
-        self.model = Model(inputs = image_input, outputs = decoder_block, name = 'FEXT_model')
-        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = keras.losses.MeanSquaredError()
-        metric = keras.metrics.CosineSimilarity()
-        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
-                           run_eagerly=False, jit_compile=self.XLA_state) 
-
-        return self.model
-    
-
 # [CUSTOM DATA GENERATOR FOR TRAINING]
 #==============================================================================
 # Generate batches of inputs and outputs using a custom generator function and 
@@ -167,7 +61,8 @@ class AutoEncoderModel:
 #==============================================================================
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, dataframe, batch_size, image_size=(244, 244), shuffle=True, augmentation=True):        
+    def __init__(self, dataframe, batch_size, image_size=(244, 244), shuffle=True,
+                  augmentation=True):        
         self.dataframe = dataframe
         self.path_col = 'images path'       
         self.num_of_samples = dataframe.shape[0]
@@ -190,7 +85,7 @@ class DataGenerator(keras.utils.Sequence):
     #--------------------------------------------------------------------------
     def __getitem__(self, idx): 
         path_batch = self.dataframe[self.path_col][idx * self.batch_size:(idx + 1) * self.batch_size]           
-        x1_batch = [self.__images_generation(image_path) for image_path in path_batch]        
+        x1_batch = [self.__images_generation(image_path, augmentation=self.augmentation) for image_path in path_batch]        
         X1_tensor = tf.convert_to_tensor(x1_batch)
         Y_tensor = X1_tensor        
 
@@ -214,13 +109,13 @@ class DataGenerator(keras.utils.Sequence):
 
     # define method to load images 
     #--------------------------------------------------------------------------
-    def __images_generation(self, path):
+    def __images_generation(self, path, augmentation=True):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
         rgb_image = tf.image.resize(rgb_image, self.image_size)        
-        if self.augmentation==True:
+        if augmentation==True:
             rgb_image = self.__images_augmentation(rgb_image)
-        rgb_image = rgb_image / 255.0        
+        rgb_image = rgb_image/255.0        
 
         return rgb_image    
     
@@ -231,6 +126,209 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_index = next_index
 
         return self.__getitem__(next_index)
+    
+# [POOLING CONVOLUTIONAL BLOCKS]
+#==============================================================================
+# Positional embedding custom layer
+#==============================================================================
+class PooledConvBlock(keras.layers.Layer):
+    def __init__(self, units, kernel_size, layers=2, seed=42):
+        super(PooledConvBlock, self).__init__()
+        self.units = units
+        self.kernel_size = kernel_size
+        self.layers = layers
+        self.seed = seed
+        self.convolutions = [Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(layers)]         
+        self.pooling = MaxPooling2D(padding='same') 
+        
+        
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training):
+        layer = inputs
+        for conv in self.convolutions:
+            layer = conv(layer) 
+        output = self.pooling(layer)           
+        
+        return output
+    
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(PooledConvBlock, self).get_config()
+        config.update({'units': self.units,
+                       'kernel_size': self.kernel_size,
+                       'layers': self.layers,
+                       'seed': self.seed})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)  
+
+# [POOLING CONVOLUTIONAL BLOCKS]
+#==============================================================================
+# Positional embedding custom layer
+#==============================================================================
+class TransposeConvBlock(keras.layers.Layer):
+    def __init__(self, units, kernel_size, layers=2, seed=42):
+        super(TransposeConvBlock, self).__init__()
+        self.units = units
+        self.kernel_size = kernel_size
+        self.layers = layers
+        self.seed = seed
+        self.convolutions = [Conv2DTranspose(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(layers)]         
+        self.upsamp = UpSampling2D()         
+        
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training):
+        layer = inputs
+        for conv in self.convolutions:
+            layer = conv(layer) 
+        output = self.upsamp(layer)           
+        
+        return output
+    
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(TransposeConvBlock, self).get_config()
+        config.update({'units': self.units,
+                       'kernel_size': self.kernel_size,
+                       'layers': self.layers,
+                       'seed': self.seed})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)      
+
+    
+
+       
+# [MACHINE LEARNING MODELS]
+#==============================================================================
+# collection of model and submodels
+#==============================================================================
+class FeXTEncoder(keras.layers.Layer):
+    def __init__(self, kernel_size, picture_size=(144, 144), seed=42):
+        super(FeXTEncoder, self).__init__()
+        self.kernel_size = kernel_size
+        self.seed = seed
+        self.num_channels = 3
+        self.picture_shape = picture_size + (self.num_channels,)
+        self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
+        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
+        self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
+        self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
+
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training=None):
+        layer = inputs
+        layer = self.convblock1(layer)
+        layer = self.convblock2(layer)
+        layer = self.convblock3(layer)
+        output = self.convblock4(layer)
+        return output
+
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(FeXTEncoder, self).get_config()
+        config.update({'kernel_size': self.kernel_size,
+                       'seed': self.seed,
+                       'num_channels': self.num_channels,
+                       'picture_shape': self.picture_shape})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config) 
+
+# [MACHINE LEARNING MODELS]
+#==============================================================================
+# collection of model and submodels
+#==============================================================================
+class FeXTDecoder(keras.layers.Layer):
+    def __init__(self, kernel_size, picture_size=(144, 144), seed=42):
+        super(FeXTDecoder, self).__init__()
+        self.kernel_size = kernel_size
+        self.seed = seed
+        self.num_channels = 3
+        self.picture_shape = picture_size + (self.num_channels,)
+        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)
+        self.convblock2 = TransposeConvBlock(256, kernel_size, 3, seed)
+        self.convblock3 = TransposeConvBlock(128, kernel_size, 2, seed)
+        self.convblock4 = TransposeConvBlock(64, kernel_size, 2, seed)
+        self.dense = Dense(3, activation='sigmoid', dtype='float32')
+
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training):
+        layer = inputs
+        layer = self.convblock1(layer)
+        layer = self.convblock2(layer)
+        layer = self.convblock3(layer)
+        layer = self.convblock4(layer)
+        output = self.dense(layer)
+
+        return output
+
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(FeXTDecoder, self).get_config()
+        config.update({'kernel_size': self.kernel_size,
+                       'seed': self.seed,
+                       'num_channels': self.num_channels,
+                       'picture_shape': self.picture_shape})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)  
+        
+    
+
+# [MACHINE LEARNING MODELS]
+#==============================================================================
+# collection of model and submodels
+#==============================================================================
+class FeXTAutoEncoder: 
+
+    def __init__(self, learning_rate, kernel_size, picture_size=(144, 144), seed=42, 
+                 XLA_state=False):         
+        self.learning_rate = learning_rate
+        self.kernel_size = kernel_size
+        self.seed = seed
+        self.num_channels = 3
+        self.picture_shape = picture_size + (self.num_channels,)         
+        self.XLA_state = XLA_state
+        self.encoder = FeXTEncoder(kernel_size, picture_size, seed)
+        self.decoder = FeXTDecoder(kernel_size, picture_size, seed)
+         
+        
+
+    # build model given the architecture
+    #--------------------------------------------------------------------------
+    def build(self):       
+       
+        inputs = Input(shape = self.picture_shape)           
+        encoder_block = self.encoder(inputs)        
+        decoder_block = self.decoder(encoder_block)
+        
+        self.model = Model(inputs = inputs, outputs=decoder_block, name='FEXT_model')
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
+        loss = keras.losses.MeanSquaredError()
+        metric = keras.metrics.CosineSimilarity()
+        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
+                           run_eagerly=False, jit_compile=self.XLA_state) 
+
+        return self.model  
+
+
 
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
@@ -239,7 +337,7 @@ class DataGenerator(keras.utils.Sequence):
 #==============================================================================
 class ModelTraining:    
        
-    def __init__(self, device = 'default', seed=42, use_mixed_precision=False):                     
+    def __init__(self, device='default', seed=42, use_mixed_precision=False):                            
         np.random.seed(seed)
         tf.random.set_seed(seed)         
         self.available_devices = tf.config.list_physical_devices()
@@ -260,7 +358,8 @@ class ModelTraining:
                 if use_mixed_precision == True:
                     policy = keras.mixed_precision.Policy('mixed_float16')
                     keras.mixed_precision.set_global_policy(policy) 
-                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')                 
+                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
+                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
                 print('GPU is set as active device')
             print('-------------------------------------------------------------------------------')
             print()        
@@ -268,7 +367,8 @@ class ModelTraining:
             tf.config.set_visible_devices([], 'GPU')
             print('CPU is set as active device')
             print('-------------------------------------------------------------------------------')
-            print()
+            print()        
+    
     
     #-------------------------------------------------------------------------- 
     def model_parameters(self, parameters_dict, savepath):
@@ -290,8 +390,16 @@ class ModelTraining:
         with open(path, 'w') as f:
             json.dump(parameters_dict, f)    
 
+
+        
+# [INFERENCE]
+#==============================================================================
+# Collection of methods for machine learning validation and model evaluation
+#==============================================================================
+class Inference:
+
     #-------------------------------------------------------------------------- 
-    def load_pretrained_model(self, path, load_parameters=True):
+    def load_pretrained_model(self, path):
 
         '''
         Load pretrained keras model (in folders) from the specified directory. 
@@ -338,16 +446,24 @@ class ModelTraining:
             self.model_path = os.path.join(path, model_folders[dir_index - 1])
 
         elif len(model_folders) == 1:
-            self.model_path = os.path.join(path, model_folders[0])            
+            self.model_path = os.path.join(path, model_folders[0])                 
         
         model = keras.models.load_model(self.model_path)
-        if load_parameters==True:
-            path = os.path.join(self.model_path, 'model_parameters.json')
-            with open(path, 'r') as f:
-                self.model_configuration = json.load(f)            
+        path = os.path.join(self.model_path, 'model_parameters.json')
+        with open(path, 'r') as f:
+            self.model_configuration = json.load(f)            
         
         return model
-        
+    
+    #--------------------------------------------------------------------------
+    def images_loader(self, path, image_size=(244, 244), num_channels=3):
+        image = tf.io.read_file(path)
+        rgb_image = tf.image.decode_image(image, channels=num_channels)
+        rgb_image = tf.image.resize(rgb_image, image_size)        
+        rgb_image = rgb_image/255.0        
+
+        return rgb_image 
+    
 
 # [VALIDATION OF PRETRAINED MODELS]
 #==============================================================================
