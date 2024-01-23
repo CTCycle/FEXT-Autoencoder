@@ -52,12 +52,17 @@ subset_images = df_images.sample(n=cnf.num_samples, random_state=36)
 test_data = subset_images.sample(n=cnf.num_test_samples, random_state=36)
 train_data = subset_images.drop(test_data.index)
 
+# Print report with info about the training parameters
+#------------------------------------------------------------------------------
 print(f'''
 -------------------------------------------------------------------------------
-Number of samples in the dataset = {cnf.num_samples}
-Train samples = {cnf.num_samples - cnf.num_test_samples}
-Test samples = {cnf.num_test_samples}
-Batch size = {cnf.batch_size}
+FeXT training report
+-------------------------------------------------------------------------------
+Number of train samples: {train_data.shape[0]}
+Number of test samples:  {test_data.shape[0]}
+-------------------------------------------------------------------------------
+Batch size:              {cnf.batch_size}
+Epochs:                  {cnf.epochs}
 -------------------------------------------------------------------------------
 ''')
 
@@ -96,10 +101,15 @@ test_dataset = tf.data.Dataset.from_generator(lambda : test_generator,
                                               output_signature=output_signature)
 test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
-# [BUILD FEATURES EXTRACTION MODEL]
+# [TRAINING WITH FEXT]
 #==============================================================================
-# ....
+# Setting callbacks and training routine for the features extraction model. 
+# use command prompt on the model folder and (upon activating environment), 
+# use the bash command: python -m tensorboard.main --logdir tensorboard/
 #==============================================================================
+
+# build model
+#------------------------------------------------------------------------------
 modelworker = FeXTAutoEncoder(cnf.learning_rate, cnf.kernel_size, cnf.pic_size, cnf.seed, 
                               XLA_state=cnf.XLA_acceleration)
 model = modelworker.build() 
@@ -114,13 +124,6 @@ if cnf.generate_model_graph == True:
                show_layer_names = True, show_layer_activations = True, 
                expand_nested = True, rankdir = 'TB', dpi = 400)
 
-# [TRAINING WITH FEXT]
-#==============================================================================
-# Setting callbacks and training routine for the features extraction model. 
-# use command prompt on the model folder and (upon activating environment), 
-# use the bash command: python -m tensorboard.main --logdir tensorboard/
-#==============================================================================
-
 # initialize the real time history callback
 #------------------------------------------------------------------------------
 RTH_callback = RealTimeHistory(model_savepath, validation=True)
@@ -129,9 +132,6 @@ callbacks_list = [RTH_callback]
 # training loop (with or without tensorboard callback), saves the model at the end of
 # the training
 #------------------------------------------------------------------------------
-print(f'''Start model training for {cnf.epochs} epochs and batch size of {cnf.batch_size}
-       ''')
-
 if cnf.use_tensorboard:
     log_path = os.path.join(model_savepath, 'tensorboard')
     callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
