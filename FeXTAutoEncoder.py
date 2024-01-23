@@ -41,9 +41,8 @@ while True:
         del sys.modules['modules.FEXT_evaluation']
 
     elif op_sel == 3:
-        import modules.FEXT_extraction
-        del sys.modules['modules.FEXT_features_extraction']
-
+        import modules.FEXT_inference
+        del sys.modules['modules.FEXT_inference']
 
     elif op_sel == 4:
         break

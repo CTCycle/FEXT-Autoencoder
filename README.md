@@ -22,13 +22,13 @@ This application is composed of various modules, each performing distinct operat
 2) ....                                   
 3) Exit and close
 
-**Pretrain FEXT-AutoEncoder model**: this module run the autoencoder training using a subset of images found in the **images** folder. Thr training is performed based on given parameters in configurations.py, and once it is finished, the model weights are saved in the designated folder, together with additional informations about the training/model parameters, validation of training and test set and tensorboard analysis (if selected)
+**Pretrain FEXT-AutoEncoder model**: train the autoencoder on a subset of images from **/images**. The training parameters can be changed using the configurations.py. When the training session is over, the model is saved in the designated folder, together with a json file reporting the model configuration and the outcome of preliminary performance evalutations. 
 
-**Evaluate FEXT-AutoEncoder model**: this module evaluates any selected model (from those in the **models** folder) by analysing perfromance on train and test sets and overall accuracy of the trained DNN. 
+**Evaluate FEXT-AutoEncoder model**: this module evaluates any selected model (loaded from the **/models**) by analysing performance on train and test sets and overall accuracy of the trained model. 
 
-**Extract features from images**: with this function, a pretrained model is selected to perform images extraction and save the compressed features vectors in a csv file
+**Extract features from images**: select a pretrained model to extract vectors of image features (from **/predictions**) and save them in a .csv file
 
-**Exit and close**: quit the program
+**Exit and close**
                  
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:
@@ -57,3 +57,6 @@ Next, you'll need to install cuDNN, which is the NVIDIA Deep Neural Network Libr
 If you've installed the NVIDIA CUDA Toolkit within your environment, you may also need to install an additional package called `cuda-nvcc` (Version 12.3.107). This package provides the CUDA compiler and tools necessary for building CUDA-enabled applications.
 
 By following these steps, you can ensure that your environment is configured to take full advantage of GPU acceleration for enhanced performance. 
+
+## License
+This project is licensed under the terms of the MIT license. See the LICENSE file for details.

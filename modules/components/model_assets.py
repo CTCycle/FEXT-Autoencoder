@@ -202,9 +202,7 @@ class TransposeConvBlock(keras.layers.Layer):
 
     @classmethod
     def from_config(cls, config):
-        return cls(**config)      
-
-    
+        return cls(**config)     
 
        
 # [MACHINE LEARNING MODELS]
@@ -307,9 +305,7 @@ class FeXTAutoEncoder:
         self.picture_shape = picture_size + (self.num_channels,)         
         self.XLA_state = XLA_state
         self.encoder = FeXTEncoder(kernel_size, picture_size, seed)
-        self.decoder = FeXTDecoder(kernel_size, picture_size, seed)
-         
-        
+        self.decoder = FeXTDecoder(kernel_size, picture_size, seed)        
 
     # build model given the architecture
     #--------------------------------------------------------------------------
@@ -317,8 +313,7 @@ class FeXTAutoEncoder:
        
         inputs = Input(shape = self.picture_shape)           
         encoder_block = self.encoder(inputs)        
-        decoder_block = self.decoder(encoder_block)
-        
+        decoder_block = self.decoder(encoder_block)        
         self.model = Model(inputs = inputs, outputs=decoder_block, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
