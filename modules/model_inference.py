@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
 # import modules and components
 #------------------------------------------------------------------------------ 
-from modules.components.model_assets import Inference, DataGenerator
+from modules.components.model_assets import Inference
 import modules.global_variables as GlobVar
 import configurations as cnf
 
