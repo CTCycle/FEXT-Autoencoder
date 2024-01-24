@@ -1,8 +1,9 @@
 import os
 import sys
 import pandas as pd
-from keras.utils import plot_model
 import tensorflow as tf
+from keras.utils import plot_model
+
 
 # setting warnings
 #------------------------------------------------------------------------------
@@ -21,6 +22,7 @@ from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXT
 import modules.global_variables as GlobVar
 import configurations as cnf
 
+
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
 # Load the csv with data and transform the tokenized text column to convert the
@@ -30,9 +32,8 @@ print('''
 -------------------------------------------------------------------------------
 FEXT-AutoEncoder training
 -------------------------------------------------------------------------------
-Add description
-      
 ''')
+
 preprocessor = PreProcessing()
 
 # find and assign images path
@@ -44,13 +45,27 @@ for root, dirs, files in os.walk(GlobVar.images_path):
 
 # select a fraction of data for training
 #------------------------------------------------------------------------------
-df_images = pd.DataFrame(images_paths, columns = ['images path'])
-subset_images = df_images.sample(n=cnf.num_samples, random_state=36)
+df_images = pd.DataFrame(images_paths, columns=['images path'])
+df_images = df_images.sample(n=cnf.num_samples, random_state=36)
 
 # create test dataset
 #------------------------------------------------------------------------------
-test_data = subset_images.sample(n=cnf.num_test_samples, random_state=36)
-train_data = subset_images.drop(test_data.index)
+test_data = df_images.sample(n=cnf.num_test_samples, random_state=36)
+train_data = df_images.drop(test_data.index)
+
+# create model folder and preprocessing subfolder
+#------------------------------------------------------------------------------
+model_savepath = preprocessor.model_savefolder(GlobVar.model_path, 'FeXT')
+pp_path = os.path.join(model_savepath, 'preprocessing')
+if not os.path.exists(pp_path):
+    os.mkdir(pp_path)
+
+# save preprocessed data
+#------------------------------------------------------------------------------
+file_loc = os.path.join(pp_path, 'train_data.csv')  
+train_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
+file_loc = os.path.join(pp_path, 'test_data.csv')  
+test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 
 # Print report with info about the training parameters
 #------------------------------------------------------------------------------
@@ -70,8 +85,8 @@ Epochs:                  {cnf.epochs}
 #==============================================================================
 # module for the selection of different operations
 #==============================================================================
-trainworker = ModelTraining(device = cnf.training_device, seed = cnf.seed, 
-                            use_mixed_precision=cnf.use_mixed_precision)
+trainer = ModelTraining(device=cnf.training_device, seed = cnf.seed, 
+                        use_mixed_precision=cnf.use_mixed_precision)
 
 # define model data generator (train data)
 #------------------------------------------------------------------------------
@@ -112,12 +127,10 @@ test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 #------------------------------------------------------------------------------
 modelworker = FeXTAutoEncoder(cnf.learning_rate, cnf.kernel_size, cnf.pic_size, cnf.seed, 
                               XLA_state=cnf.XLA_acceleration)
-model = modelworker.build() 
-model.summary(expand_nested=True)
+model = modelworker.get_model(summary=True) 
 
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
-model_savepath = preprocessor.model_savefolder(GlobVar.model_path, 'FEXT')
 if cnf.generate_model_graph == True:
     plot_path = os.path.join(model_savepath, 'model_layout.png')       
     plot_model(model, to_file = plot_path, show_shapes = True, 
@@ -129,29 +142,35 @@ if cnf.generate_model_graph == True:
 RTH_callback = RealTimeHistory(model_savepath, validation=True)
 callbacks_list = [RTH_callback]
 
-# training loop (with or without tensorboard callback), saves the model at the end of
-# the training
+# initialize tensorboard if requested
 #------------------------------------------------------------------------------
 if cnf.use_tensorboard:
     log_path = os.path.join(model_savepath, 'tensorboard')
     callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
 
+# training loop and save model at end of training
+#------------------------------------------------------------------------------
 training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_dataset, 
                      callbacks=callbacks_list, workers=6, use_multiprocessing=True)
 
-model.save(model_savepath)
+model.save(model_savepath, save_format='tf')
 
-# save model parameters in txt files
+# save model parameters in json files
 #------------------------------------------------------------------------------
 parameters = {'Number of samples' : cnf.num_samples,
-              'Picture size' : cnf.pic_size,              
+              'Picture size' : cnf.pic_size,
+              'Picture shape' : cnf.image_shape,
+              'Kernel size' : cnf.kernel_size,              
+              'Augmentation' : cnf.augmentation,              
               'Batch size' : cnf.batch_size,
               'Learning rate' : cnf.learning_rate,
-              'Epochs' : cnf.epochs}
+              'Epochs' : cnf.epochs,
+              'Seed' : cnf.seed,
+              'Tensorboard' : cnf.use_tensorboard}
 
-trainworker.model_parameters(parameters, model_savepath)
+trainer.model_parameters(parameters, model_savepath)
 
-# [FEXT MODEL VALIDATION]
+# [MODEL VALIDATION]
 #==============================================================================
 # ...
 #==============================================================================

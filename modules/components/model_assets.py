@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
+from tensorflow.keras.utils import register_keras_serializable
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -32,7 +33,7 @@ class RealTimeHistory(keras.callbacks.Callback):
             if self.validation==True:
                 self.loss_val_hist.append(logs[list(logs.keys())[2]])            
                 self.metric_val_hist.append(logs[list(logs.keys())[3]])
-        if epoch % 10 == 0:           
+        if epoch % 5 == 0:           
             fig_path = os.path.join(self.plot_path, 'training_history.jpeg')
             plt.subplot(2, 1, 1)
             plt.plot(self.epochs, self.loss_hist, label = 'training loss')
@@ -77,7 +78,6 @@ class DataGenerator(keras.utils.Sequence):
     #--------------------------------------------------------------------------
     def __len__(self):
         length = int(np.floor(self.num_of_samples)/self.batch_size)
-
         return length
     
     # define method to get X and Y data through custom functions, and subsequently
@@ -87,8 +87,7 @@ class DataGenerator(keras.utils.Sequence):
         path_batch = self.dataframe[self.path_col][idx * self.batch_size:(idx + 1) * self.batch_size]           
         x1_batch = [self.__images_generation(image_path, augmentation=self.augmentation) for image_path in path_batch]        
         X1_tensor = tf.convert_to_tensor(x1_batch)
-        Y_tensor = X1_tensor        
-
+        Y_tensor = X1_tensor  
         return X1_tensor, Y_tensor
     
     # define method to perform data operations on epoch end
@@ -104,7 +103,6 @@ class DataGenerator(keras.utils.Sequence):
         pp_image = tf.keras.preprocessing.image.random_shift(image, 0.2, 0.3)
         pp_image = tf.image.random_flip_left_right(pp_image)
         pp_image = tf.image.random_flip_up_down(pp_image)
-
         return pp_image        
 
     # define method to load images 
@@ -115,8 +113,7 @@ class DataGenerator(keras.utils.Sequence):
         rgb_image = tf.image.resize(rgb_image, self.image_size)        
         if augmentation==True:
             rgb_image = self.__images_augmentation(rgb_image)
-        rgb_image = rgb_image/255.0        
-
+        rgb_image = rgb_image/255.0
         return rgb_image    
     
     # define method to call the next elements of the generator    
@@ -124,7 +121,6 @@ class DataGenerator(keras.utils.Sequence):
     def next(self):
         next_index = (self.batch_index + 1) % self.__len__()
         self.batch_index = next_index
-
         return self.__getitem__(next_index)
     
 # [POOLING CONVOLUTIONAL BLOCKS]
@@ -139,8 +135,7 @@ class PooledConvBlock(keras.layers.Layer):
         self.layers = layers
         self.seed = seed
         self.convolutions = [Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(layers)]         
-        self.pooling = MaxPooling2D(padding='same') 
-        
+        self.pooling = MaxPooling2D(padding='same')         
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -223,7 +218,7 @@ class FeXTEncoder(keras.layers.Layer):
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training=None):
+    def call(self, inputs, training):
         layer = inputs
         layer = self.convblock1(layer)
         layer = self.convblock2(layer)
@@ -250,12 +245,10 @@ class FeXTEncoder(keras.layers.Layer):
 # collection of model and submodels
 #==============================================================================
 class FeXTDecoder(keras.layers.Layer):
-    def __init__(self, kernel_size, picture_size=(144, 144), seed=42):
+    def __init__(self, kernel_size, seed=42):
         super(FeXTDecoder, self).__init__()
         self.kernel_size = kernel_size
-        self.seed = seed
-        self.num_channels = 3
-        self.picture_shape = picture_size + (self.num_channels,)
+        self.seed = seed       
         self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)
         self.convblock2 = TransposeConvBlock(256, kernel_size, 3, seed)
         self.convblock3 = TransposeConvBlock(128, kernel_size, 2, seed)
@@ -279,9 +272,7 @@ class FeXTDecoder(keras.layers.Layer):
     def get_config(self):
         config = super(FeXTDecoder, self).get_config()
         config.update({'kernel_size': self.kernel_size,
-                       'seed': self.seed,
-                       'num_channels': self.num_channels,
-                       'picture_shape': self.picture_shape})
+                       'seed': self.seed})
         return config
 
     @classmethod
@@ -305,26 +296,25 @@ class FeXTAutoEncoder:
         self.picture_shape = picture_size + (self.num_channels,)         
         self.XLA_state = XLA_state
         self.encoder = FeXTEncoder(kernel_size, picture_size, seed)
-        self.decoder = FeXTDecoder(kernel_size, picture_size, seed)        
+        self.decoder = FeXTDecoder(kernel_size, seed)        
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def build(self):       
+    def get_model(self, summary=True):       
        
         inputs = Input(shape = self.picture_shape)           
         encoder_block = self.encoder(inputs)        
         decoder_block = self.decoder(encoder_block)        
-        self.model = Model(inputs = inputs, outputs=decoder_block, name='FEXT_model')
+        model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = keras.losses.MeanSquaredError()
+        loss = keras.losses.BinaryCrossentropy()
         metric = keras.metrics.CosineSimilarity()
-        self.model.compile(loss = loss, optimizer = opt, metrics = metric, 
-                           run_eagerly=False, jit_compile=self.XLA_state) 
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=self.XLA_state)         
+        if summary==True:
+            model.summary(expand_nested=True)
 
-        return self.model  
-
-
-
+        return model
+    
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
 #==============================================================================
@@ -362,8 +352,7 @@ class ModelTraining:
             tf.config.set_visible_devices([], 'GPU')
             print('CPU is set as active device')
             print('-------------------------------------------------------------------------------')
-            print()        
-    
+            print()   
     
     #-------------------------------------------------------------------------- 
     def model_parameters(self, parameters_dict, savepath):
@@ -443,10 +432,13 @@ class Inference:
         elif len(model_folders) == 1:
             self.model_path = os.path.join(path, model_folders[0])                 
         
-        model = keras.models.load_model(self.model_path)
-        path = os.path.join(self.model_path, 'model_parameters.json')
-        with open(path, 'r') as f:
-            self.model_configuration = json.load(f)            
+        model = tf.keras.models.load_model(self.model_path)
+        try:
+            path = os.path.join(self.model_path, 'model_parameters.json')
+            with open(path, 'r') as f:
+                self.model_configuration = json.load(f) 
+        except:
+            pass           
         
         return model
     

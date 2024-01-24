@@ -25,8 +25,8 @@ class UserOperations:
         '''      
         indexes = [idx + 1 for idx, val in enumerate(menu)]
         for key, value in menu.items():
-            print(f'''{key} - {value}
-                  ''')        
+            print(f'{key} - {value}')
+        print()        
         while True:
             try:
                 op_sel = int(input('Select the desired operation: '))

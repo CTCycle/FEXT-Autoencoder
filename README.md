@@ -15,21 +15,17 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
 
 ## How to use
-This application is composed of various modules, each performing distinct operations. Run the NISTADS_main.py file to launch the script and use the main menu to navigate the different options.
+Run the XRAYREP.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
 
-**The main options are as following:**
-1) ...                   
-2) ....                                   
-3) Exit and close
+**1) Pretrain FeXTAutoEncoder model** Choose this option to access the training menu. You’ll be given the choice to either start training the autoencoder from scratch or resume training from a specific checkpoint. If you opt to train a model from scratch, the data (from `/images`) will be preprocessed and stored in a .csv format within the model’s subfolder. However, if you decide to resume training from a checkpoint, the preprocessed data that was previously saved will be utilized to continue the training process with the pretrained weights. 
 
-**Pretrain FEXT-AutoEncoder model**: train the autoencoder on a subset of images from **/images**. The training parameters can be changed using the configurations.py. When the training session is over, the model is saved in the designated folder, together with a json file reporting the model configuration and the outcome of preliminary performance evalutations. 
+**2) Evaluate FeXTAutoEncoder model** Select a pretrained model and evaluate its performance throguh different methodologies, leveraging both training and validation datasets
 
-**Evaluate FEXT-AutoEncoder model**: this module evaluates any selected model (loaded from the **/models**) by analysing performance on train and test sets and overall accuracy of the trained model. 
+**3) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
 
-**Extract features from images**: select a pretrained model to extract vectors of image features (from **/predictions**) and save them in a .csv file
+**4) Exit and close**
 
-**Exit and close**
-                 
+              
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:
 
