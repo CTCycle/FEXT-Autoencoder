@@ -433,14 +433,11 @@ class Inference:
             self.model_path = os.path.join(path, model_folders[0])                 
         
         model = tf.keras.models.load_model(self.model_path)
-        try:
-            path = os.path.join(self.model_path, 'model_parameters.json')
-            with open(path, 'r') as f:
-                self.model_configuration = json.load(f) 
-        except:
-            pass           
+        path = os.path.join(self.model_path, 'model_parameters.json')
+        with open(path, 'r') as f:
+            configuration = json.load(f)               
         
-        return model
+        return model, configuration
     
     #--------------------------------------------------------------------------
     def images_loader(self, path, image_size=(244, 244), num_channels=3):

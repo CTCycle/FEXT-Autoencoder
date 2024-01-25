@@ -76,6 +76,8 @@ FeXT training report
 Number of train samples: {train_data.shape[0]}
 Number of test samples:  {test_data.shape[0]}
 -------------------------------------------------------------------------------
+Picture shape:           {cnf.image_shape}
+Kernel size:             {cnf.kernel_size}
 Batch size:              {cnf.batch_size}
 Epochs:                  {cnf.epochs}
 -------------------------------------------------------------------------------

@@ -22,9 +22,6 @@ operations_menu = {'1' : 'Pretrain FeXTAutoEncoder model',
                    '2' : 'Evaluate FeXTAutoEncoder model',
                    '3' : 'Extract features from images',                   
                    '4' : 'Exit and close'}
-training_menu = {'1': 'Pretrain model from scratch',                 
-                 '2': 'Start training from model checkpoint',
-                 '3': 'Back to main menu'}
 
 while True:
     print('------------------------------------------------------------------------')
@@ -33,26 +30,14 @@ while True:
     op_sel = user_operations.menu_selection(operations_menu)
     print()
     if op_sel == 1:
-        while True:
-            print('------------------------------------------------------------------------')
-            print('TRAINING MENU')
-            print('------------------------------------------------------------------------')
-            train_sel = user_operations.menu_selection(training_menu)
-            print()
-            if train_sel == 1:
-                import modules.model_training
-                del sys.modules['modules.full_training']
-            elif train_sel == 2:
-                import modules.checkpoint_training
-                del sys.modules['modules.checkpoint_training']
-            elif train_sel == 3:
-                break   
+        import modules.model_training
+        del sys.modules['modules.model_training']        
     elif op_sel == 2:
         import modules.model_evaluation
-        del sys.modules['modules.FEXT_evaluation']
+        del sys.modules['modules.model_evaluation']
     elif op_sel == 3:
-        import modules.model_inference
-        del sys.modules['modules.model_inference']
+        import modules.features_extraction
+        del sys.modules['modules.features_extraction']
     elif op_sel == 4:
         break
 
