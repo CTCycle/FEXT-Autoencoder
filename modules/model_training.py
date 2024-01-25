@@ -172,23 +172,5 @@ parameters = {'Number of samples' : cnf.num_samples,
 
 trainer.model_parameters(parameters, model_savepath)
 
-# [MODEL VALIDATION]
-#==============================================================================
-# ...
-#==============================================================================
-validator = ModelValidation(model)
 
-# extract batch of real and reconstructed images and perform visual validation (train set)
-#------------------------------------------------------------------------------
-val_generator = DataGenerator(train_data, 6, cnf.pic_size, augmentation=False, shuffle=False)
-original_images, y_val = val_generator.__getitem__(0)
-recostructed_images = list(model.predict(original_images))
-validator.FEXT_validation(original_images, recostructed_images, 'train', model_savepath)
-
-# extract batch of real and reconstructed images and perform visual validation (test set)
-#------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, 6, cnf.pic_size, augmentation=False, shuffle=False)
-original_images, y_val = val_generator.__getitem__(0)
-recostructed_images = list(model.predict(original_images))
-validator.FEXT_validation(original_images, recostructed_images, 'test', model_savepath)
 

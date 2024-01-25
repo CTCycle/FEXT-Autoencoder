@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+import tensorflow as tf
+from tqdm import tqdm
 
 # [CONSOLE USER OPERATIONS]
 #==============================================================================
@@ -74,7 +76,21 @@ class PreProcessing:
         dataframe['images_path'] = dataframe[id_col].map(images_paths)
         dataframe = dataframe.dropna(subset=['images_path']).reset_index(drop = True)
 
-        return dataframe  
+        return dataframe
+
+    #--------------------------------------------------------------------------
+    def load_images(self, paths, image_size):
+        
+        images = []
+        for pt in tqdm(paths):
+            image = tf.io.read_file(pt)
+            image = tf.image.decode_image(image, channels=3)
+            image = tf.image.resize(image, image_size)
+            image = tf.reverse(image, axis=[-1])
+            image = image/255.0 
+            images.append(image) 
+
+        return images  
     
     
     #--------------------------------------------------------------------------

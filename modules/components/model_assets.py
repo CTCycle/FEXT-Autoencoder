@@ -459,10 +459,10 @@ class ModelValidation:
         self.model = model
     
     #-------------------------------------------------------------------------- 
-    def FEXT_validation(self, real_images, predicted_images, name, path):
+    def visual_validation(self, real_images, predicted_images, name, path):
         
         num_pics = len(real_images)
-        fig_path = os.path.join(path, f'{name}_validation.jpeg')
+        fig_path = os.path.join(path, f'{name}.jpeg')
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, (real, pred) in enumerate(zip(real_images, predicted_images)):                       
             axs[i, 0].imshow(real)
