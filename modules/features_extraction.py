@@ -22,7 +22,6 @@ from modules.components.model_assets import Inference
 import modules.global_variables as GlobVar
 import configurations as cnf
 
-
 # [INFERENCE]
 #==============================================================================
 # module for the selection of different operations
@@ -44,8 +43,7 @@ for root, dirs, files in os.walk(GlobVar.pred_path):
 # load the model for inference and print summary
 #------------------------------------------------------------------------------
 inference = Inference() 
-model = inference.load_pretrained_model(GlobVar.model_path)
-parameters = inference.model_configuration
+model, parameters = inference.load_pretrained_model(GlobVar.model_path)
 model.summary(expand_nested=True)
 
 # define truncated model to get the encoder output only
