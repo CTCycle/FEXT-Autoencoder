@@ -1,6 +1,7 @@
 import os
 import sys
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 
 # setting warnings
@@ -83,19 +84,20 @@ test_dataset = tf.data.Dataset.from_generator(lambda : test_generator,
 test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 
-# [MODEL VALIDATION: VISUAL VALIDATION]
+# [MODEL VALIDATION]
 #==============================================================================
 # ...
 #==============================================================================
-validator = ModelValidation(model)
-
 print('''
 -------------------------------------------------------------------------------
-VISUAL VALIDATION
+MODEL EVALUATION
 -------------------------------------------------------------------------------
 A set of images is compared to show difference between the input images and the 
 reconstructed images, to be considered as a visual inspection of the model performance
 ''')
+
+validator = ModelValidation(model)
+
 
 # create subfolder for evaluation data
 #------------------------------------------------------------------------------
@@ -103,16 +105,23 @@ eval_path = os.path.join(model_path, 'evaluation')
 if not os.path.exists(eval_path):
     os.mkdir(eval_path)
 
-# extract batch of real and reconstructed images and perform visual validation (train set)
+# initialize validation generators
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(train_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
-original_images, y_val = val_generator.__getitem__(0)
-recostructed_images = list(model.predict(original_images))
-validator.visual_validation(original_images, recostructed_images, 'visual_validation_train', eval_path)
+train_generator = DataGenerator(train_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
+test_generator = DataGenerator(test_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
 
-# extract batch of real and reconstructed images and perform visual validation (test set)
+# predict images from train and test subsets
 #------------------------------------------------------------------------------
-val_generator = DataGenerator(test_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
-original_images, y_val = val_generator.__getitem__(0)
-recostructed_images = list(model.predict(original_images))
-validator.visual_validation(original_images, recostructed_images, 'visual_validation_test', eval_path)
+train_eval = model.evaluate(train_generator)
+test_eval = model.evaluate(test_generator)
+
+
+# visual validation for both train and test subsets
+#------------------------------------------------------------------------------
+input_images = train_generator.__getitem__(0)[0]
+recostructed_images = model.predict(input_images, verbose=0)
+validator.visual_validation(input_images, recostructed_images, 'visual_validation_train', eval_path)
+
+input_images = test_generator.__getitem__(0)[0]
+recostructed_images = model.predict(input_images, verbose=0) 
+validator.visual_validation(input_images, recostructed_images, 'visual_validation_test', eval_path)
