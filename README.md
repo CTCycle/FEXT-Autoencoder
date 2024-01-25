@@ -17,14 +17,13 @@ In terms of application scope, this autoencoder can be used in a variety of task
 ## How to use
 Run the XRAYREP.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
 
-**1) Pretrain FeXTAutoEncoder model** Choose this option to access the training menu. You’ll be given the choice to either start training the autoencoder from scratch or resume training from a specific checkpoint. If you opt to train a model from scratch, the data (from `/images`) will be preprocessed and stored in a .csv format within the model’s subfolder. However, if you decide to resume training from a checkpoint, the preprocessed data that was previously saved will be utilized to continue the training process with the pretrained weights. 
+**1) Pretrain FeXTAutoEncoder model** Pretrain the autoencoder from scratch using the data from `/images`. Data preprocessing is performed prior to start the training session. 
 
 **2) Evaluate FeXTAutoEncoder model** Select a pretrained model and evaluate its performance throguh different methodologies, leveraging both training and validation datasets
 
 **3) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
 
 **4) Exit and close**
-
               
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:
