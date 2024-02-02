@@ -98,7 +98,6 @@ reconstructed images, to be considered as a visual inspection of the model perfo
 
 validator = ModelValidation(model)
 
-
 # create subfolder for evaluation data
 #------------------------------------------------------------------------------
 eval_path = os.path.join(model_path, 'evaluation') 
@@ -114,7 +113,6 @@ test_generator = DataGenerator(test_data, 10, cnf.pic_size, augmentation=False, 
 #------------------------------------------------------------------------------
 train_eval = model.evaluate(train_generator)
 test_eval = model.evaluate(test_generator)
-
 
 # visual validation for both train and test subsets
 #------------------------------------------------------------------------------

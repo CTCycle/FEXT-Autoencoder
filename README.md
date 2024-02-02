@@ -24,6 +24,31 @@ Run the XRAYREP.py file to launch the script and use the main menu to navigate t
 **3) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
 
 **4) Exit and close**
+
+### Configurations
+The configurations.py file allows to change the script configuration. The following parameters are available:
+
+**Settings for training performance and monitoring options:**
+- `generate_model_graph:` generate and save 2D model graph (as .png file)
+- `use_mixed_precision:` whether or not to use mixed precision for faster training (mix float16/float32)
+- `use_tensorboard:` activate or deactivate tensorboard logging
+- `XLA_acceleration:` use of linear algebra acceleration for faster training 
+
+**Settings for pretraining parameters:**
+- `training_device:` select the training device (CPU or GPU)
+- `epochs:` number of training iterations
+- `learning_rate:` learning rate of the model during training
+- `batch_size:` size of batches to be fed to the model during training
+- `kernel_size:` size of convolutional kernel 
+- `num_heads:` number of attention heads
+
+**Settings for data preprocessing and predictions:**
+- `pic_size:` scaled size of the x-ray images
+- `image_shape:` automatically calculated full image shape
+- `num_samples:` number of images to consider prior to generating train and test datasets
+- `num_test_samples:` number of samples to use as validation data
+- `augmentation:` whether or not to perform data agumentation on images (significant impact on training time)
+
               
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:
