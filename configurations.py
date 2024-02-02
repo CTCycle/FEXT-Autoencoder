@@ -5,11 +5,11 @@ use_tensorboard = False
 XLA_acceleration = False
 
 #------------------------------------------------------------------------------
-seed = 42
 training_device = 'GPU'
 learning_rate = 0.0001
 batch_size = 25
 epochs = 1
+seed = 42
 
 #------------------------------------------------------------------------------
 kernel_size = 4
