@@ -41,8 +41,7 @@ class UserOperations:
                     continue
             break
         
-        return op_sel  
-               
+        return op_sel                
             
 
 # [PREPROCESSING PIPELINE]
@@ -90,8 +89,7 @@ class PreProcessing:
             image = image/255.0 
             images.append(image) 
 
-        return images  
-    
+        return images    
     
     #--------------------------------------------------------------------------
     def model_savefolder(self, path, model_name):

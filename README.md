@@ -37,18 +37,18 @@ The configurations.py file allows to change the script configuration. The follow
 **Settings for pretraining parameters:**
 - `training_device:` select the training device (CPU or GPU)
 - `epochs:` number of training iterations
-- `learning_rate:` learning rate of the model during training
+- `learning_rate:` learning rate of the model 
 - `batch_size:` size of batches to be fed to the model during training
 - `kernel_size:` size of convolutional kernel 
-- `num_heads:` number of attention heads
+- `seed:` global random seed
 
 **Settings for data preprocessing and predictions:**
-- `pic_size:` scaled size of the x-ray images
-- `image_shape:` automatically calculated full image shape
-- `num_samples:` number of images to consider prior to generating train and test datasets
+- `picture_shape:` full shape of the images as (height, width, channels)
+- `num_train_samples:` number of images to use for the model training 
 - `num_test_samples:` number of samples to use as validation data
 - `augmentation:` whether or not to perform data agumentation on images (significant impact on training time)
 
+**Number of samples and batch size:** This application is designed for efficient on-the-fly image loading using a custom generator. Therefore, it is advisable to carefully choose the number of training and testing samples and adjust the batch size accordingly. Optimal training and test data sizes should be multiples of 100.
               
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:

@@ -17,10 +17,8 @@ if __name__ == '__main__':
 # import modules and components
 #------------------------------------------------------------------------------
 from modules.components.model_assets import ModelTraining, ModelValidation, DataGenerator, Inference
-from modules.components.data_assets import PreProcessing
 import modules.global_variables as GlobVar
 import configurations as cnf
-
 
 # [LOAD MODEL AND DATA]
 #==============================================================================
@@ -55,13 +53,13 @@ Model evaluation
 trainer = ModelTraining(device=cnf.training_device, seed = cnf.seed, 
                         use_mixed_precision=cnf.use_mixed_precision)
 
-# define model data generator (train data)
+# initialize the images generator for the train data, get batch at initial index
 #------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, cnf.batch_size, cnf.pic_size, 
+train_generator = DataGenerator(train_data, 200, cnf.picture_shape, 
                                 augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
-# create tf.dataset from generator and set prefetch (train data)
+# create train tf.dataset from generator and set prefetch scheduler 
 #------------------------------------------------------------------------------
 output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
                     tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
@@ -69,20 +67,19 @@ train_dataset = tf.data.Dataset.from_generator(lambda : train_generator,
                                                output_signature=output_signature)
 train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
-# define model data generator (test data)
+# initialize the images generator for the test data, get batch at initial index
 #------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, cnf.batch_size, cnf.pic_size, 
+test_generator = DataGenerator(test_data, 200, cnf.picture_shape, 
                                augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 
-# create tf.dataset from generator and set prefetch (test data)
+# create test tf.dataset from generator and set prefetch scheduler 
 #------------------------------------------------------------------------------
 output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
                     tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
 test_dataset = tf.data.Dataset.from_generator(lambda : test_generator, 
                                               output_signature=output_signature)
 test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-
 
 # [MODEL VALIDATION]
 #==============================================================================
@@ -104,22 +101,23 @@ eval_path = os.path.join(model_path, 'evaluation')
 if not os.path.exists(eval_path):
     os.mkdir(eval_path)
 
-# initialize validation generators
-#------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
-test_generator = DataGenerator(test_data, 10, cnf.pic_size, augmentation=False, shuffle=False)
-
 # predict images from train and test subsets
 #------------------------------------------------------------------------------
-train_eval = model.evaluate(train_generator)
-test_eval = model.evaluate(test_generator)
+train_eval = model.evaluate(train_dataset)
+test_eval = model.evaluate(test_dataset)
 
-# visual validation for both train and test subsets
+# perform visual validation for the train dataset (initialize a validation tf.dataset
+# with batch size of 10 images)
 #------------------------------------------------------------------------------
-input_images = train_generator.__getitem__(0)[0]
+train_dataset = train_dataset.batch(10)
+input_images, _ = train_dataset.take(1)
 recostructed_images = model.predict(input_images, verbose=0)
 validator.visual_validation(input_images, recostructed_images, 'visual_validation_train', eval_path)
 
-input_images = test_generator.__getitem__(0)[0]
+# perform visual validation for the test dataset (initialize a validation tf.dataset
+# with batch size of 10 images)
+#------------------------------------------------------------------------------
+test_dataset = test_dataset.batch(10)
+input_images, _ = test_dataset.take(1)
 recostructed_images = model.predict(input_images, verbose=0) 
 validator.visual_validation(input_images, recostructed_images, 'visual_validation_test', eval_path)

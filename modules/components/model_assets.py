@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
-from tensorflow.keras.utils import register_keras_serializable
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -62,12 +61,12 @@ class RealTimeHistory(keras.callbacks.Callback):
 #==============================================================================
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, dataframe, batch_size, image_size=(244, 244), shuffle=True,
+    def __init__(self, dataframe, batch_size, picture_shape=(244, 244, 3), shuffle=True,
                   augmentation=True):        
         self.dataframe = dataframe
         self.path_col = 'images path'       
         self.num_of_samples = dataframe.shape[0]
-        self.image_size = image_size
+        self.picture_shape = picture_shape
         self.batch_size = batch_size  
         self.batch_index = 0 
         self.augmentation = augmentation             
@@ -110,7 +109,7 @@ class DataGenerator(keras.utils.Sequence):
     def __images_generation(self, path, augmentation=True):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
-        rgb_image = tf.image.resize(rgb_image, self.image_size)        
+        rgb_image = tf.image.resize(rgb_image, self.picture_shape[:-1])        
         if augmentation==True:
             rgb_image = self.__images_augmentation(rgb_image)
         rgb_image = rgb_image/255.0
@@ -166,18 +165,21 @@ class PooledConvBlock(keras.layers.Layer):
 # Positional embedding custom layer
 #==============================================================================
 class TransposeConvBlock(keras.layers.Layer):
-    def __init__(self, units, kernel_size, layers=2, seed=42):
+    def __init__(self, units, kernel_size, layers=3, seed=42):
         super(TransposeConvBlock, self).__init__()
         self.units = units
         self.kernel_size = kernel_size
         self.layers = layers
         self.seed = seed
-        self.convolutions = [Conv2DTranspose(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(layers)]         
+        self.convolutions = [Conv2DTranspose(units, 
+                                             kernel_size=kernel_size, 
+                                             padding='same', 
+                                             activation='relu') for x in range(layers)]         
         self.upsamp = UpSampling2D()         
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training):
+    def call(self, inputs):
         layer = inputs
         for conv in self.convolutions:
             layer = conv(layer) 
@@ -205,12 +207,11 @@ class TransposeConvBlock(keras.layers.Layer):
 # collection of model and submodels
 #==============================================================================
 class FeXTEncoder(keras.layers.Layer):
-    def __init__(self, kernel_size, picture_size=(144, 144), seed=42):
+    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42):
         super(FeXTEncoder, self).__init__()
         self.kernel_size = kernel_size
         self.seed = seed
-        self.num_channels = 3
-        self.picture_shape = picture_size + (self.num_channels,)
+        self.picture_shape = picture_shape
         self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
         self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
@@ -218,7 +219,7 @@ class FeXTEncoder(keras.layers.Layer):
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training):
+    def call(self, inputs):
         layer = inputs
         layer = self.convblock1(layer)
         layer = self.convblock2(layer)
@@ -230,10 +231,9 @@ class FeXTEncoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTEncoder, self).get_config()
-        config.update({'kernel_size': self.kernel_size,
-                       'seed': self.seed,
-                       'num_channels': self.num_channels,
-                       'picture_shape': self.picture_shape})
+        config.update({'kernel_size': self.kernel_size,                                             
+                       'picture_shape': self.picture_shape,
+                       'seed': self.seed, })
         return config
 
     @classmethod
@@ -257,7 +257,7 @@ class FeXTDecoder(keras.layers.Layer):
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training):
+    def call(self, inputs):
         layer = inputs
         layer = self.convblock1(layer)
         layer = self.convblock2(layer)
@@ -277,8 +277,7 @@ class FeXTDecoder(keras.layers.Layer):
 
     @classmethod
     def from_config(cls, config):
-        return cls(**config)  
-        
+        return cls(**config)        
     
 
 # [MACHINE LEARNING MODELS]
@@ -287,15 +286,14 @@ class FeXTDecoder(keras.layers.Layer):
 #==============================================================================
 class FeXTAutoEncoder: 
 
-    def __init__(self, learning_rate, kernel_size, picture_size=(144, 144), seed=42, 
+    def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), seed=42, 
                  XLA_state=False):         
         self.learning_rate = learning_rate
         self.kernel_size = kernel_size
-        self.seed = seed
-        self.num_channels = 3
-        self.picture_shape = picture_size + (self.num_channels,)         
+        self.seed = seed        
+        self.picture_shape = picture_shape         
         self.XLA_state = XLA_state
-        self.encoder = FeXTEncoder(kernel_size, picture_size, seed)
+        self.encoder = FeXTEncoder(kernel_size, picture_shape, seed)
         self.decoder = FeXTDecoder(kernel_size, seed)        
 
     # build model given the architecture
@@ -314,6 +312,46 @@ class FeXTAutoEncoder:
             model.summary(expand_nested=True)
 
         return model
+
+# [LEARNING RATE SCHEDULER]
+#==============================================================================
+# collection of model and submodels
+#==============================================================================
+class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, initial_lr, decay_steps, decay_rate, warmup_steps=0):
+        self.initial_lr = initial_lr
+        self.decay_steps = decay_steps
+        self.decay_rate = decay_rate
+        self.warmup_steps = warmup_steps
+        self.warmup_lr = initial_lr * warmup_steps
+        
+    # call on step
+    #--------------------------------------------------------------------------
+    def __call__(self, step):
+        # Use TensorFlow's conditional to handle the tensor-based condition, such as
+        # building an autograph for training        
+        step = step + 1
+        step_tensor = tf.convert_to_tensor(step, dtype=tf.float32)
+        if self.warmup_steps > 0:
+            warmup_lr = self.warmup_lr * (step_tensor/self.warmup_steps)
+        else:
+            warmup_lr = self.initial_lr
+
+        decay_lr = self.initial_lr * (self.decay_rate ** ((step - self.warmup_steps) // self.decay_steps))
+
+        lr = tf.cond(tf.math.less(step_tensor, self.warmup_steps),
+                     lambda: warmup_lr,
+                     lambda: decay_lr)
+
+        return lr
+    
+    # custom configurations
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        return {'initial_lr': self.initial_lr,
+                'decay_steps': self.decay_steps,
+                'decay_rate': self.decay_rate,
+                'warmup_steps': self.warmup_steps}
     
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
@@ -372,8 +410,7 @@ class ModelTraining:
         '''
         path = os.path.join(savepath, 'model_parameters.json')      
         with open(path, 'w') as f:
-            json.dump(parameters_dict, f)    
-
+            json.dump(parameters_dict, f)
 
         
 # [INFERENCE]
@@ -440,10 +477,10 @@ class Inference:
         return model, configuration
     
     #--------------------------------------------------------------------------
-    def images_loader(self, path, image_size=(244, 244), num_channels=3):
+    def images_loader(self, path, picture_shape=(244, 244, 3)):
         image = tf.io.read_file(path)
-        rgb_image = tf.image.decode_image(image, channels=num_channels)
-        rgb_image = tf.image.resize(rgb_image, image_size)        
+        rgb_image = tf.image.decode_image(image, channels=3)
+        rgb_image = tf.image.resize(rgb_image, picture_shape)        
         rgb_image = rgb_image/255.0        
 
         return rgb_image 
