@@ -43,9 +43,9 @@ The configurations.py file allows to change the script configuration. The follow
 - `seed:` global random seed
 
 **Settings for data preprocessing and predictions:**
-- `picture_shape:` full shape of the images as (height, width, channels)
 - `num_train_samples:` number of images to use for the model training 
 - `num_test_samples:` number of samples to use as validation data
+- `picture_shape:` full shape of the images as (height, width, channels)
 - `augmentation:` whether or not to perform data agumentation on images (significant impact on training time)
 
 **Number of samples and batch size:** This application is designed for efficient on-the-fly image loading using a custom generator. Therefore, it is advisable to carefully choose the number of training and testing samples and adjust the batch size accordingly. Optimal training and test data sizes should be multiples of 100.

@@ -55,7 +55,7 @@ trainer = ModelTraining(device=cnf.training_device, seed = cnf.seed,
 
 # initialize the images generator for the train data, get batch at initial index
 #------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, 200, cnf.picture_shape, 
+train_generator = DataGenerator(train_data, 50, cnf.picture_shape, 
                                 augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
@@ -69,7 +69,7 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # initialize the images generator for the test data, get batch at initial index
 #------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, 200, cnf.picture_shape, 
+test_generator = DataGenerator(test_data, 50, cnf.picture_shape, 
                                augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 
@@ -106,18 +106,33 @@ if not os.path.exists(eval_path):
 train_eval = model.evaluate(train_dataset)
 test_eval = model.evaluate(test_dataset)
 
+print(f'''
+-------------------------------------------------------------------------------
+MODEL EVALUATION
+-------------------------------------------------------------------------------    
+Train dataset:
+- Loss:   {train_eval[0]}
+- Metric: {train_eval[1]} 
+
+Test dataset:
+- Loss:   {test_eval[0]}
+- Metric: {test_eval[1]}        
+''')
+
 # perform visual validation for the train dataset (initialize a validation tf.dataset
 # with batch size of 10 images)
 #------------------------------------------------------------------------------
-train_dataset = train_dataset.batch(10)
-input_images, _ = train_dataset.take(1)
-recostructed_images = model.predict(input_images, verbose=0)
-validator.visual_validation(input_images, recostructed_images, 'visual_validation_train', eval_path)
+validation_batch = train_dataset.unbatch().batch(10).take(1)
+for images, labels in validation_batch:
+    recostructed_images = model.predict(images, verbose=0)
+    validator.visual_validation(images, recostructed_images, 'visual_validation_train', 
+                                eval_path)
 
 # perform visual validation for the test dataset (initialize a validation tf.dataset
 # with batch size of 10 images)
 #------------------------------------------------------------------------------
-test_dataset = test_dataset.batch(10)
-input_images, _ = test_dataset.take(1)
-recostructed_images = model.predict(input_images, verbose=0) 
-validator.visual_validation(input_images, recostructed_images, 'visual_validation_test', eval_path)
+validation_batch = test_dataset.unbatch().batch(10).take(1)
+for images, labels in validation_batch:
+    recostructed_images = model.predict(images, verbose=0) 
+    validator.visual_validation(images, recostructed_images, 'visual_validation_test',
+                                eval_path)
