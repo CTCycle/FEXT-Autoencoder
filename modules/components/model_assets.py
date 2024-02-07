@@ -62,14 +62,15 @@ class RealTimeHistory(keras.callbacks.Callback):
 class DataGenerator(keras.utils.Sequence):
 
     def __init__(self, dataframe, batch_size, picture_shape=(244, 244, 3), shuffle=True,
-                  augmentation=True):        
+                  augmentation=True, normalization=True):        
         self.dataframe = dataframe
         self.path_col = 'images path'       
         self.num_of_samples = dataframe.shape[0]
         self.picture_shape = picture_shape
         self.batch_size = batch_size  
         self.batch_index = 0 
-        self.augmentation = augmentation             
+        self.augmentation = augmentation
+        self.normalization = normalization             
         self.shuffle = shuffle
         self.on_epoch_end()       
 
@@ -84,7 +85,7 @@ class DataGenerator(keras.utils.Sequence):
     #--------------------------------------------------------------------------
     def __getitem__(self, idx): 
         path_batch = self.dataframe[self.path_col][idx * self.batch_size:(idx + 1) * self.batch_size]           
-        x1_batch = [self.__images_generation(image_path, augmentation=self.augmentation) for image_path in path_batch]        
+        x1_batch = [self.__images_generation(image_path) for image_path in path_batch]        
         X1_tensor = tf.convert_to_tensor(x1_batch)
         Y_tensor = X1_tensor  
         return X1_tensor, Y_tensor
@@ -106,13 +107,14 @@ class DataGenerator(keras.utils.Sequence):
 
     # define method to load images 
     #--------------------------------------------------------------------------
-    def __images_generation(self, path, augmentation=True):
+    def __images_generation(self, path):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
         rgb_image = tf.image.resize(rgb_image, self.picture_shape[:-1])        
-        if augmentation==True:
+        if self.augmentation==True:
             rgb_image = self.__images_augmentation(rgb_image)
-        rgb_image = rgb_image/255.0
+        if self.normalization==True:
+            rgb_image = rgb_image/255.0
         return rgb_image    
     
     # define method to call the next elements of the generator    
@@ -213,7 +215,7 @@ class FeXTEncoder(keras.layers.Layer):
         self.seed = seed
         self.picture_shape = picture_shape
         self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
-        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
+        self.convblock2 = PooledConvBlock(128, kernel_size, 3, seed)
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
         self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
 
@@ -251,7 +253,7 @@ class FeXTDecoder(keras.layers.Layer):
         self.seed = seed       
         self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)
         self.convblock2 = TransposeConvBlock(256, kernel_size, 3, seed)
-        self.convblock3 = TransposeConvBlock(128, kernel_size, 2, seed)
+        self.convblock3 = TransposeConvBlock(128, kernel_size, 3, seed)
         self.convblock4 = TransposeConvBlock(64, kernel_size, 2, seed)
         self.dense = Dense(3, activation='sigmoid', dtype='float32')
 
@@ -305,8 +307,8 @@ class FeXTAutoEncoder:
         decoder_block = self.decoder(encoder_block)        
         model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = keras.losses.BinaryCrossentropy()
-        metric = keras.metrics.CosineSimilarity()
+        loss = keras.losses.MeanSquaredError()
+        metric = keras.metrics.MeanAbsoluteError()
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=self.XLA_state)         
         if summary==True:
             model.summary(expand_nested=True)
@@ -338,11 +340,10 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
             warmup_lr = self.initial_lr
 
         decay_lr = self.initial_lr * (self.decay_rate ** ((step - self.warmup_steps) // self.decay_steps))
-
         lr = tf.cond(tf.math.less(step_tensor, self.warmup_steps),
                      lambda: warmup_lr,
                      lambda: decay_lr)
-
+        
         return lr
     
     # custom configurations
@@ -469,7 +470,7 @@ class Inference:
         elif len(model_folders) == 1:
             self.model_path = os.path.join(path, model_folders[0])                 
         
-        model = tf.keras.models.load_model(self.model_path)
+        model = tf.keras.models.load_model(self.model_path, custom_objects={'LRScheduler': LRScheduler})
         path = os.path.join(self.model_path, 'model_parameters.json')
         with open(path, 'r') as f:
             configuration = json.load(f)               
@@ -496,12 +497,12 @@ class ModelValidation:
         self.model = model
     
     #-------------------------------------------------------------------------- 
-    def visual_validation(self, real_images, predicted_images, name, path):
-        
+    def visual_validation(self, real_images, predicted_images, name, path):          
+
         num_pics = len(real_images)
         fig_path = os.path.join(path, f'{name}.jpeg')
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
-        for i, (real, pred) in enumerate(zip(real_images, predicted_images)):                       
+        for i, (real, pred) in enumerate(zip(real_images, predicted_images)):                         
             axs[i, 0].imshow(real)
             if i == 0:
                 axs[i, 0].set_title('Original picture')
@@ -511,6 +512,5 @@ class ModelValidation:
                 axs[i, 1].set_title('Reconstructed picture')
             axs[i, 1].axis('off')
         plt.tight_layout()
-        plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400)
-        plt.show(block=False)
+        plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400)        
         plt.close()

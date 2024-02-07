@@ -138,7 +138,7 @@ LR_scheduler = LRScheduler(cnf.learning_rate, decay_steps, decay_rate, warmup_st
 
 # build the autoencoder model 
 #------------------------------------------------------------------------------
-modelworker = FeXTAutoEncoder(LR_scheduler, cnf.kernel_size, cnf.picture_shape, 
+modelworker = FeXTAutoEncoder(cnf.learning_rate, cnf.kernel_size, cnf.picture_shape, 
                               cnf.seed, XLA_state=cnf.XLA_acceleration)
 model = modelworker.get_model(summary=True) 
 
@@ -160,7 +160,6 @@ callbacks_list = [RTH_callback]
 if cnf.use_tensorboard:
     log_path = os.path.join(model_savepath, 'tensorboard')
     callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
-
 
 # training loop and save model at end of training
 #------------------------------------------------------------------------------
