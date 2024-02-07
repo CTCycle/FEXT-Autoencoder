@@ -8,14 +8,14 @@ XLA_acceleration = False
 training_device = 'GPU'
 learning_rate = 0.001
 batch_size = 50
-epochs = 25
-kernel_size = 3
+epochs = 30
+kernel_size = 2
 seed = 56
 
 #------------------------------------------------------------------------------
-num_train_samples = 5000
+num_train_samples = 6000
 num_test_samples = 1000
-picture_shape = (208, 208, 3)
+picture_shape = (224, 224, 3)
 augmentation = False
 
 

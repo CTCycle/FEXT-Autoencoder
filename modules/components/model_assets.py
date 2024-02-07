@@ -317,7 +317,8 @@ class FeXTAutoEncoder:
 
 # [LEARNING RATE SCHEDULER]
 #==============================================================================
-# collection of model and submodels
+# Use TensorFlow's conditional to handle the tensor-based condition, such as
+# building an autograph for training   
 #==============================================================================
 class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
     def __init__(self, initial_lr, decay_steps, decay_rate, warmup_steps=0):
@@ -329,9 +330,7 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
         
     # call on step
     #--------------------------------------------------------------------------
-    def __call__(self, step):
-        # Use TensorFlow's conditional to handle the tensor-based condition, such as
-        # building an autograph for training        
+    def __call__(self, step):               
         step = step + 1
         step_tensor = tf.convert_to_tensor(step, dtype=tf.float32)
         if self.warmup_steps > 0:

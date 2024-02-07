@@ -4,7 +4,6 @@ import pandas as pd
 import tensorflow as tf
 from keras.utils import plot_model
 
-
 # setting warnings
 #------------------------------------------------------------------------------
 import warnings
@@ -21,7 +20,6 @@ from modules.components.data_assets import PreProcessing
 from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator, LRScheduler
 import modules.global_variables as GlobVar
 import configurations as cnf
-
 
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
@@ -144,7 +142,7 @@ model = modelworker.get_model(summary=True)
 
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
-if cnf.generate_model_graph == True:
+if cnf.generate_model_graph==True:
     plot_path = os.path.join(model_savepath, 'model_layout.png')       
     plot_model(model, to_file = plot_path, show_shapes = True, 
                show_layer_names = True, show_layer_activations = True, 
