@@ -17,7 +17,7 @@ if __name__ == '__main__':
 # import modules and components
 #------------------------------------------------------------------------------
 from modules.components.data_assets import PreProcessing
-from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator, LRScheduler
+from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator
 import modules.global_variables as GlobVar
 import configurations as cnf
 
@@ -126,13 +126,6 @@ Batch size:              {cnf.batch_size}
 Epochs:                  {cnf.epochs}
 -------------------------------------------------------------------------------
 ''')
-
-# initialize the learning rate scheduler
-#------------------------------------------------------------------------------
-warmup_steps = cnf.epochs//10
-decay_steps = cnf.epochs//5
-decay_rate = 0.1
-LR_scheduler = LRScheduler(cnf.learning_rate, decay_steps, decay_rate, warmup_steps)
 
 # build the autoencoder model 
 #------------------------------------------------------------------------------

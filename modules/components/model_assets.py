@@ -1,8 +1,8 @@
 import os
 import numpy as np
 import json
-import matplotlib.pyplot as plt
 import tensorflow as tf
+import matplotlib.pyplot as plt
 from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
@@ -25,15 +25,15 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.validation = validation 
 
     #--------------------------------------------------------------------------   
-    def on_epoch_end(self, epoch, logs = {}):
-        if epoch % 5 == 0:                    
+    def on_epoch_end(self, epoch, logs = {}):        
+        if epoch % 2 == 0:                    
             self.epochs.append(epoch)
             self.loss_hist.append(logs[list(logs.keys())[0]])
             self.metric_hist.append(logs[list(logs.keys())[1]])
             if self.validation==True:
                 self.loss_val_hist.append(logs[list(logs.keys())[2]])            
                 self.metric_val_hist.append(logs[list(logs.keys())[3]])
-        if epoch % 5 == 0:           
+        if epoch % 2 == 0:           
             fig_path = os.path.join(self.plot_path, 'training_history.jpeg')
             plt.subplot(2, 1, 1)
             plt.plot(self.epochs, self.loss_hist, label = 'training loss')
@@ -44,16 +44,17 @@ class RealTimeHistory(keras.callbacks.Callback):
             plt.ylabel('Mean Square Error')
             plt.xlabel('epoch')
             plt.subplot(2, 1, 2)
-            plt.plot(self.epochs, self.metric_hist, label = 'train metrics') 
+            plt.plot(self.epochs, self.metric_hist, label='train metrics') 
             if self.validation==True: 
-                plt.plot(self.epochs, self.metric_val_hist, label = 'validation metrics') 
+                plt.plot(self.epochs, self.metric_val_hist, label='validation metrics') 
                 plt.legend(loc = 'best', fontsize = 8)
             plt.title('metrics plot')
-            plt.ylabel('cosine similarity')
+            plt.ylabel('Cosine Similarity')
             plt.xlabel('epoch')       
             plt.tight_layout()
-            plt.savefig(fig_path, bbox_inches = 'tight', format = 'jpeg', dpi = 300)            
+            plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=300)            
             plt.close() 
+            
             
 # [CUSTOM DATA GENERATOR FOR TRAINING]
 #==============================================================================
