@@ -22,8 +22,9 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.metric_hist = []
         self.loss_val_hist = []        
         self.metric_val_hist = []
-        self.validation = validation            
-    
+        self.validation = validation 
+
+    #--------------------------------------------------------------------------   
     def on_epoch_end(self, epoch, logs = {}):
         if epoch % 5 == 0:                    
             self.epochs.append(epoch)
@@ -48,7 +49,7 @@ class RealTimeHistory(keras.callbacks.Callback):
                 plt.plot(self.epochs, self.metric_val_hist, label = 'validation metrics') 
                 plt.legend(loc = 'best', fontsize = 8)
             plt.title('metrics plot')
-            plt.ylabel('Accuracy')
+            plt.ylabel('cosine similarity')
             plt.xlabel('epoch')       
             plt.tight_layout()
             plt.savefig(fig_path, bbox_inches = 'tight', format = 'jpeg', dpi = 300)            
@@ -124,6 +125,7 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_index = next_index
         return self.__getitem__(next_index)
     
+    
 # [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
 # Positional embedding custom layer
@@ -161,6 +163,7 @@ class PooledConvBlock(keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         return cls(**config)  
+    
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
@@ -173,11 +176,11 @@ class TransposeConvBlock(keras.layers.Layer):
         self.kernel_size = kernel_size
         self.layers = layers
         self.seed = seed
+        self.upsamp = UpSampling2D()
         self.convolutions = [Conv2DTranspose(units, 
                                              kernel_size=kernel_size, 
                                              padding='same', 
-                                             activation='relu') for x in range(layers)]         
-        self.upsamp = UpSampling2D()         
+                                             activation='relu') for x in range(layers)]                
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -288,8 +291,8 @@ class FeXTDecoder(keras.layers.Layer):
 #==============================================================================
 class FeXTAutoEncoder: 
 
-    def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), seed=42, 
-                 XLA_state=False):         
+    def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), 
+                 seed=42, XLA_state=False):         
         self.learning_rate = learning_rate
         self.kernel_size = kernel_size
         self.seed = seed        
@@ -308,7 +311,7 @@ class FeXTAutoEncoder:
         model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
-        metric = keras.metrics.MeanAbsoluteError()
+        metric = keras.metrics.CosineSimilarity()
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=self.XLA_state)         
         if summary==True:
             model.summary(expand_nested=True)
