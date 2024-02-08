@@ -1,7 +1,7 @@
 # FEXT AutoEncoder
 
 ## Project description
-An autoencoder for image features representation (FEXT stands for Features EXTraction), based on the VV16G autoencoder architecture. The VGG16 autoencoder is a type of neural network architecture that is often used in the field of deep learning for tasks such as image reconstruction, anomaly detection, and feature extraction. The layout of the VGG16 autoencoder can be divided into two main parts: the encoder and the decoder. As such, the FEXT AutoEncoder proposed in this project is built following the same assumption. The model has been trained using the Flickr 30K dataset (usually used for image captioning), which are loaded in the images folder within dataset (dataset/images), but you can use virtually any set of images. Both the model architecture and training routine are defined using Tensorflow (2.10), with the images being fed using a custom generator (allows for using large datasets of images that may not fit in memory). You can change the main script parameters using the configurations.py file.
+This project is dedicated to the training, evaluation, and application of a Convolutional AutoEncoder, specifically designed for image feature extraction (hence, FEXT). The architecture of this autoencoder is based on the renowned VGG16 model, a neural network frequently employed in deep learning tasks such as image reconstruction, anomaly detection, and feature extraction. The FEXT AutoEncoder mirrors the structure of the VGG16 model, comprising two primary components: the encoder and the decoder. The model has been trained on the Flickr 30K dataset, typically used for image captioning. However, it is versatile enough to be trained on any image dataset of your choice, which should be located in the ‘dataset/images’ folder. The architecture of the model and the training routine are defined using Tensorflow (version 2.10). A custom generator is used to feed the images, enabling the handling of large image datasets that might not fit into memory.
 
 ## Model structure
 
@@ -15,7 +15,7 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
 
 ## How to use
-Run the XRAYREP.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
+Run the FeXTAutoEncoder.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
 
 **1) Pretrain FeXTAutoEncoder model** Pretrain the autoencoder from scratch using the data from `/images`. Data preprocessing is performed prior to start the training session. 
 
@@ -26,7 +26,7 @@ Run the XRAYREP.py file to launch the script and use the main menu to navigate t
 **4) Exit and close**
 
 ### Configurations
-The configurations.py file allows to change the script configuration. The following parameters are available:
+For customization, you can modify the main script parameters via the ‘configurations.py’ file. The following parameters are available:
 
 **Settings for training performance and monitoring options:**
 - `generate_model_graph:` generate and save 2D model graph (as .png file)
@@ -39,7 +39,7 @@ The configurations.py file allows to change the script configuration. The follow
 - `epochs:` number of training iterations
 - `learning_rate:` learning rate of the model 
 - `batch_size:` size of batches to be fed to the model during training
-- `kernel_size:` size of convolutional kernel 
+- `kernel_size:` size of convolutional kernel (best to keep at 2)
 - `seed:` global random seed
 
 **Settings for data preprocessing and predictions:**
@@ -76,7 +76,11 @@ Next, you'll need to install cuDNN, which is the NVIDIA Deep Neural Network Libr
 
 If you've installed the NVIDIA CUDA Toolkit within your environment, you may also need to install an additional package called `cuda-nvcc` (Version 12.3.107). This package provides the CUDA compiler and tools necessary for building CUDA-enabled applications.
 
-By following these steps, you can ensure that your environment is configured to take full advantage of GPU acceleration for enhanced performance. 
+### 4. Additional Package for XLA Acceleration
+
+XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags.
+
+To enable XLA acceleration globally across your system, you need to set an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
 
 ## License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
