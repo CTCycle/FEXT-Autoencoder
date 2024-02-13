@@ -4,8 +4,9 @@ import json
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow import keras
+from keras import layers
 from keras.models import Model
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, UpSampling2D
+from tensorflow.keras.utils import register_keras_serializable
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -131,19 +132,20 @@ class DataGenerator(keras.utils.Sequence):
 #==============================================================================
 # Positional embedding custom layer
 #==============================================================================
-class PooledConvBlock(keras.layers.Layer):
-    def __init__(self, units, kernel_size, layers=2, seed=42):
-        super(PooledConvBlock, self).__init__()
+@register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
+class PooledConvBlock(layers.Layer):
+    def __init__(self, units, kernel_size, num_layers=2, seed=42, **kwargs):
+        super(PooledConvBlock, self).__init__(**kwargs)
         self.units = units
         self.kernel_size = kernel_size
-        self.layers = layers
-        self.seed = seed
-        self.convolutions = [Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(layers)]         
-        self.pooling = MaxPooling2D(padding='same')         
+        self.num_layers = num_layers
+        self.seed = seed        
+        self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(num_layers)]         
+        self.pooling = layers.MaxPooling2D(padding='same')         
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training):
+    def call(self, inputs, training=True):
         layer = inputs
         for conv in self.convolutions:
             layer = conv(layer) 
@@ -157,7 +159,7 @@ class PooledConvBlock(keras.layers.Layer):
         config = super(PooledConvBlock, self).get_config()
         config.update({'units': self.units,
                        'kernel_size': self.kernel_size,
-                       'layers': self.layers,
+                       'num_layers': self.num_layers,
                        'seed': self.seed})
         return config
 
@@ -170,22 +172,23 @@ class PooledConvBlock(keras.layers.Layer):
 #==============================================================================
 # Positional embedding custom layer
 #==============================================================================
-class TransposeConvBlock(keras.layers.Layer):
-    def __init__(self, units, kernel_size, layers=3, seed=42):
-        super(TransposeConvBlock, self).__init__()
+@register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
+class TransposeConvBlock(layers.Layer):
+    def __init__(self, units, kernel_size, num_layers=3, seed=42, **kwargs):
+        super(TransposeConvBlock, self).__init__(**kwargs)
         self.units = units
         self.kernel_size = kernel_size
-        self.layers = layers
-        self.seed = seed
-        self.upsamp = UpSampling2D()
-        self.convolutions = [Conv2DTranspose(units, 
-                                             kernel_size=kernel_size, 
-                                             padding='same', 
-                                             activation='relu') for x in range(layers)]                
+        self.num_layers = num_layers
+        self.seed = seed        
+        self.upsamp = layers.UpSampling2D()
+        self.convolutions = [layers.Conv2DTranspose(units, 
+                                                    kernel_size=kernel_size, 
+                                                    padding='same', 
+                                                    activation='relu') for x in range(num_layers)]                
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs):
+    def call(self, inputs, training=True):
         layer = inputs
         for conv in self.convolutions:
             layer = conv(layer) 
@@ -199,7 +202,7 @@ class TransposeConvBlock(keras.layers.Layer):
         config = super(TransposeConvBlock, self).get_config()
         config.update({'units': self.units,
                        'kernel_size': self.kernel_size,
-                       'layers': self.layers,
+                       'num_layers': self.num_layers,
                        'seed': self.seed})
         return config
 
@@ -212,25 +215,35 @@ class TransposeConvBlock(keras.layers.Layer):
 #==============================================================================
 # collection of model and submodels
 #==============================================================================
-class FeXTEncoder(keras.layers.Layer):
-    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42):
-        super(FeXTEncoder, self).__init__()
+@register_keras_serializable(package='SubModels', name='Encoder')
+class FeXTEncoder(layers.Layer):
+    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
+        super(FeXTEncoder, self).__init__(**kwargs)
         self.kernel_size = kernel_size
-        self.seed = seed
+        self.seed = seed        
         self.picture_shape = picture_shape
         self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
-        self.convblock2 = PooledConvBlock(128, kernel_size, 3, seed)
+        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
         self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)        
+        self.dense1 = layers.Dense(4096, activation='relu', kernel_initializer='he_uniform')
+        self.dense2 = layers.Dense(2048, activation='relu', kernel_initializer='he_uniform')
+        self.flatten = layers.Flatten()
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs):
+    def call(self, inputs, training=True):
         layer = inputs
         layer = self.convblock1(layer)
         layer = self.convblock2(layer)
         layer = self.convblock3(layer)
-        output = self.convblock4(layer)
+        layer = self.convblock4(layer)
+        layer = self.convblock5(layer)
+        layer = self.flatten(layer)        
+        layer = self.dense1(layer)
+        output = self.dense2(layer)
+
         return output
 
     # serialize layer for saving  
@@ -239,7 +252,7 @@ class FeXTEncoder(keras.layers.Layer):
         config = super(FeXTEncoder, self).get_config()
         config.update({'kernel_size': self.kernel_size,                                             
                        'picture_shape': self.picture_shape,
-                       'seed': self.seed, })
+                       'seed': self.seed})
         return config
 
     @classmethod
@@ -250,25 +263,29 @@ class FeXTEncoder(keras.layers.Layer):
 #==============================================================================
 # collection of model and submodels
 #==============================================================================
+@register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
-    def __init__(self, kernel_size, seed=42):
-        super(FeXTDecoder, self).__init__()
+    def __init__(self, kernel_size, seed=42, **kwargs):
+        super(FeXTDecoder, self).__init__(**kwargs)
         self.kernel_size = kernel_size
-        self.seed = seed       
-        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)
-        self.convblock2 = TransposeConvBlock(256, kernel_size, 3, seed)
-        self.convblock3 = TransposeConvBlock(128, kernel_size, 3, seed)
-        self.convblock4 = TransposeConvBlock(64, kernel_size, 2, seed)
-        self.dense = Dense(3, activation='sigmoid', dtype='float32')
+        self.seed = seed         
+        self.reshape = layers.Reshape((8, 8, 32))  
+        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)    
+        self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
+        self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
+        self.convblock4 = TransposeConvBlock(128, kernel_size, 2, seed)
+        self.convblock5 = TransposeConvBlock(64, kernel_size, 2, seed)
+        self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs):
-        layer = inputs
-        layer = self.convblock1(layer)
+    def call(self, inputs, training=True):
+        inputs = self.reshape(inputs)
+        layer = self.convblock1(inputs)
         layer = self.convblock2(layer)
         layer = self.convblock3(layer)
         layer = self.convblock4(layer)
+        layer = self.convblock5(layer)
         output = self.dense(layer)
 
         return output
@@ -288,7 +305,8 @@ class FeXTDecoder(keras.layers.Layer):
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-# collection of model and submodels
+# autoencoder model built using the functional keras API. use get_model() method
+# to build and compile the model (print summary as optional)
 #==============================================================================
 class FeXTAutoEncoder: 
 
@@ -306,7 +324,7 @@ class FeXTAutoEncoder:
     #--------------------------------------------------------------------------
     def get_model(self, summary=True):       
        
-        inputs = Input(shape = self.picture_shape)           
+        inputs = layers.Input(shape = self.picture_shape)           
         encoder_block = self.encoder(inputs)        
         decoder_block = self.decoder(encoder_block)        
         model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
@@ -318,6 +336,7 @@ class FeXTAutoEncoder:
             model.summary(expand_nested=True)
 
         return model
+    
 
 # [LEARNING RATE SCHEDULER]
 #==============================================================================
@@ -468,13 +487,14 @@ class Inference:
                     print()
                 except:
                     continue
-            self.model_path = os.path.join(path, model_folders[dir_index - 1])
+            self.folder_path = os.path.join(path, model_folders[dir_index - 1])
 
         elif len(model_folders) == 1:
-            self.model_path = os.path.join(path, model_folders[0])                 
+            self.folder_path = os.path.join(path, model_folders[0])                 
         
-        model = tf.keras.models.load_model(self.model_path, custom_objects={'LRScheduler': LRScheduler})
-        path = os.path.join(self.model_path, 'model_parameters.json')
+        self.model_path = os.path.join(self.folder_path, 'model.keras') 
+        model = tf.keras.models.load_model(self.model_path)
+        path = os.path.join(self.folder_path, 'model_parameters.json')
         with open(path, 'r') as f:
             configuration = json.load(f)               
         
