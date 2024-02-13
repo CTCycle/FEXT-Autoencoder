@@ -54,8 +54,11 @@ train_data = df_images.drop(test_data.index)
 
 # create model folder and preprocessing subfolder
 #------------------------------------------------------------------------------
-model_savepath = preprocessor.model_savefolder(GlobVar.model_path, 'FeXT')
-pp_path = os.path.join(model_savepath, 'preprocessing')
+model_folder_path = preprocessor.model_savefolder(GlobVar.model_path, 'FeXT')
+model_folder_name = preprocessor.folder_name
+model_savepath = preprocessor.model_file
+
+pp_path = os.path.join(model_folder_path, 'preprocessing')
 if not os.path.exists(pp_path):
     os.mkdir(pp_path)
 
@@ -136,20 +139,20 @@ model = modelworker.get_model(summary=True)
 # generate graphviz plot fo the model layout
 #------------------------------------------------------------------------------
 if cnf.generate_model_graph==True:
-    plot_path = os.path.join(model_savepath, 'model_layout.png')       
+    plot_path = os.path.join(model_folder_path, 'model_layout.png')       
     plot_model(model, to_file = plot_path, show_shapes = True, 
                show_layer_names = True, show_layer_activations = True, 
                expand_nested = True, rankdir = 'TB', dpi = 400)
 
 # initialize the real time history callback
 #------------------------------------------------------------------------------
-RTH_callback = RealTimeHistory(model_savepath, validation=True)
+RTH_callback = RealTimeHistory(model_folder_path, validation=True)
 callbacks_list = [RTH_callback]
 
 # initialize tensorboard if requested
 #------------------------------------------------------------------------------
 if cnf.use_tensorboard:
-    log_path = os.path.join(model_savepath, 'tensorboard')
+    log_path = os.path.join(model_folder_path, 'tensorboard')
     callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
 
 # training loop and save model at end of training
@@ -157,7 +160,13 @@ if cnf.use_tensorboard:
 training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_dataset, 
                      callbacks=callbacks_list, workers=6, use_multiprocessing=True)
 
-model.save(model_savepath, save_format='tf')
+model.save(model_savepath)
+
+print(f'''
+-------------------------------------------------------------------------------
+Training session is over. Model has been saved in folder {model_folder_name}
+-------------------------------------------------------------------------------
+''')
 
 # save model parameters in json files
 #------------------------------------------------------------------------------
@@ -172,7 +181,7 @@ parameters = {'Train_samples': cnf.num_train_samples,
               'Seed' : cnf.seed,
               'Tensorboard' : cnf.use_tensorboard}
 
-trainer.model_parameters(parameters, model_savepath)
+trainer.model_parameters(parameters, model_folder_path)
 
 
 

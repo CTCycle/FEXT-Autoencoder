@@ -105,13 +105,14 @@ class PreProcessing:
             str: A string containing the path of the folder where the model will be saved.
         
         '''        
-        raw_today_datetime = str(datetime.now())
-        truncated_datetime = raw_today_datetime[:-10]
+        today_datetime = str(datetime.now())
+        truncated_datetime = today_datetime[:-10]
         today_datetime = truncated_datetime.replace(':', '').replace('-', '').replace(' ', 'H') 
-        model_name = f'{model_name}_{today_datetime}'
-        model_savepath = os.path.join(path, model_name)
+        self.folder_name = f'{model_name}_{today_datetime}'
+        model_savepath = os.path.join(path, self.folder_name)
         if not os.path.exists(model_savepath):
-            os.mkdir(model_savepath)               
+            os.mkdir(model_savepath) 
+        self.model_file = os.path.join(model_savepath, 'model.keras')        
             
         return model_savepath   
 
