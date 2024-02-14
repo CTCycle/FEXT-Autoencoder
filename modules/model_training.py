@@ -54,10 +54,11 @@ train_data = df_images.drop(test_data.index)
 
 # create model folder and preprocessing subfolder
 #------------------------------------------------------------------------------
-model_folder_path = preprocessor.model_savefolder(GlobVar.model_path, 'FeXT')
+model_folder_path = preprocessor.model_savefolder(GlobVar.models_path, 'FeXT')
 model_folder_name = preprocessor.folder_name
-model_savepath = preprocessor.model_file
 
+# create subfolder for preprocessing data
+#------------------------------------------------------------------------------
 pp_path = os.path.join(model_folder_path, 'preprocessing')
 if not os.path.exists(pp_path):
     os.mkdir(pp_path)
@@ -160,7 +161,8 @@ if cnf.use_tensorboard:
 training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_dataset, 
                      callbacks=callbacks_list, workers=6, use_multiprocessing=True)
 
-model.save(model_savepath)
+model_file_path = os.path.join(model_folder_path, 'model.keras')
+model.save(model_file_path)
 
 print(f'''
 -------------------------------------------------------------------------------

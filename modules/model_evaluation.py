@@ -27,8 +27,8 @@ import configurations as cnf
 # load the model for inference and print summary
 #------------------------------------------------------------------------------
 inference = Inference() 
-model, parameters = inference.load_pretrained_model(GlobVar.model_path)
-model_path = inference.model_path
+model, parameters = inference.load_pretrained_model(GlobVar.models_path)
+model_path = inference.folder_path
 model.summary(expand_nested=True)
 
 # load data
@@ -54,7 +54,7 @@ trainer = ModelTraining(device=cnf.training_device, seed = cnf.seed,
 
 # initialize the images generator for the train data, get batch at initial index
 #------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, 50, cnf.picture_shape, 
+train_generator = DataGenerator(train_data, 20, cnf.picture_shape, 
                                 augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = train_generator.__getitem__(0)
 
@@ -68,7 +68,7 @@ train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # initialize the images generator for the test data, get batch at initial index
 #------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, 50, cnf.picture_shape, 
+test_generator = DataGenerator(test_data, 20, cnf.picture_shape, 
                                augmentation=cnf.augmentation, shuffle=True)
 x_batch, y_batch = test_generator.__getitem__(0)
 

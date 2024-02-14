@@ -41,7 +41,7 @@ for root, dirs, files in os.walk(GlobVar.pred_path):
 # selected and load the pretrained model, then print the summary
 #------------------------------------------------------------------------------
 inference = Inference() 
-model, parameters = inference.load_pretrained_model(GlobVar.model_path)
+model, parameters = inference.load_pretrained_model(GlobVar.models_path)
 model.summary(expand_nested=True)
 
 # isolate the encoder from the autoencoder model, and use it for inference 

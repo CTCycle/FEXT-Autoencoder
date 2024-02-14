@@ -24,8 +24,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.loss_val_hist = []        
         self.metric_val_hist = []
         self.validation = validation 
-
-    #--------------------------------------------------------------------------   
+    
     def on_epoch_end(self, epoch, logs = {}):        
         if epoch % 2 == 0:                    
             self.epochs.append(epoch)
@@ -492,8 +491,8 @@ class Inference:
         elif len(model_folders) == 1:
             self.folder_path = os.path.join(path, model_folders[0])                 
         
-        self.model_path = os.path.join(self.folder_path, 'model.keras') 
-        model = tf.keras.models.load_model(self.model_path)
+        model_path = os.path.join(self.folder_path, 'model.keras') 
+        model = tf.keras.models.load_model(model_path)
         path = os.path.join(self.folder_path, 'model_parameters.json')
         with open(path, 'r') as f:
             configuration = json.load(f)               
