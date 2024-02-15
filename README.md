@@ -19,13 +19,15 @@ In terms of application scope, this autoencoder can be used in a variety of task
 ## How to use
 Run the FeXTAutoEncoder.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
 
-**1) Pretrain FeXTAutoEncoder model** Pretrain the autoencoder from scratch using the data from `/images`. Data preprocessing is performed prior to start the training session. 
+**1) Data validation** Evaluate images dataset from `/images` and compare train and test datasets properties. Data validation is based on training parameters from `configurations.py`.
 
-**2) Evaluate FeXTAutoEncoder model** Select a pretrained model and evaluate its performance throguh different methodologies, leveraging both training and validation datasets
+**2) Pretrain FeXTAutoEncoder model** Pretrain the autoencoder from scratch using the data from `/images`. Data preprocessing is performed prior to start the training session. 
 
-**3) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
+**3) Evaluate FeXTAutoEncoder model** Select a pretrained model and evaluate its performance throguh different methodologies, leveraging both training and validation datasets
 
-**4) Exit and close**
+**4) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
+
+**5) Exit and close**
 
 ### Configurations
 For customization, you can modify the main script parameters via the ‘configurations.py’ file. The following parameters are available:

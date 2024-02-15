@@ -1,7 +1,10 @@
 import os
+import cv2
 from datetime import datetime
+import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 # [CONSOLE USER OPERATIONS]
 #==============================================================================
@@ -78,15 +81,24 @@ class PreProcessing:
         return dataframe
 
     #--------------------------------------------------------------------------
-    def load_images(self, paths, image_size):
+    def load_images(self, paths, image_size, as_tensor=True, normalize=True):
         
         images = []
         for pt in tqdm(paths):
-            image = tf.io.read_file(pt)
-            image = tf.image.decode_image(image, channels=3)
-            image = tf.image.resize(image, image_size)
-            image = tf.reverse(image, axis=[-1])
-            image = image/255.0 
+            if as_tensor==False:                
+                image = cv2.imread(pt)             
+                image = cv2.resize(image, image_size)            
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
+                if normalize==True:
+                    image = image/255.0
+            else:
+                image = tf.io.read_file(pt)
+                image = tf.image.decode_image(image, channels=3)
+                image = tf.image.resize(image, image_size)
+                image = tf.reverse(image, axis=[-1])
+                if normalize==True:
+                    image = image/255.0
+            
             images.append(image) 
 
         return images    
@@ -115,9 +127,31 @@ class PreProcessing:
                     
         return model_folder_path   
 
+# [VALIDATION OF DATA]
+#==============================================================================
+# Series of methods and functions to preprocess data for model training
+#==============================================================================
+class DataValidation:
 
-    
-    
-    
+    def pixel_intensity_histograms(self, image_set_1, image_set_2, path,
+                                   names=['First set', 'Second set']):
         
-      
+        pixel_intensities_1 = np.concatenate([image.flatten() for image in image_set_1])
+        pixel_intensities_2 = np.concatenate([image.flatten() for image in image_set_2])        
+        plt.hist(pixel_intensities_1, bins='auto', alpha=0.5, color='blue', label=names[0])
+        plt.hist(pixel_intensities_2, bins='auto', alpha=0.5, color='red', label=names[1])
+        plt.title('Pixel Intensity Histograms')
+        plt.xlabel('Pixel Intensity')
+        plt.ylabel('Frequency')
+        plt.legend()            
+        plt.tight_layout()
+        plot_loc = os.path.join(path, 'pixel_intensities.jpeg')
+        plt.savefig(plot_loc, bbox_inches='tight', format='jpeg', dpi=400)            
+        plt.close()
+        
+              
+        
+        
+        
+            
+        

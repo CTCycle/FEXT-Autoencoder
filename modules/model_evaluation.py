@@ -15,13 +15,13 @@ if __name__ == '__main__':
 
 # import modules and components
 #------------------------------------------------------------------------------
-from modules.components.model_assets import ModelTraining, ModelValidation, DataGenerator, Inference
+from modules.components.model_assets import ModelValidation, Inference
 import modules.global_variables as GlobVar
 import configurations as cnf
 
 # [LOAD MODEL AND DATA]
 #==============================================================================
-# module for the selection of different operations
+# Load data and models
 #==============================================================================
 
 # load the model for inference and print summary
@@ -33,52 +33,10 @@ model.summary(expand_nested=True)
 
 # load data
 #------------------------------------------------------------------------------
-filepath = os.path.join(model_path, 'preprocessing', 'train_data.csv')                
+filepath = os.path.join(model_path, 'preprocessing', 'train_X.csv')                
 train_data = pd.read_csv(filepath, sep= ';', encoding='utf-8')
-filepath = os.path.join(model_path, 'preprocessing', 'test_data.csv')                
+filepath = os.path.join(model_path, 'preprocessing', 'test_X.csv')                
 test_data = pd.read_csv(filepath, sep= ';', encoding='utf-8')
-
-# [DEFINE DATA GENERATOR FOR THE IMAGES AND BUILD TF.DATASET]
-#==============================================================================
-# module for the selection of different operations
-#==============================================================================
-print('''
--------------------------------------------------------------------------------
-Model evaluation
--------------------------------------------------------------------------------
-.... 
-''')
-
-trainer = ModelTraining(device=cnf.training_device, seed = cnf.seed, 
-                        use_mixed_precision=cnf.use_mixed_precision)
-
-# initialize the images generator for the train data, get batch at initial index
-#------------------------------------------------------------------------------
-train_generator = DataGenerator(train_data, 20, cnf.picture_shape, 
-                                augmentation=cnf.augmentation, shuffle=True)
-x_batch, y_batch = train_generator.__getitem__(0)
-
-# create train tf.dataset from generator and set prefetch scheduler 
-#------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-train_dataset = tf.data.Dataset.from_generator(lambda : train_generator, 
-                                               output_signature=output_signature)
-train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-
-# initialize the images generator for the test data, get batch at initial index
-#------------------------------------------------------------------------------
-test_generator = DataGenerator(test_data, 20, cnf.picture_shape, 
-                               augmentation=cnf.augmentation, shuffle=True)
-x_batch, y_batch = test_generator.__getitem__(0)
-
-# create test tf.dataset from generator and set prefetch scheduler 
-#------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-test_dataset = tf.data.Dataset.from_generator(lambda : test_generator, 
-                                              output_signature=output_signature)
-test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # [MODEL VALIDATION]
 #==============================================================================
@@ -102,8 +60,8 @@ if not os.path.exists(eval_path):
 
 # predict images from train and test subsets
 #------------------------------------------------------------------------------
-train_eval = model.evaluate(train_dataset)
-test_eval = model.evaluate(test_dataset)
+train_eval = model.evaluate(train_data)
+test_eval = model.evaluate(test_data)
 
 print(f'''
 -------------------------------------------------------------------------------
@@ -121,7 +79,7 @@ Test dataset:
 # perform visual validation for the train dataset (initialize a validation tf.dataset
 # with batch size of 10 images)
 #------------------------------------------------------------------------------
-validation_batch = train_dataset.unbatch().batch(10).take(1)
+validation_batch = train_data.unbatch().batch(10).take(1)
 for images, labels in validation_batch:
     recostructed_images = model.predict(images, verbose=0)
     validator.visual_validation(images, recostructed_images, 'visual_validation_train', 
@@ -130,7 +88,7 @@ for images, labels in validation_batch:
 # perform visual validation for the test dataset (initialize a validation tf.dataset
 # with batch size of 10 images)
 #------------------------------------------------------------------------------
-validation_batch = test_dataset.unbatch().batch(10).take(1)
+validation_batch = test_data.unbatch().batch(10).take(1)
 for images, labels in validation_batch:
     recostructed_images = model.predict(images, verbose=0) 
     validator.visual_validation(images, recostructed_images, 'visual_validation_test',

@@ -47,7 +47,7 @@ total_samples = cnf.num_train_samples + cnf.num_test_samples
 df_images = pd.DataFrame(images_paths, columns=['images path'])
 df_images = df_images.sample(total_samples, random_state=36)
 
-# create test dataset
+# create train and test datasets
 #------------------------------------------------------------------------------
 test_data = df_images.sample(n=cnf.num_test_samples, random_state=36)
 train_data = df_images.drop(test_data.index)

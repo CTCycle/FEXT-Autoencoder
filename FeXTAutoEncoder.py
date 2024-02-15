@@ -18,10 +18,11 @@ print(ascii_art)
 # import of modules
 #==============================================================================
 user_operations = UserOperations()
-operations_menu = {'1' : 'Pretrain FeXTAutoEncoder model',
-                   '2' : 'Evaluate FeXTAutoEncoder model',
-                   '3' : 'Extract features from images',                   
-                   '4' : 'Exit and close'}
+operations_menu = {'1' : 'Data validation',
+                   '2' : 'Pretrain FeXTAutoEncoder model',
+                   '3' : 'Evaluate FeXTAutoEncoder model',
+                   '4' : 'Extract features from images',                   
+                   '5' : 'Exit and close'}
 
 while True:
     print('------------------------------------------------------------------------')
@@ -30,6 +31,9 @@ while True:
     op_sel = user_operations.menu_selection(operations_menu)
     print()
     if op_sel == 1:
+        import modules.data_validation
+        del sys.modules['modules.data_validation']
+    elif op_sel == 1:
         import modules.model_training
         del sys.modules['modules.model_training']        
     elif op_sel == 2:
