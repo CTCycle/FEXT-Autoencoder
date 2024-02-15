@@ -32,25 +32,29 @@ Run the FeXTAutoEncoder.py file to launch the script and use the main menu to na
 ### Configurations
 For customization, you can modify the main script parameters via the ‘configurations.py’ file. The following parameters are available:
 
-**Settings for training performance and monitoring options:**
-- `generate_model_graph:` generate and save 2D model graph (as .png file)
+**Advanced settings for training:**
 - `use_mixed_precision:` whether or not to use mixed precision for faster training (mix float16/float32)
 - `use_tensorboard:` activate or deactivate tensorboard logging
 - `XLA_acceleration:` use of linear algebra acceleration for faster training 
-
-**Settings for pretraining parameters:**
 - `training_device:` select the training device (CPU or GPU)
+
+**Settings for training routine:**
 - `epochs:` number of training iterations
 - `learning_rate:` learning rate of the model 
 - `batch_size:` size of batches to be fed to the model during training
-- `kernel_size:` size of convolutional kernel (best to keep at 2)
-- `seed:` global random seed
 
-**Settings for data preprocessing and predictions:**
+**Autoencoder settings:**
+- `picture_shape:` full shape of the images as (height, width, channels)
+- `kernel_size:` size of convolutional kernel (best to keep at 2)
+- `generate_model_graph:` generate and save 2D model graph (as .png file)
+
+**Settings for training data:**
 - `num_train_samples:` number of images to use for the model training 
 - `num_test_samples:` number of samples to use as validation data
-- `picture_shape:` full shape of the images as (height, width, channels)
 - `augmentation:` whether or not to perform data agumentation on images (significant impact on training time)
+
+**General settings:**
+- `seed:` global random seed
 
 **Number of samples and batch size:** This application is designed for efficient on-the-fly image loading using a custom generator. Therefore, it is advisable to carefully choose the number of training and testing samples and adjust the batch size accordingly. Optimal training and test data sizes should be multiples of 100.
               
