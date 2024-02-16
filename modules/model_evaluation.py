@@ -58,10 +58,10 @@ eval_path = os.path.join(model_path, 'evaluation')
 if not os.path.exists(eval_path):
     os.mkdir(eval_path)
 
-# predict images from train and test subsets
+# evluate the model on both the train and test dataset
 #------------------------------------------------------------------------------
-train_eval = model.evaluate(train_data)
-test_eval = model.evaluate(test_data)
+train_eval = model.evaluate(x=train_data, y=train_data, batch_size=20, verbose=1)
+test_eval = model.evaluate(x=test_data, y=test_data, batch_size=20, verbose=1)
 
 print(f'''
 -------------------------------------------------------------------------------

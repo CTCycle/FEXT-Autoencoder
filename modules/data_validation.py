@@ -1,8 +1,6 @@
 import os
 import sys
 import pandas as pd
-import tensorflow as tf
-from keras.utils import plot_model
 
 # setting warnings
 #------------------------------------------------------------------------------
@@ -72,17 +70,7 @@ test_images = preprocessor.load_images(test_data['images path'], cnf.picture_sha
 validator.pixel_intensity_histograms(train_images, test_images, GlobVar.val_path,
                                      names=['Train', 'Test'])
 
-
-
-
-# [TRAINING MODEL]
-#==============================================================================
-# Setting callbacks and training routine for the features extraction model. 
-# use command prompt on the model folder and (upon activating environment), 
-# use the bash command: python -m tensorboard.main --logdir tensorboard/
-#==============================================================================
-
-# Print report with info about the training parameters
+# Print report with info about the data evaluation 
 #------------------------------------------------------------------------------
 print(f'''
 -------------------------------------------------------------------------------
