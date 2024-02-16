@@ -37,6 +37,7 @@ For customization, you can modify the main script parameters via the ‘configur
 - `use_tensorboard:` activate or deactivate tensorboard logging
 - `XLA_acceleration:` use of linear algebra acceleration for faster training 
 - `training_device:` select the training device (CPU or GPU)
+- `num_processors:` number of processors (cores) to be used during training; if set to 1, multiprocessing is not used
 
 **Settings for training routine:**
 - `epochs:` number of training iterations

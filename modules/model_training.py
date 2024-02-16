@@ -158,8 +158,10 @@ if cnf.use_tensorboard:
 
 # training loop and save model at end of training
 #------------------------------------------------------------------------------
+multiprocessing = cnf.num_processors > 1
 training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_dataset, 
-                     callbacks=callbacks_list, workers=6, use_multiprocessing=True)
+                     callbacks=callbacks_list, workers=cnf.num_processors, 
+                     use_multiprocessing=multiprocessing)
 
 model_file_path = os.path.join(model_folder_path, 'model.keras')
 model.save(model_file_path)
