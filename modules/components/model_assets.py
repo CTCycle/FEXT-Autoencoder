@@ -522,7 +522,7 @@ class Inference:
     def images_loader(self, path, picture_shape=(244, 244, 3)):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
-        rgb_image = tf.image.resize(rgb_image, picture_shape)        
+        rgb_image = tf.image.resize(rgb_image, picture_shape[:-1])        
         rgb_image = rgb_image/255.0        
 
         return rgb_image 

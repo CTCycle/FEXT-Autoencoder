@@ -1,9 +1,9 @@
 import os
 import cv2
+from tqdm import tqdm
 from datetime import datetime
 import numpy as np
 import tensorflow as tf
-from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 # [CONSOLE USER OPERATIONS]
