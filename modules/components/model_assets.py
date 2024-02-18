@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from tensorflow import keras
 from keras import layers
 from keras.models import Model
-from tensorflow.keras.utils import register_keras_serializable
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
@@ -131,7 +130,7 @@ class DataGenerator(keras.utils.Sequence):
 #==============================================================================
 # Positional embedding custom layer
 #==============================================================================
-@register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
+@keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
 class PooledConvBlock(layers.Layer):
     def __init__(self, units, kernel_size, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
@@ -162,6 +161,8 @@ class PooledConvBlock(layers.Layer):
                        'seed': self.seed})
         return config
 
+    # deserialization method 
+    #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)  
@@ -171,7 +172,7 @@ class PooledConvBlock(layers.Layer):
 #==============================================================================
 # Positional embedding custom layer
 #==============================================================================
-@register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
+@keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
 class TransposeConvBlock(layers.Layer):
     def __init__(self, units, kernel_size, num_layers=3, seed=42, **kwargs):
         super(TransposeConvBlock, self).__init__(**kwargs)
@@ -205,6 +206,8 @@ class TransposeConvBlock(layers.Layer):
                        'seed': self.seed})
         return config
 
+    # deserialization method 
+    #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)     
@@ -214,7 +217,7 @@ class TransposeConvBlock(layers.Layer):
 #==============================================================================
 # collection of model and submodels
 #==============================================================================
-@register_keras_serializable(package='SubModels', name='Encoder')
+@keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
 class FeXTEncoder(layers.Layer):
     def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)
@@ -226,8 +229,7 @@ class FeXTEncoder(layers.Layer):
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
         self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
         self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)        
-        self.dense1 = layers.Dense(4096, activation='relu', kernel_initializer='he_uniform')
-        self.dense2 = layers.Dense(2048, activation='relu', kernel_initializer='he_uniform')
+        self.dense2 = layers.Dense(4096, activation='tanh', kernel_initializer='glorot_uniform')
         self.flatten = layers.Flatten()
 
     # implement transformer encoder through call method  
@@ -240,7 +242,6 @@ class FeXTEncoder(layers.Layer):
         layer = self.convblock4(layer)
         layer = self.convblock5(layer)
         layer = self.flatten(layer)        
-        layer = self.dense1(layer)
         output = self.dense2(layer)
 
         return output
@@ -254,6 +255,8 @@ class FeXTEncoder(layers.Layer):
                        'seed': self.seed})
         return config
 
+    # deserialization method 
+    #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config) 
@@ -262,13 +265,13 @@ class FeXTEncoder(layers.Layer):
 #==============================================================================
 # collection of model and submodels
 #==============================================================================
-@register_keras_serializable(package='SubModels', name='Decoder')
+@keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
     def __init__(self, kernel_size, seed=42, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
         self.kernel_size = kernel_size
         self.seed = seed         
-        self.reshape = layers.Reshape((8, 8, 32))  
+        self.reshape = layers.Reshape((8, 8, 64))  
         self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)    
         self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
         self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
@@ -297,9 +300,58 @@ class FeXTDecoder(keras.layers.Layer):
                        'seed': self.seed})
         return config
 
+    # deserialization method 
+    #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
-        return cls(**config)        
+        return cls(**config)       
+    
+# [LEARNING RATE SCHEDULER]
+#==============================================================================
+# Use TensorFlow's conditional to handle the tensor-based condition, such as
+# building an autograph for training   
+#==============================================================================
+@keras.utils.register_keras_serializable(package='LRScheduler')
+class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, initial_lr, decay_steps, decay_rate, warmup_steps=0):
+        self.initial_lr = initial_lr
+        self.decay_steps = decay_steps
+        self.decay_rate = decay_rate
+        self.warmup_steps = warmup_steps
+        self.warmup_lr = initial_lr * warmup_steps
+        
+    # call on step
+    #--------------------------------------------------------------------------
+    def __call__(self, step):               
+        step = step + 1
+        step_tensor = tf.convert_to_tensor(step, dtype=tf.float32)
+        if self.warmup_steps > 0:
+            warmup_lr = self.warmup_lr * (step_tensor/self.warmup_steps)
+        else:
+            warmup_lr = self.initial_lr
+
+        decay_lr = self.initial_lr * (self.decay_rate ** ((step - self.warmup_steps) // self.decay_steps))
+        lr = tf.cond(tf.math.less(step_tensor, self.warmup_steps),
+                     lambda: warmup_lr,
+                     lambda: decay_lr)
+        
+        return lr
+    
+    # custom configurations
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(LRScheduler, self).get_config()
+        config.update({'initial_lr': self.initial_lr,
+                       'decay_steps': self.decay_steps,
+                       'decay_rate': self.decay_rate,
+                       'warmup_steps': self.warmup_steps})
+        return config        
+    
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
     
 
 # [MACHINE LEARNING MODELS]
@@ -335,46 +387,7 @@ class FeXTAutoEncoder:
             model.summary(expand_nested=True)
 
         return model
-    
-
-# [LEARNING RATE SCHEDULER]
-#==============================================================================
-# Use TensorFlow's conditional to handle the tensor-based condition, such as
-# building an autograph for training   
-#==============================================================================
-class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
-    def __init__(self, initial_lr, decay_steps, decay_rate, warmup_steps=0):
-        self.initial_lr = initial_lr
-        self.decay_steps = decay_steps
-        self.decay_rate = decay_rate
-        self.warmup_steps = warmup_steps
-        self.warmup_lr = initial_lr * warmup_steps
-        
-    # call on step
-    #--------------------------------------------------------------------------
-    def __call__(self, step):               
-        step = step + 1
-        step_tensor = tf.convert_to_tensor(step, dtype=tf.float32)
-        if self.warmup_steps > 0:
-            warmup_lr = self.warmup_lr * (step_tensor/self.warmup_steps)
-        else:
-            warmup_lr = self.initial_lr
-
-        decay_lr = self.initial_lr * (self.decay_rate ** ((step - self.warmup_steps) // self.decay_steps))
-        lr = tf.cond(tf.math.less(step_tensor, self.warmup_steps),
-                     lambda: warmup_lr,
-                     lambda: decay_lr)
-        
-        return lr
-    
-    # custom configurations
-    #--------------------------------------------------------------------------
-    def get_config(self):
-        return {'initial_lr': self.initial_lr,
-                'decay_steps': self.decay_steps,
-                'decay_rate': self.decay_rate,
-                'warmup_steps': self.warmup_steps}
-    
+       
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
 #==============================================================================

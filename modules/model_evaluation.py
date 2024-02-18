@@ -82,7 +82,8 @@ Test dataset:
 validation_batch = train_data.unbatch().batch(10).take(1)
 for images, labels in validation_batch:
     recostructed_images = model.predict(images, verbose=0)
-    validator.visual_validation(images, recostructed_images, 'visual_validation_train', 
+    validator.visual_validation(images, recostructed_images, 
+                                'visual_validation_train', 
                                 eval_path)
 
 # perform visual validation for the test dataset (initialize a validation tf.dataset
@@ -91,5 +92,6 @@ for images, labels in validation_batch:
 validation_batch = test_data.unbatch().batch(10).take(1)
 for images, labels in validation_batch:
     recostructed_images = model.predict(images, verbose=0) 
-    validator.visual_validation(images, recostructed_images, 'visual_validation_test',
+    validator.visual_validation(images, recostructed_images, 
+                                'visual_validation_test',
                                 eval_path)

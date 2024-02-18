@@ -8,7 +8,7 @@ num_processors = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-epochs = 50
+epochs = 30
 learning_rate = 0.001
 batch_size = 25
 
