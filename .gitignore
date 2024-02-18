@@ -1,5 +1,5 @@
 __pycache__
-images/*
-predictions/*
+data/images/*
+data/features/*
+data/validation/*
 models/*
-validation/*

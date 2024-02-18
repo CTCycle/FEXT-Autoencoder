@@ -164,7 +164,7 @@ training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_data
                      use_multiprocessing=multiprocessing)
 
 model_files_path = os.path.join(model_folder_path, 'model')
-model.save(model_files_path)
+model.save(model_files_path, save_format='tf')
 
 print(f'''
 -------------------------------------------------------------------------------
