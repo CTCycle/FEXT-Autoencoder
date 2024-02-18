@@ -174,16 +174,16 @@ Training session is over. Model has been saved in folder {model_folder_name}
 
 # save model parameters in json files
 #------------------------------------------------------------------------------
-parameters = {'Train_samples': cnf.num_train_samples,
-              'Test_samples': cnf.num_test_samples,
-              'Picture_shape' : cnf.picture_shape,             
-              'Kernel_size' : cnf.kernel_size,              
-              'Augmentation' : cnf.augmentation,              
-              'Batch_size' : cnf.batch_size,
-              'Learning_rate' : cnf.learning_rate,
-              'Epochs' : cnf.epochs,
-              'Seed' : cnf.seed,
-              'Tensorboard' : cnf.use_tensorboard}
+parameters = {'train_samples': cnf.num_train_samples,
+              'test_samples': cnf.num_test_samples,
+              'picture_shape' : cnf.picture_shape,             
+              'kernel_size' : cnf.kernel_size,              
+              'augmentation' : cnf.augmentation,              
+              'batch_size' : cnf.batch_size,
+              'learning_rate' : cnf.learning_rate,
+              'epochs' : cnf.epochs,
+              'seed' : cnf.seed,
+              'tensorboard' : cnf.use_tensorboard}
 
 trainer.model_parameters(parameters, model_folder_path)
 
