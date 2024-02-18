@@ -139,7 +139,7 @@ class PooledConvBlock(layers.Layer):
         self.num_layers = num_layers
         self.seed = seed        
         self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(num_layers)]         
-        self.pooling = layers.MaxPooling2D(padding='same')         
+        self.pooling = layers.AveragePooling2D(padding='same')         
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -227,10 +227,11 @@ class FeXTEncoder(layers.Layer):
         self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
         self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
-        self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
-        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)        
-        self.dense2 = layers.Dense(4096, activation='tanh', kernel_initializer='glorot_uniform')
-        self.flatten = layers.Flatten()
+        self.convblock4 = PooledConvBlock(256, kernel_size, 3, seed)
+        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.pooling = layers.MaxPooling2D(pool_size=(4, 4), strides=4)              
+        self.dense2 = layers.Dense(2048, activation='LeakyReLU', kernel_initializer='he_uniform')
+        self.flatten = layers.Flatten()        
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -241,6 +242,7 @@ class FeXTEncoder(layers.Layer):
         layer = self.convblock3(layer)
         layer = self.convblock4(layer)
         layer = self.convblock5(layer)
+        layer = self.pooling(layer)
         layer = self.flatten(layer)        
         output = self.dense2(layer)
 
@@ -270,8 +272,10 @@ class FeXTDecoder(keras.layers.Layer):
     def __init__(self, kernel_size, seed=42, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
         self.kernel_size = kernel_size
-        self.seed = seed         
-        self.reshape = layers.Reshape((8, 8, 64))  
+        self.seed = seed  
+        self.dense = layers.Dense(2048, activation='LeakyReLU', kernel_initializer='he_uniform')       
+        self.reshape = layers.Reshape((2, 2, 512)) 
+        self.upsamp = layers.UpSampling2D(size=(4, 4), input_shape=(2, 2, 512))
         self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)    
         self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
         self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
@@ -282,8 +286,10 @@ class FeXTDecoder(keras.layers.Layer):
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
     def call(self, inputs, training=True):
-        inputs = self.reshape(inputs)
-        layer = self.convblock1(inputs)
+        
+        layer = self.reshape(inputs)
+        layer = self.upsamp(layer)
+        layer = self.convblock1(layer)
         layer = self.convblock2(layer)
         layer = self.convblock3(layer)
         layer = self.convblock4(layer)
@@ -504,7 +510,7 @@ class Inference:
         elif len(model_folders) == 1:
             self.folder_path = os.path.join(path, model_folders[0])                 
         
-        model_path = os.path.join(self.folder_path, 'model.keras') 
+        model_path = os.path.join(self.folder_path, 'model') 
         model = tf.keras.models.load_model(model_path)
         path = os.path.join(self.folder_path, 'model_parameters.json')
         with open(path, 'r') as f:

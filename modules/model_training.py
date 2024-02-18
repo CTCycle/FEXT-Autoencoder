@@ -163,8 +163,8 @@ training = model.fit(train_dataset, epochs=cnf.epochs, validation_data=test_data
                      callbacks=callbacks_list, workers=cnf.num_processors, 
                      use_multiprocessing=multiprocessing)
 
-model_file_path = os.path.join(model_folder_path, 'model.keras')
-model.save(model_file_path)
+model_files_path = os.path.join(model_folder_path, 'model')
+model.save(model_files_path)
 
 print(f'''
 -------------------------------------------------------------------------------
