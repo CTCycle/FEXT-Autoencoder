@@ -55,7 +55,7 @@ encoder_model = keras.Model(inputs=encoder_input.input, outputs=encoder_output.o
 features = {}
 for pt in tqdm(images_paths):
     try:
-        image = inference.images_loader(pt, parameters['Picture_shape'])
+        image = inference.images_loader(pt, parameters['picture_shape'])
         image = tf.expand_dims(image, axis=0)
         extracted_features = encoder_model.predict(image, verbose=0)
         features.update({pt : extracted_features})
