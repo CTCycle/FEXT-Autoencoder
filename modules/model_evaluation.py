@@ -26,7 +26,7 @@ import configurations as cnf
 
 # load the model for inference and print summary
 #------------------------------------------------------------------------------
-inference = Inference() 
+inference = Inference(cnf.seed) 
 model, parameters = inference.load_pretrained_model(GlobVar.models_path)
 model_path = inference.folder_path
 model.summary(expand_nested=True)
