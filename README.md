@@ -57,7 +57,7 @@ For customization, you can modify the main script parameters via the ‘configur
 **General settings:**
 - `seed:` global random seed
 
-**Number of samples and batch size:** This application is designed for efficient on-the-fly image loading using a custom generator. Therefore, it is advisable to carefully choose the number of training and testing samples and adjust the batch size accordingly. Optimal training and test data sizes should be multiples of 100.
+**Number of samples and batch size:** This application is designed for efficient on-the-fly image loading using a custom generator. Therefore, it is advisable to carefully choose the number of training and testing samples and adjust the batch size accordingly.
               
 ## Installation 
 First, ensure that you have Python 3.10.12 installed on your system. Then, you can easily install the required Python packages using the provided requirements.txt file:
