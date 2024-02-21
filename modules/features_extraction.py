@@ -19,6 +19,7 @@ if __name__ == '__main__':
 #------------------------------------------------------------------------------ 
 from modules.components.model_assets import Inference
 import modules.global_variables as GlobVar
+import configurations as cnf
 
 # [INFERENCE]
 #==============================================================================
@@ -40,7 +41,7 @@ for root, dirs, files in os.walk(GlobVar.pred_path):
 
 # selected and load the pretrained model, then print the summary
 #------------------------------------------------------------------------------
-inference = Inference() 
+inference = Inference(cnf.seed) 
 model, parameters = inference.load_pretrained_model(GlobVar.models_path)
 model.summary(expand_nested=True)
 
