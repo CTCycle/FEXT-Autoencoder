@@ -9,17 +9,24 @@ from keras.utils import plot_model
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# add modules path if this file is launched as __main__
+# add parent folder path to the namespace
 #------------------------------------------------------------------------------
-if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) 
 
 # import modules and components
 #------------------------------------------------------------------------------
-from modules.components.data_assets import PreProcessing
-from modules.components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator
-import modules.global_variables as GlobVar
+from components.data_assets import PreProcessing
+from components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator
+import components.global_paths as globpt
 import configurations as cnf
+
+# specify relative paths from global paths and create subfolders
+#------------------------------------------------------------------------------
+images_path = os.path.join(globpt.data_path, 'images')
+cp_path = os.path.join(globpt.model_path, 'checkpoints')
+os.mkdir(images_path) if not os.path.exists(images_path) else None
+os.mkdir(cp_path) if not os.path.exists(cp_path) else None
+
 
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
@@ -32,12 +39,14 @@ FEXT-AutoEncoder training
 -------------------------------------------------------------------------------
 ''')
 
+# initialize preprocessing class
+#------------------------------------------------------------------------------
 preprocessor = PreProcessing()
 
 # find and assign images path
 #------------------------------------------------------------------------------
 images_paths = []
-for root, dirs, files in os.walk(GlobVar.images_path):
+for root, dirs, files in os.walk(images_path):
     for file in files:
         images_paths.append(os.path.join(root, file))
 
@@ -54,14 +63,13 @@ train_data = df_images.drop(test_data.index)
 
 # create model folder and preprocessing subfolder
 #------------------------------------------------------------------------------
-model_folder_path = preprocessor.model_savefolder(GlobVar.models_path, 'FeXT')
+model_folder_path = preprocessor.model_savefolder(cp_path, 'FeXT')
 model_folder_name = preprocessor.folder_name
 
 # create subfolder for preprocessing data
 #------------------------------------------------------------------------------
 pp_path = os.path.join(model_folder_path, 'preprocessing')
-if not os.path.exists(pp_path):
-    os.mkdir(pp_path)
+os.mkdir(pp_path) if not os.path.exists(pp_path) else None
 
 # save preprocessed data
 #------------------------------------------------------------------------------

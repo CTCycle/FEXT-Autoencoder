@@ -17,20 +17,28 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
 
 ## How to use
-Run the FeXTAutoEncoder.py file to launch the script and use the main menu to navigate the different options. From the main menu, you can select one of the following options:
+Within the project folder, you'll find several key subfolders:
 
-**1) Data validation** Evaluate images dataset from `/images` and compare train and test datasets properties. Data validation is based on training parameters from `configurations.py`.
+**Components**
+This directory serves as the home for fundamental files crucial for the flawless operation of the program. It's imperative not to tamper with these files as any modifications could jeopardize the script's integrity.
 
-**2) Pretrain FeXTAutoEncoder model** Pretrain the autoencoder from scratch using the data from `/images`. Data preprocessing is performed prior to start the training session. 
+**Data**
+This folder hosts the data utilized for both model training and evaluation purposes:
+- `data/images` holds the image data employed for various tasks.
+- `data/validation` stores the outcomes of data validation processes. 
+- Execute `data_validation.py` to conduct an in-depth analysis leveraging the original image dataset.
 
-**3) Evaluate FeXTAutoEncoder model** Select a pretrained model and evaluate its performance throguh different methodologies, leveraging both training and validation datasets
+**Model**
+Contained within this repository are the necessary files for conducting model training and evaluation, especially for pre-trained models:
+- `model/checkpoints` acts as the default repository where checkpoints of pre-trained models are stored.
+- Run `model_training.py` to initiate the training process for deep learning models.
+- Run `model_evaluation.py` to evaluate the performance metrics of pre-trained models.
 
-**4) Extract features from images** Use the pretrained model in inference mode, to extract features from images and save the compressed vector locally as .csv file
-
-**5) Exit and close**
-
+**Inference**
+Utilizing `features_extraction.py` from this directory facilitates the loading and inferencing of pre-trained model checkpoints to extract compressed vectorized features from images located within `inference/images`. The resulting .csv file is then saved within the same directory.
+ 
 ### Configurations
-For customization, you can modify the main script parameters via the ‘configurations.py’ file. The following parameters are available:
+For customization, you can modify the main script parameters via the `configurations.py` file in the main folder. The following parameters are available:
 
 **Advanced settings for training:**
 - `use_mixed_precision:` whether or not to use mixed precision for faster training (mix float16/float32)

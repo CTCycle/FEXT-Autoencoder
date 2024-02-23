@@ -8,16 +8,21 @@ import tensorflow as tf
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# add modules path if this file is launched as __main__
+# add parent folder path to the namespace
 #------------------------------------------------------------------------------
-if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) 
 
 # import modules and components
 #------------------------------------------------------------------------------
-from modules.components.model_assets import DataGenerator, ModelValidation, Inference
-import modules.global_variables as GlobVar
+from components.model_assets import DataGenerator, ModelValidation, Inference
+import components.global_paths as globpt
 import configurations as cnf
+
+# specify relative paths from global paths and create subfolders
+#------------------------------------------------------------------------------
+cp_path = os.path.join(globpt.model_path, 'checkpoints')
+os.mkdir(cp_path) if not os.path.exists(cp_path) else None
+
 
 # [LOAD MODEL AND DATA]
 #==============================================================================
@@ -27,7 +32,7 @@ import configurations as cnf
 # load the model for inference and print summary
 #------------------------------------------------------------------------------
 inference = Inference(cnf.seed) 
-model, parameters = inference.load_pretrained_model(GlobVar.models_path)
+model, parameters = inference.load_pretrained_model(cp_path)
 model_path = inference.folder_path
 model.summary(expand_nested=True)
 
@@ -83,8 +88,7 @@ validator = ModelValidation(model)
 # create subfolder for evaluation data
 #------------------------------------------------------------------------------
 eval_path = os.path.join(model_path, 'evaluation') 
-if not os.path.exists(eval_path):
-    os.mkdir(eval_path)
+os.mkdir(eval_path) if not os.path.exists(eval_path) else None
 
 # evluate the model on both the train and test dataset
 #------------------------------------------------------------------------------

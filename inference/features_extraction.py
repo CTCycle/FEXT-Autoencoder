@@ -10,16 +10,22 @@ from tqdm import tqdm
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# add modules path if this file is launched as __main__
+# add parent folder path to the namespace
 #------------------------------------------------------------------------------
-if __name__ == '__main__':
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))  
+sys.path.append(os.path.join(os.path.dirname(__file__), '..')) 
 
 # import modules and components
 #------------------------------------------------------------------------------ 
-from modules.components.model_assets import Inference
-import modules.global_variables as GlobVar
+from components.model_assets import Inference
+import components.global_paths as globpt
 import configurations as cnf
+
+# specify relative paths from global paths and create subfolders
+#------------------------------------------------------------------------------
+images_path = os.path.join(globpt.inference_path, 'images')
+cp_path = os.path.join(globpt.model_path, 'checkpoints')
+os.mkdir(images_path) if not os.path.exists(images_path) else None
+os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 
 # [INFERENCE]
 #==============================================================================
@@ -35,14 +41,14 @@ Features Extraction: extraction from pretrained model
 # find and assign images path
 #------------------------------------------------------------------------------
 images_paths = []
-for root, dirs, files in os.walk(GlobVar.pred_path):
+for root, dirs, files in os.walk(images_path):
     for file in files:
         images_paths.append(os.path.join(root, file))
 
 # selected and load the pretrained model, then print the summary
 #------------------------------------------------------------------------------
 inference = Inference(cnf.seed) 
-model, parameters = inference.load_pretrained_model(GlobVar.models_path)
+model, parameters = inference.load_pretrained_model(cp_path)
 model.summary(expand_nested=True)
 
 # isolate the encoder from the autoencoder model, and use it for inference 
@@ -66,7 +72,7 @@ for pt in tqdm(images_paths):
 # save data as .csv file in the predictions folder
 #------------------------------------------------------------------------------
 dataset = pd.DataFrame(list(features.items()), columns=['Images', 'Features'])
-file_loc = os.path.join(GlobVar.pred_path, 'images_dataset.csv')  
+file_loc = os.path.join(globpt.inference_path, 'images_dataset.csv')  
 dataset.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 
 
