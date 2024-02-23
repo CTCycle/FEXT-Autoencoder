@@ -30,8 +30,6 @@ os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
-# Load the csv with data and transform the tokenized text column to convert the
-# strings into a series of integers
 #==============================================================================
 print('''
 -------------------------------------------------------------------------------
@@ -80,7 +78,6 @@ test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 
 # [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
 #==============================================================================
-# ...
 #==============================================================================
 
 # initialize training device (allows chaning device prior to initializing the generators)
