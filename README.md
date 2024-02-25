@@ -1,9 +1,7 @@
 # FEXT AutoEncoder
 
 ## Project description
-This project is dedicated to the training, evaluation, and application of a Convolutional AutoEncoder, specifically designed for image feature extraction (hence, FEXT). The architecture of this autoencoder is based on the renowned VGG16 model, a neural network frequently employed in deep learning tasks such as image reconstruction, anomaly detection, and feature extraction. The FEXT AutoEncoder mirrors the structure of the VGG16 model, comprising two primary components: the encoder and the decoder. The idea behind the encoder is to return a compressed 1D vector with size 2048, which can be used by the decoder to reconstruct the image if necessary.
-
-The model has been trained and tested on the Flickr 30K dataset, typically used for image captioning. However, it is versatile enough to be trained on any image dataset of your choice, which should be located in the ‘dataset/images’ folder. The architecture of the model and the training routine are defined using Tensorflow (version 2.10). A custom generator is used to feed the images, enabling the handling of large image datasets that might not fit into memory.
+This project is dedicated to the training, evaluation, and application of a Convolutional AutoEncoder, specifically designed for image feature extraction. The architecture of this autoencoder is based on the renowned VGG16 model, a deep learning model frequently employed in tasks such as image reconstruction, anomaly detection, and feature extraction. The FEXT AutoEncoder mirrors the structure of the VGG16 model, comprising two primary components (the encoder and the decoder), which are responsabile for extracting relevant features from the images and compressing this information within a vector with lower dimensionality when compared to the original images with size of 256x256x3. 
 
 ## Model structure
 
@@ -17,6 +15,7 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
 
 ## How to use
+
 Within the project folder, you'll find several key subfolders:
 
 **Components**
@@ -28,11 +27,11 @@ This folder hosts the data utilized for both model training and evaluation purpo
 - `data/validation` stores the outcomes of data validation processes. 
 - Execute `data_validation.py` to conduct an in-depth analysis leveraging the original image dataset.
 
-**Model**
-Contained within this repository are the necessary files for conducting model training and evaluation, especially for pre-trained models:
-- `model/checkpoints` acts as the default repository where checkpoints of pre-trained models are stored.
-- Run `model_training.py` to initiate the training process for deep learning models.
-- Run `model_evaluation.py` to evaluate the performance metrics of pre-trained models.
+**Training**
+Contained within this repository are the necessary files for conducting model training and evaluation. 
+The FEXT AutoEncoder model has been trained and tested on the Flickr 30K dataset, typically used for image captioning, and is versatile enough to be trained on any image dataset of your choice, as long as the input have been properly shaped. THe images used for training are located in `data/images`. Both the model and the training pipeline have been defined Tensorflow v2.10, while the data is fed using a custom generator to allow handling large image datasets even on low-memory devices. The training model checkpoints are saved in `training/checkpoints`.
+- Run `model_training.py` to initiate the training process for the autoencoder.
+- Run `model_evaluation.py` to evaluate the performance metrics of pretrained models.
 
 **Inference**
 Utilizing `features_extraction.py` from this directory facilitates the loading and inferencing of pre-trained model checkpoints to extract compressed vectorized features from images located within `inference/images`. The resulting .csv file is then saved within the same directory.

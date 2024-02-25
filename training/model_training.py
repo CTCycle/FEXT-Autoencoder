@@ -15,8 +15,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from components.data_assets import PreProcessing
-from components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder, DataGenerator
+from components.data_assets import PreProcessing, DataGenerator, TensorDataSet
+from components.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder
 import components.global_paths as globpt
 import configurations as cnf
 
@@ -85,33 +85,19 @@ test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
                         use_mixed_precision=cnf.use_mixed_precision)
 
-# initialize the images generator for the train data, get batch at initial index
+# initialize the images generator for the train and test data, and create the 
+# tf.dataset according to batch shapes
 #------------------------------------------------------------------------------
 train_generator = DataGenerator(train_data, cnf.batch_size, cnf.picture_shape, 
                                 augmentation=cnf.augmentation, shuffle=True)
-x_batch, y_batch = train_generator.__getitem__(0)
-
-# create train tf.dataset from generator and set prefetch scheduler 
-#------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-train_dataset = tf.data.Dataset.from_generator(lambda : train_generator, 
-                                               output_signature=output_signature)
-train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-
-# initialize the images generator for the test data, get batch at initial index
-#------------------------------------------------------------------------------
 test_generator = DataGenerator(test_data, cnf.batch_size, cnf.picture_shape, 
                                augmentation=cnf.augmentation, shuffle=True)
-x_batch, y_batch = test_generator.__getitem__(0)
 
-# create test tf.dataset from generator and set prefetch scheduler 
-#------------------------------------------------------------------------------
-output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                    tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-test_dataset = tf.data.Dataset.from_generator(lambda : test_generator, 
-                                              output_signature=output_signature)
-test_dataset = test_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+# initialize the TensorDataSet class with the generator instances
+# create the tf.datasets using the previously initialized generators 
+datamaker = TensorDataSet()
+train_dataset = datamaker.create_tf_dataset(train_generator)
+test_dataset = datamaker.create_tf_dataset(test_generator)
 
 # [TRAINING MODEL]
 #==============================================================================
