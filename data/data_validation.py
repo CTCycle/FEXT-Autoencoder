@@ -13,8 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from components.data_assets import PreProcessing 
-from components.validation_assets import DataValidation
+from components.data_assets import PreProcessing, DataValidation 
 import components.global_paths as globpt
 import configurations as cnf
 
