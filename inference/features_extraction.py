@@ -16,7 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------ 
-from utils.inference_assets import Inference
+from utils.model_assets import Inference
 import utils.global_paths as globpt
 import configurations as cnf
 
