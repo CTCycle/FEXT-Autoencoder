@@ -26,4 +26,5 @@ augmentation = False
 
 # General settings 
 #------------------------------------------------------------------------------
-seed = 72
+seed = 54
+split_seed = 45

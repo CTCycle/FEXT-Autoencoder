@@ -1,9 +1,12 @@
-# FEXT AutoEncoder
+# FEXT AutoEncoder: Extraction of Images Features
 
 ## Project Overview
 This project is dedicated to the training, evaluation, and application of a Convolutional AutoEncoder, specifically designed for image feature extraction. The architecture of this autoencoder is based on the renowned VGG16 model, a deep learning model frequently employed in tasks such as image reconstruction, anomaly detection, and feature extraction. The FEXT AutoEncoder mirrors the structure of the VGG16 model, comprising two primary components (the encoder and the decoder), which are responsabile for extracting relevant features from the images and compressing this information within a vector with lower dimensionality when compared to the original images with size of 256x256x3. 
 
-## Model structure
+## Applications
+In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
+
+## FEXT AutoEncoder structure
 
 ### Encoder module
 The encoder part of the FEXT autoencoder is composed of convolutional layers that progressively downsample the input image, extracting features at various scales. This part of the network is responsible for transforming the input data into a lower-dimensional representation, namely a 1D vector of size 2048. Input images are resized to shape 256x256 (3 channels) to be compatible with the encoder input.
@@ -11,14 +14,11 @@ The encoder part of the FEXT autoencoder is composed of convolutional layers tha
 ### Decoder module
 The decoder part of the VGG16 autoencoder is typically composed of layers that perform the opposite operation to the encoder, upsampling the lower-dimensional representation back to the original input size. This part of the network is responsible for reconstructing the input data from its lower-dimensional representation, obtaining on output with shape 256x256x3.
 
-## Applications
-In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
-
 ## How to use
-The project folder includes subfolders foucsed on different tasks. The `components/` folder contains the core components of the various scripts. It's imperative not to tamper with these files as any modifications could compromise the program integrity. 
+The project is organized into subfolders, each dedicated to specific tasks. The utils/ folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
 
 **Data**
-This folder hosts the data utilized for both model training and evaluation purposes:
+This folder contains the data utilized for both model training and evaluation purposes:
 - `data/images` holds the image data employed for various tasks.
 - `data/validation` stores the outcomes of data validation processes. 
 - Execute `data_validation.py` to conduct an in-depth analysis leveraging the original image dataset.
