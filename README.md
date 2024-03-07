@@ -15,7 +15,7 @@ The encoder part of the FEXT autoencoder is composed of convolutional layers tha
 The decoder part of the VGG16 autoencoder is typically composed of layers that perform the opposite operation to the encoder, upsampling the lower-dimensional representation back to the original input size. This part of the network is responsible for reconstructing the input data from its lower-dimensional representation, obtaining on output with shape 256x256x3.
 
 ## How to use
-The project is organized into subfolders, each dedicated to specific tasks. The utils/ folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
+The project is organized into subfolders, each dedicated to specific tasks. The `utils/` folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
 
 **Data**
 This folder contains the data utilized for both model training and evaluation purposes:
