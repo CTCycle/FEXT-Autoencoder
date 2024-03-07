@@ -16,6 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------ 
+from utils.data_assets import PreProcessing
 from utils.model_assets import Inference
 import utils.global_paths as globpt
 import configurations as cnf
@@ -38,12 +39,12 @@ Features Extraction: extraction from pretrained model
 .... 
 ''')
 
+preprocessor = PreProcessing()
+inference = Inference(cnf.seed) 
+
 # find and assign images path
 #------------------------------------------------------------------------------
-images_paths = []
-for root, dirs, files in os.walk(images_path):
-    for file in files:
-        images_paths.append(os.path.join(root, file))
+df_images = preprocessor.dataset_from_images(images_path)
 
 # selected and load the pretrained model, then print the summary
 #------------------------------------------------------------------------------
@@ -60,7 +61,7 @@ encoder_model = keras.Model(inputs=encoder_input.input, outputs=encoder_output.o
 # predict features from the encoder output
 #------------------------------------------------------------------------------
 features = {}
-for pt in tqdm(images_paths):
+for pt in tqdm(df_images['path'].to_list()):
     try:
         image = inference.images_loader(pt, parameters['picture_shape'])
         image = tf.expand_dims(image, axis=0)
@@ -71,8 +72,8 @@ for pt in tqdm(images_paths):
 
 # save data as .csv file in the predictions folder
 #------------------------------------------------------------------------------
-dataset = pd.DataFrame(list(features.items()), columns=['Images', 'Features'])
-file_loc = os.path.join(globpt.inference_path, 'images_dataset.csv')  
+dataset = pd.DataFrame(list(features.items()), columns=['images', 'features'])
+file_loc = os.path.join(globpt.inference_path, 'extracted_images_features.csv')  
 dataset.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 
 

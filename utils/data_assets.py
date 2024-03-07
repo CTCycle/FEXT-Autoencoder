@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from datetime import datetime
@@ -15,7 +16,7 @@ from tensorflow import keras
 class PreProcessing:    
 
     #--------------------------------------------------------------------------
-    def images_pathfinder(self, path, dataframe, id_col):
+    def dataset_from_images(self, path, dataset=None):
 
         '''
         Add a column with relative path to images in a dataframe, given a column where the
@@ -30,16 +31,18 @@ class PreProcessing:
             dataframe: the modified dataframe
         
         '''
-        images_paths = {}
-        for pic in os.listdir(path):
-            pic_name = pic.split('.')[0]
-            pic_path = os.path.join(path, pic)                        
-            path_pair = {pic_name : pic_path}        
-            images_paths.update(path_pair)       
-        dataframe['images_path'] = dataframe[id_col].map(images_paths)
-        dataframe = dataframe.dropna(subset=['images_path']).reset_index(drop = True)
+        if dataset is None:
+            image_locations = []
+            image_names = []
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    image_locations.append(os.path.join(root, file))
+                    image_names.append(file)            
+            dataset = pd.DataFrame({'name': image_names, 'path': image_locations})  
+        else:      
+            dataset['path'] = dataset['name'].apply(lambda x : os.path.join(path, x))  
 
-        return dataframe
+        return dataset
 
     #--------------------------------------------------------------------------
     def load_images(self, paths, image_size, as_tensor=True, normalize=True):
@@ -99,7 +102,7 @@ class DataGenerator(keras.utils.Sequence):
     def __init__(self, dataframe, batch_size, picture_shape=(244, 244, 3), shuffle=True,
                   augmentation=True, normalization=True):        
         self.dataframe = dataframe
-        self.path_col = 'images path'       
+        self.path_col = 'path'       
         self.num_of_samples = dataframe.shape[0]
         self.picture_shape = picture_shape
         self.batch_size = batch_size  

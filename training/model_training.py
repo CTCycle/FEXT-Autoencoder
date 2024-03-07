@@ -43,20 +43,15 @@ preprocessor = PreProcessing()
 
 # find and assign images path
 #------------------------------------------------------------------------------
-images_paths = []
-for root, dirs, files in os.walk(images_path):
-    for file in files:
-        images_paths.append(os.path.join(root, file))
+total_samples = cnf.num_train_samples + cnf.num_test_samples
+df_images = preprocessor.dataset_from_images(images_path)
 
 # select a fraction of data for training
-#------------------------------------------------------------------------------
-total_samples = cnf.num_train_samples + cnf.num_test_samples
-df_images = pd.DataFrame(images_paths, columns=['images path'])
-df_images = df_images.sample(total_samples, random_state=36)
+df_images = df_images.sample(total_samples, random_state=36).reset_index(drop=True)
 
 # create train and test datasets
 #------------------------------------------------------------------------------
-test_data = df_images.sample(n=cnf.num_test_samples, random_state=36)
+test_data = df_images.sample(n=cnf.num_test_samples, random_state=cnf.split_seed)
 train_data = df_images.drop(test_data.index)
 
 # create model folder and preprocessing subfolder
@@ -79,6 +74,8 @@ test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 # [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
 #==============================================================================
 #==============================================================================
+train_data.drop(columns='name', inplace=True)
+test_data.drop(columns='name', inplace=True)
 
 # initialize training device (allows chaning device prior to initializing the generators)
 #------------------------------------------------------------------------------

@@ -2,4 +2,5 @@ __pycache__
 data/images/*
 data/validation/*
 inference/images/*
+inference/extracted_images_features.csv
 training/checkpoints/*
