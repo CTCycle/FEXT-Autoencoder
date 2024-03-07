@@ -1,6 +1,6 @@
 # FEXT AutoEncoder
 
-## Project description
+## Project Overview
 This project is dedicated to the training, evaluation, and application of a Convolutional AutoEncoder, specifically designed for image feature extraction. The architecture of this autoencoder is based on the renowned VGG16 model, a deep learning model frequently employed in tasks such as image reconstruction, anomaly detection, and feature extraction. The FEXT AutoEncoder mirrors the structure of the VGG16 model, comprising two primary components (the encoder and the decoder), which are responsabile for extracting relevant features from the images and compressing this information within a vector with lower dimensionality when compared to the original images with size of 256x256x3. 
 
 ## Model structure
@@ -15,11 +15,7 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 In terms of application scope, this autoencoder can be used in a variety of tasks. For example, it can be used for image reconstruction tasks where the goal is to recreate an input image after it has been encoded. They can also be used for anomaly detection tasks where the goal is to identify data points that do not conform to expected behavior. Furthermore, they can be used for feature extraction tasks where the goal is to identify and extract meaningful features from input data. This project is focused on this latter purpose, where the idea is to transform the images in a vectorized representation that holds the most important information.
 
 ## How to use
-
-Within the project folder, you'll find several key subfolders:
-
-**Components**
-This directory serves as the home for fundamental files crucial for the flawless operation of the program. It's imperative not to tamper with these files as any modifications could jeopardize the script's integrity.
+The project folder includes subfolders foucsed on different tasks. The `components/` folder contains the core components of the various scripts. It's imperative not to tamper with these files as any modifications could compromise the program integrity. 
 
 **Data**
 This folder hosts the data utilized for both model training and evaluation purposes:
