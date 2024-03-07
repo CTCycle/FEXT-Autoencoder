@@ -13,14 +13,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from utils.data_assets import DataGenerator, TensorDataSet
+from utils.data_assets import DataGenerator, TensorDataSet, PreProcessing
 from utils.model_assets import ModelValidation, Inference
 import utils.global_paths as globpt
 import configurations as cnf
 
 # specify relative paths from global paths and create subfolders
 #------------------------------------------------------------------------------
+images_path = os.path.join(globpt.data_path, 'images')
 cp_path = os.path.join(globpt.train_path, 'checkpoints')
+os.mkdir(images_path) if not os.path.exists(images_path) else None
 os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 
 
@@ -29,19 +31,25 @@ os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 # Load data and models
 #==============================================================================
 
+preprocessor = PreProcessing()
+inference = Inference(cnf.seed) 
+
 # load the model for inference and print summary
 #------------------------------------------------------------------------------
-inference = Inference(cnf.seed) 
 model, parameters = inference.load_pretrained_model(cp_path)
 model_path = inference.folder_path
 model.summary(expand_nested=True)
 
-# load data
+# load and reprocess data
 #------------------------------------------------------------------------------
 filepath = os.path.join(model_path, 'preprocessing', 'train_data.csv')                
 train_data = pd.read_csv(filepath, sep=';', encoding='utf-8')
 filepath = os.path.join(model_path, 'preprocessing', 'test_data.csv')                
 test_data = pd.read_csv(filepath, sep=';', encoding='utf-8')
+
+# regenerate paths
+train_data = preprocessor.dataset_from_images(images_path, dataset=train_data)
+test_data = preprocessor.dataset_from_images(images_path, dataset=test_data)
 
 # initialize the images generator for the train and test data, and create the 
 # tf.dataset according to batch shapes

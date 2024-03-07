@@ -481,6 +481,5 @@ class ModelValidation:
                 axs[i, 1].set_title('Reconstructed picture')
             axs[i, 1].axis('off')
         plt.tight_layout()
-        plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400) 
-        plt.show()       
+        plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400)               
         plt.close()
