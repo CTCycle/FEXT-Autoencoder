@@ -16,8 +16,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------ 
-from components.model_assets import Inference
-import components.global_paths as globpt
+from utils.model_assets import Inference
+import utils.global_paths as globpt
 import configurations as cnf
 
 # specify relative paths from global paths and create subfolders
