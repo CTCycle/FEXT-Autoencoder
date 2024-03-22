@@ -52,28 +52,27 @@ The project is organized into subfolders, each dedicated to specific tasks. The 
 **Inference:** run `features_extraction.py` to use pretrained model to extract compressed vectorized features from images located within `inference/images`. The resulting .csv file is then saved within the same directory.
  
 ### 5.1 Configurations
-For customization, you can modify the main script parameters via the `configurations.py` file in the main folder. The following parameters are available:
+For customization, you can modify the main script parameters via the `configurations.py` file in the main folder. 
 
-| Category              | Setting             | Description                                                                                     |
-|-------------------------------|------------------------|-------------------------------------------------------------------------------------------------|
-| **Advanced training settings** | use_mixed_precision  | use mixed precision for faster training (mix float16/float32)                 |
-|                               | use_tensorboard      | activate or deactivate tensorboard logging                                                      |
-|                               | XLA_acceleration     | use of linear algebra acceleration for faster training                                           |
-|                               | training_device      | select the training device (CPU or GPU)                                                         |
-|                               | num_processors       | number of processors (cores) to be used during training; if set to 1, multiprocessing is not used|
-| **Training settings**         | epochs               | number of training iterations                                                                   |
-|                               | learning_rate        | learning rate of the model                                                                      |
-|                               | batch_size           | size of batches to be fed to the model during training                                           |
-| **Autoencoder settings**        | picture_shape        | full shape of the images as (height, width, channels)                                           |
-|                               | kernel_size          | size of convolutional kernel (best to keep at 2)                                                |
-|                               | generate_model_graph | generate and save 2D model graph (as .png file)                                                 |
-| **Data settings**             | num_train_samples    | number of images to use for the model training                                                  |
-|                               | num_test_samples     | number of samples to use as validation data                                                     |
-|                               | augmentation         | whether or not to perform data augmentation on images (significant impact on training time)     |
-| **General Settings**            | seed                 | global random seed                                                                              |
-|                               | split_seed           | random seed for dataset split                                                                   |
+| Category                | Setting                | Description                                                       |
+|-------------------------|------------------------|-------------------------------------------------------------------|
+| **Advanced settings**   | use_mixed_precision    | use mixed precision for faster training (float16/32)              |
+|                         | use_tensorboard        | Activate/deactivate tensorboard logging                           |
+|                         | XLA_acceleration       | Use linear algebra acceleration for faster training               |
+|                         | training_device        | Select the training device (CPU or GPU)                           |
+|                         | num_processors         | Number of processors (cores) to use; 1 disables multiprocessing   |
+| **Training settings**   | epochs                 | Number of training iterations                                     |
+|                         | learning_rate          | Learning rate of the model                                        |
+|                         | batch_size             | Size of batches for model training                                |
+| **Model settings**      | picture_shape          | Full shape of the images as (height, width, channels)             |
+|                         | kernel_size            | Size of convolutional kernel                                      |
+|                         | generate_model_graph   | Generate/save 2D model graph (as .png file)                       |
+| **Data settings**       | num_train_samples      | Number of images for model training                               |
+|                         | num_test_samples       | Number of samples for validation data                             |
+|                         | augmentation           | Perform data augmentation on images (affects training time)       |
+| **General settings**    | seed                   | Global random seed                                                |
+|                         | split_seed             | Seed for dataset splitting                                        |
                     
-
-  
+ 
 ## License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
