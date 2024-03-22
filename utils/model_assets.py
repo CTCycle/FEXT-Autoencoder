@@ -1,14 +1,11 @@
 import os
 import numpy as np
 import json
-import cv2
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from keras import layers
 from keras.models import Model
-from IPython.display import display
-from ipywidgets import Dropdown
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]

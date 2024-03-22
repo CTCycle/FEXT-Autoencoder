@@ -1,4 +1,5 @@
 __pycache__
+github/*
 data/images/*
 data/validation/*
 inference/images/*
