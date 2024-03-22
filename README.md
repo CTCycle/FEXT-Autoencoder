@@ -9,7 +9,7 @@ In terms of application scope, this autoencoder can be used in a variety of task
 ## 3. FEXT AutoEncoder model
 
 ### 3.1 Encoder module
-The encoder part of the FEXT autoencoder is composed of convolutional layers that progressively downsample the input image, extracting features at various scales. This part of the network is responsible for transforming the input data into a lower-dimensional representation, namely a 1D vector of size 2048. Input images are resized to shape 256x256 (3 channels) to be compatible with the encoder input.
+The encoder part of the FEXT autoencoder is composed of convolutional layers that progressively downsample the input image, extracting features at various scales. This part of the network is responsible for transforming the input data into a lower-dimensional representation, namely a 1D vector of size 2048. Input images are resized to shape 256x256x3 to be compatible with the encoder input. The output of the encoder is a compressed features vector of shape 8x8x512.
 
 ### 3.2 Decoder module
 The decoder part of the VGG16 autoencoder is typically composed of layers that perform the opposite operation to the encoder, upsampling the lower-dimensional representation back to the original input size. This part of the network is responsible for reconstructing the input data from its lower-dimensional representation, obtaining on output with shape 256x256x3.

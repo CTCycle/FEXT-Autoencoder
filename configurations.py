@@ -8,8 +8,8 @@ num_processors = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-epochs = 1
-learning_rate = 0.001
+epochs = 10
+learning_rate = 0.0001
 batch_size = 25
 
 # Autoencoder settings
@@ -20,8 +20,8 @@ generate_model_graph = True
 
 # Settings for training data 
 #------------------------------------------------------------------------------
-num_train_samples = 2000
-num_test_samples = 200
+num_train_samples = 3000
+num_test_samples = 300
 augmentation = False
 
 # General settings 

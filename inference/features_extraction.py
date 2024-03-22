@@ -1,6 +1,6 @@
 import os
 import sys
-import pandas as pd
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tqdm import tqdm
@@ -58,7 +58,7 @@ encoder_input = model.get_layer('input_1')
 encoder_output = model.get_layer('fe_xt_encoder')  
 encoder_model = keras.Model(inputs=encoder_input.input, outputs=encoder_output.output)
 
-# predict features from the encoder output
+# extract features from images using the encoder output
 #------------------------------------------------------------------------------
 features = {}
 for pt in tqdm(df_images['path'].to_list()):
@@ -70,10 +70,10 @@ for pt in tqdm(df_images['path'].to_list()):
     except: 
         features.update({pt : 'Could not extract features'})
 
-# save data as .csv file in the predictions folder
+# combine extracted features with images name and save them in numpy arrays
 #------------------------------------------------------------------------------
-dataset = pd.DataFrame(list(features.items()), columns=['images', 'features'])
-file_loc = os.path.join(globpt.inference_path, 'extracted_images_features.csv')  
-dataset.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
+structured_data = np.array([(image, features[image]) for image in features], dtype=object)
+file_loc = os.path.join(globpt.inference_path, 'extracted_features.npy')
+np.save(file_loc, structured_data)
 
 
