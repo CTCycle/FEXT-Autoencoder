@@ -161,6 +161,7 @@ class FeXTEncoder(layers.Layer):
         self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
         self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
         self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.dense = layers.Dense(512, activation='relu', kernel_initializer='he_uniform')
         
 
     # implement transformer encoder through call method  
@@ -171,7 +172,8 @@ class FeXTEncoder(layers.Layer):
         layer = self.convblock2(layer)
         layer = self.convblock3(layer)
         layer = self.convblock4(layer)
-        output = self.convblock5(layer)        
+        layer = self.convblock5(layer) 
+        output = self.dense(layer)       
 
         return output
 
@@ -465,9 +467,30 @@ class ModelValidation:
 
     def __init__(self, model):        
         self.model = model
+
+    #-------------------------------------------------------------------------- 
+    def visualize_features_vector(self, real_image, features, predicted_image, name, path):          
+
+        
+        fig_path = os.path.join(path, f'{name}.jpeg')
+        fig, axs = plt.subplots(1, 3, figsize=(14, 20), dpi=600)                                     
+        axs[0].imshow(real_image[0])
+        axs[0].set_title('Original picture')
+        axs[0].axis('off')
+        axs[1].imshow(features)
+        axs[1].set_title('Extracted features')
+        axs[1].axis('off')
+        axs[2].imshow(predicted_image[0])
+        axs[2].set_title('Reconstructed picture')
+        axs[2].axis('off')
+        plt.tight_layout() 
+        plt.show(block=False)       
+        plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400)               
+        plt.close()
+        
     
     #-------------------------------------------------------------------------- 
-    def visual_validation(self, real_images, predicted_images, name, path):          
+    def visualize_reconstructed_images(self, real_images, predicted_images, name, path):          
 
         num_pics = len(real_images)
         fig_path = os.path.join(path, f'{name}.jpeg')
@@ -481,7 +504,8 @@ class ModelValidation:
             if i == 0:
                 axs[i, 1].set_title('Reconstructed picture')
             axs[i, 1].axis('off')
-        plt.tight_layout()
-        plt.show(block=False)
+        plt.tight_layout() 
+        plt.show(block=False)       
         plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=400)               
         plt.close()
+        
