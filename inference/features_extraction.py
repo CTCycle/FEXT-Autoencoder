@@ -16,8 +16,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------ 
-from utils.data_assets import PreProcessing
-from utils.model_assets import Inference
+from utils.preprocessing import dataset_from_images
+from utils.models import Inference
 import utils.global_paths as globpt
 import configurations as cnf
 
@@ -39,12 +39,11 @@ Features Extraction: extraction from pretrained model
 .... 
 ''')
 
-preprocessor = PreProcessing()
 inference = Inference(cnf.seed) 
 
 # find and assign images path
 #------------------------------------------------------------------------------
-df_images = preprocessor.dataset_from_images(images_path)
+df_images = dataset_from_images(images_path)
 
 # selected and load the pretrained model, then print the summary
 #------------------------------------------------------------------------------
