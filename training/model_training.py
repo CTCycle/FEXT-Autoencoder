@@ -15,8 +15,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from utils.data_assets import PreProcessing, DataGenerator, TensorDataSet
-from utils.model_assets import ModelTraining, RealTimeHistory, FeXTAutoEncoder
+from utils.generators import DataGenerator, TensorDataSet
+from utils.preprocessing import model_savefolder, dataset_from_images
+from utils.models import ModelTraining, RealTimeHistory, FeXTAutoEncoder
 import utils.global_paths as globpt
 import configurations as cnf
 
@@ -31,20 +32,11 @@ os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
 #==============================================================================
-print('''
--------------------------------------------------------------------------------
-FEXT-AutoEncoder training
--------------------------------------------------------------------------------
-''')
-
-# initialize preprocessing class
-#------------------------------------------------------------------------------
-preprocessor = PreProcessing()
 
 # find and assign images path
 #------------------------------------------------------------------------------
 total_samples = cnf.num_train_samples + cnf.num_test_samples
-df_images = preprocessor.dataset_from_images(images_path)
+df_images = dataset_from_images(images_path)
 
 # select a fraction of data for training
 df_images = df_images.sample(total_samples, random_state=36).reset_index(drop=True)
@@ -54,13 +46,9 @@ df_images = df_images.sample(total_samples, random_state=36).reset_index(drop=Tr
 test_data = df_images.sample(n=cnf.num_test_samples, random_state=cnf.split_seed)
 train_data = df_images.drop(test_data.index)
 
-# create model folder and preprocessing subfolder
-#------------------------------------------------------------------------------
-model_folder_path = preprocessor.model_savefolder(cp_path, 'FeXT')
-model_folder_name = preprocessor.folder_name
-
 # create subfolder for preprocessing data
 #------------------------------------------------------------------------------
+model_folder_path, model_folder_name  = model_savefolder(cp_path, 'FeXT')
 pp_path = os.path.join(model_folder_path, 'preprocessing')
 os.mkdir(pp_path) if not os.path.exists(pp_path) else None
 
