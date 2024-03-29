@@ -17,7 +17,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 #------------------------------------------------------------------------------
 from utils.generators import DataGenerator, TensorDataSet
 from utils.preprocessing import model_savefolder, dataset_from_images
-from utils.models import ModelTraining, RealTimeHistory, FeXTAutoEncoder
+from utils.models import ModelTraining, FeXTAutoEncoder
+from utils.callbacks import RealTimeHistory
 import utils.global_paths as globpt
 import configurations as cnf
 

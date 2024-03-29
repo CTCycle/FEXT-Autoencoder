@@ -1,11 +1,8 @@
 import os
-import numpy as np
-import json
-import tensorflow as tf
-import matplotlib.pyplot as plt
 from tensorflow import keras
-from keras import layers
-from keras.models import Model
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
