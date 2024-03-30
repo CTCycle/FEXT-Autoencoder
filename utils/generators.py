@@ -41,9 +41,10 @@ class DataGenerator(Dataset):
     # create a batch of data converted to tensors
     #--------------------------------------------------------------------------
     def __getitem__(self, idx):
+        picture_size = self.picture_shape[:-1]
         img_path = self.dataframe.loc[idx, self.path_col]
         image = Image.open(img_path).convert('RGB')
-        image = image.resize(self.picture_shape)
+        image = image.resize(picture_size)
 
         if self.transform:
             image = self.transform(image)
