@@ -26,6 +26,9 @@ cp_path = os.path.join(globpt.train_path, 'checkpoints')
 os.mkdir(images_path) if not os.path.exists(images_path) else None
 os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 
+
+# [RUN MAIN]
+#------------------------------------------------------------------------------
 if __name__ == '__main__':
 
     # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
@@ -56,6 +59,7 @@ if __name__ == '__main__':
     test_data.drop(columns='name', inplace=True)
 
     # 1. initialize training device
+    print('\nStart training of FEXT AutoEncoder\n')
     trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
                             use_mixed_precision=cnf.use_mixed_precision)
 
@@ -63,7 +67,7 @@ if __name__ == '__main__':
     train_generator = create_dataloader(train_data, cnf.batch_size, cnf.picture_shape,
                                         shuffle=True, augmentation=cnf.augmentation)
     test_generator = create_dataloader(test_data, cnf.batch_size, cnf.picture_shape, 
-                                    augmentation=cnf.augmentation, shuffle=True)
+                                       augmentation=cnf.augmentation, shuffle=True)    
 
     # [TRAINING MODEL]
     #==============================================================================
@@ -71,7 +75,7 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/
     
-    print(f'FeXT training report\n{"-" * 82}\n')    
+    print(f'\nFeXT training report\n{"-" * 82}')    
     print(f'Number of train samples: {train_data.shape[0]}')
     print(f'Number of test samples:  {test_data.shape[0]}')
     print(f'Picture shape:           {cnf.picture_shape}')
@@ -80,7 +84,7 @@ if __name__ == '__main__':
     print(f'Epochs:                  {cnf.epochs}')
   
     # 1. build the autoencoder model     
-    model = FeXTAutoEncoder(cnf.kernel_size, cnf.picture_shape,cnf.seed)
+    model = FeXTAutoEncoder(cnf.kernel_size, cnf.picture_shape, cnf.seed)
 
     # 2. training loop and save model at end of training
     multiprocessing = cnf.num_processors > 1

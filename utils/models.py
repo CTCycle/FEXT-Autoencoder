@@ -2,6 +2,7 @@ import os
 import numpy as np
 import json
 from datetime import datetime
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,21 +38,20 @@ def model_savefolder(path, model_name):
 # [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
 class PooledConvBlock(nn.Module):
-    def __init__(self, units, kernel_size, num_layers=2, seed=42, **kwargs):
+    def __init__(self, units, kernel_size, channels, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
         self.seed = torch.manual_seed(seed)
+        self.padding = kernel_size//2              
         
-        # Initialize convolutional layers
-        self.convolutions = nn.ModuleList([nn.Conv2d(in_channels=units if x > 0 else 3, 
-                                                     out_channels=units, 
-                                                     kernel_size=kernel_size, 
-                                                     padding='same') 
-                                           for x in range(num_layers)])
-        # Activation function
         self.activation = nn.ReLU()
-        
-        # Initialize pooling layer
-        self.pooling = nn.AvgPool2d(kernel_size=kernel_size, padding='same', stride=1)
+        self.pooling = nn.AvgPool2d(kernel_size=kernel_size, stride=1, padding=self.padding)
+        self.convolutions = nn.ModuleList()
+        for i in range(num_layers):     
+            current_channels = channels if i == 0 else units      
+            self.convolutions.append(nn.Conv2d(in_channels=current_channels,
+                                               out_channels=units,
+                                               kernel_size=kernel_size,
+                                               padding=self.padding))     
 
     # implement forward pass
     #--------------------------------------------------------------------------   
@@ -100,11 +100,11 @@ class FeXTEncoder(nn.Module):
         torch.manual_seed(seed)
 
         # Define convolutional blocks based on the previous conversion
-        self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
-        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
-        self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
-        self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
-        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.convblock1 = PooledConvBlock(64, kernel_size, channels=3, num_layers=2, seed=seed)
+        self.convblock2 = PooledConvBlock(128, kernel_size, channels=64, num_layers=2, seed=seed)
+        self.convblock3 = PooledConvBlock(256, kernel_size, channels=128, num_layers=3, seed=seed)
+        self.convblock4 = PooledConvBlock(512, kernel_size, channels=256, num_layers=3, seed=seed)
+        self.convblock5 = PooledConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
         
     # implement forward pass
     #--------------------------------------------------------------------------
@@ -215,8 +215,8 @@ class ModelTraining:
             running_loss = 0.0
             running_metric = 0.0
             
-            for inputs, targets in data:
-                predictions = model(inputs)
+            for inputs, targets in tqdm(data):
+                predictions = model(inputs)                
                 loss = loss_fn(predictions, targets)
                 metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch
                 
