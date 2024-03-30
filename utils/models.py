@@ -1,15 +1,38 @@
 import os
 import numpy as np
 import json
-import tensorflow as tf
-from tensorflow import keras
-from keras import layers
-from keras.models import Model
+from datetime import datetime
+import torch
+
+
+
+# function to create a folder where to save model checkpoints
+#------------------------------------------------------------------------------
+def model_savefolder(path, model_name):
+
+    '''
+    Creates a folder with the current date and time to save the model.
+    
+    Keyword arguments:
+        path (str):       A string containing the path where the folder will be created.
+        model_name (str): A string containing the name of the model.
+    
+    Returns:
+        str: A string containing the path of the folder where the model will be saved.
+        
+    '''        
+    today_datetime = str(datetime.now())
+    truncated_datetime = today_datetime[:-10]
+    today_datetime = truncated_datetime.replace(':', '').replace('-', '').replace(' ', 'H') 
+    folder_name = f'{model_name}_{today_datetime}'
+    model_folder_path = os.path.join(path, folder_name)
+    if not os.path.exists(model_folder_path):
+        os.mkdir(model_folder_path) 
+                    
+    return model_folder_path, folder_name
 
 
 # [POOLING CONVOLUTIONAL BLOCKS]
-#==============================================================================
-# Positional embedding custom layer
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
 class PooledConvBlock(layers.Layer):
@@ -50,8 +73,6 @@ class PooledConvBlock(layers.Layer):
     
 
 # [POOLING CONVOLUTIONAL BLOCKS]
-#==============================================================================
-# Positional embedding custom layer
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
 class TransposeConvBlock(layers.Layer):
@@ -95,8 +116,6 @@ class TransposeConvBlock(layers.Layer):
 
        
 # [MACHINE LEARNING MODELS]
-#==============================================================================
-# collection of model and submodels
 #==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
 class FeXTEncoder(layers.Layer):
@@ -143,8 +162,6 @@ class FeXTEncoder(layers.Layer):
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-# collection of model and submodels
-#==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
     def __init__(self, kernel_size, seed=42, **kwargs):
@@ -187,9 +204,6 @@ class FeXTDecoder(keras.layers.Layer):
         return cls(**config)       
     
 # [LEARNING RATE SCHEDULER]
-#==============================================================================
-# Use TensorFlow's conditional to handle the tensor-based condition, such as
-# building an autograph for training   
 #==============================================================================
 @keras.utils.register_keras_serializable(package='LRScheduler')
 class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
@@ -236,9 +250,6 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-# autoencoder model built using the functional keras API. use get_model() method
-# to build and compile the model (print summary as optional)
-#==============================================================================
 class FeXTAutoEncoder: 
 
     def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), 
@@ -267,70 +278,72 @@ class FeXTAutoEncoder:
             model.summary(expand_nested=True)
 
         return model
+
+#-------------------------------------------------------------------------- 
+def model_parameters(parameters_dict, savepath):
+
+    '''
+    Saves the model parameters to a JSON file. The parameters are provided 
+    as a dictionary and are written to a file named 'model_parameters.json' 
+    in the specified directory.
+
+    Keyword arguments:
+        parameters_dict (dict): A dictionary containing the parameters to be saved.
+        savepath (str): The directory path where the parameters will be saved.
+
+    Returns:
+        None       
+
+    '''
+    path = os.path.join(savepath, 'model_parameters.json')      
+    with open(path, 'w') as f:
+        json.dump(parameters_dict, f)
        
 
-# [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
+# [TRAINING MACHINE LEARNING MODELS]
 #==============================================================================
-# Collection of methods for machine learning training and tensorflow settings
-#==============================================================================
-class ModelTraining:    
-       
+class ModelTraining:
+    
     def __init__(self, device='default', seed=42, use_mixed_precision=False):                            
         np.random.seed(seed)
-        tf.random.set_seed(seed)         
-        self.available_devices = tf.config.list_physical_devices()
+        torch.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)  # For multi-GPU setups
+
+        self.available_devices = torch.cuda.device_count()
         print('-------------------------------------------------------------------------------')        
-        print('The current devices are available: ')
+        print(f'{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')
         print('-------------------------------------------------------------------------------')
-        for dev in self.available_devices:
-            print()
-            print(dev)
-        print()
+
+        self.use_mixed_precision = use_mixed_precision
+        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
+
+        if device.upper() == 'GPU' and torch.cuda.is_available():
+            self.device = torch.device('cuda')
+            print('GPU is set as the active device.')
+            if use_mixed_precision:
+                print('Mixed precision training is enabled.')
+        else:
+            self.device = torch.device('cpu')
+            print('CPU is set as the active device.')
+
         print('-------------------------------------------------------------------------------')
-        if device == 'GPU':
-            self.physical_devices = tf.config.list_physical_devices('GPU')
-            if not self.physical_devices:
-                print('No GPU found. Falling back to CPU')
-                tf.config.set_visible_devices([], 'GPU')
-            else:
-                if use_mixed_precision == True:
-                    policy = keras.mixed_precision.Policy('mixed_float16')
-                    keras.mixed_precision.set_global_policy(policy) 
-                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
-                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                print('GPU is set as active device')
-            print('-------------------------------------------------------------------------------')
-            print()        
-        elif device == 'CPU':
-            tf.config.set_visible_devices([], 'GPU')
-            print('CPU is set as active device')
-            print('-------------------------------------------------------------------------------')
-            print()   
     
-    #-------------------------------------------------------------------------- 
-    def model_parameters(self, parameters_dict, savepath):
+    #--------------------------------------------------------------------------
+    def get_device(self):
+        return self.device
 
-        '''
-        Saves the model parameters to a JSON file. The parameters are provided 
-        as a dictionary and are written to a file named 'model_parameters.json' 
-        in the specified directory.
-
-        Keyword arguments:
-            parameters_dict (dict): A dictionary containing the parameters to be saved.
-            savepath (str): The directory path where the parameters will be saved.
-
-        Returns:
-            None       
-
-        '''
-        path = os.path.join(savepath, 'model_parameters.json')      
-        with open(path, 'w') as f:
-            json.dump(parameters_dict, f)
-  
+    #--------------------------------------------------------------------------
+    def get_scaler(self):
+        if self.use_mixed_precision:
+            return self.scaler
+        else:
+            return None
+    
+    
     
 # [INFERENCE]
-#==============================================================================
-# Collection of methods for machine learning validation and model evaluation
 #==============================================================================
 class Inference:
 
