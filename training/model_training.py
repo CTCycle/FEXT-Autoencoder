@@ -1,8 +1,6 @@
 import os
 import sys
 import pandas as pd
-import tensorflow as tf
-from keras.utils import plot_model
 
 # setting warnings
 #------------------------------------------------------------------------------
@@ -15,9 +13,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from utils.generators import DataGenerator, TensorDataSet
-from utils.preprocessing import model_savefolder, dataset_from_images
-from utils.models import ModelTraining, FeXTAutoEncoder
+from utils.generators import DataGenerator, create_dataloader
+from utils.preprocessing import dataset_from_images
+from utils.models import ModelTraining, FeXTAutoEncoder, model_savefolder, model_parameters
 from utils.callbacks import RealTimeHistory
 import utils.global_paths as globpt
 import configurations as cnf
@@ -29,17 +27,12 @@ cp_path = os.path.join(globpt.train_path, 'checkpoints')
 os.mkdir(images_path) if not os.path.exists(images_path) else None
 os.mkdir(cp_path) if not os.path.exists(cp_path) else None
 
-
 # [LOAD DATA AND ADD IMAGES PATHS TO DATASET]
 #==============================================================================
-#==============================================================================
-
-# find and assign images path
+# find and assign images path, then select a fraction of data for training
 #------------------------------------------------------------------------------
 total_samples = cnf.num_train_samples + cnf.num_test_samples
 df_images = dataset_from_images(images_path)
-
-# select a fraction of data for training
 df_images = df_images.sample(total_samples, random_state=36).reset_index(drop=True)
 
 # create train and test datasets
@@ -49,7 +42,7 @@ train_data = df_images.drop(test_data.index)
 
 # create subfolder for preprocessing data
 #------------------------------------------------------------------------------
-model_folder_path, model_folder_name  = model_savefolder(cp_path, 'FeXT')
+model_folder_path, model_folder_name = model_savefolder(cp_path, 'FeXT')
 pp_path = os.path.join(model_folder_path, 'preprocessing')
 os.mkdir(pp_path) if not os.path.exists(pp_path) else None
 
@@ -60,8 +53,7 @@ train_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 file_loc = os.path.join(pp_path, 'test_data.csv')  
 test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
 
-# [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
-#==============================================================================
+# [DEFINE IMAGES GENERATOR AND BUILD DATALOADER]
 #==============================================================================
 train_data.drop(columns='name', inplace=True)
 test_data.drop(columns='name', inplace=True)
