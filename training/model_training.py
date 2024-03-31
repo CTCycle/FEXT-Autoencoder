@@ -1,6 +1,5 @@
 import os
 import sys
-import pandas as pd
 
 # setting warnings
 #------------------------------------------------------------------------------
@@ -65,9 +64,11 @@ if __name__ == '__main__':
 
     # 2. initialize the images generator for the train and test data
     train_generator = dataloader(train_data, cnf.batch_size, cnf.picture_shape,
-                                 shuffle=True, augmentation=cnf.augmentation)
-    test_generator = dataloader(test_data, cnf.batch_size, cnf.picture_shape, 
-                                augmentation=cnf.augmentation, shuffle=True)    
+                                 shuffle=True, augmentation=cnf.augmentation,
+                                 device=cnf.training_device)
+    test_generator = dataloader(test_data, cnf.batch_size, cnf.picture_shape,
+                                shuffle=True, augmentation=cnf.augmentation,
+                                device=cnf.training_device)    
 
     # [TRAINING MODEL]
     #-------------------------------------------------------------------------- 
@@ -79,30 +80,35 @@ if __name__ == '__main__':
     print(f'Number of train samples: {train_data.shape[0]}')
     print(f'Number of test samples:  {test_data.shape[0]}')
     print(f'Picture shape:           {cnf.picture_shape}')
-    print(f'Kernel size:             {cnf.kernel_size}')
+    print(f'Kernel size:             {(3, 3)}')
     print(f'Batch size:              {cnf.batch_size}')
     print(f'Epochs:                  {cnf.epochs}')
   
-    # 1. build the autoencoder model and load to device 
+    # 1. build the autoencoder model and print summary
     print('\nInitialise FeXT autoencoder\n')   
-    model = FeXTAutoEncoder(cnf.kernel_size, cnf.seed)    
+    model = FeXTAutoEncoder(cnf.seed)  
+    model.print_summary()  
 
     # 2. training loop and save model at end of training    
     training = trainer.train_model(model, train_generator, test_generator, 
                                    cnf.epochs, cnf.learning_rate)
+    
+    model_subfolder = os.path.join(model_folder_path, 'model')
+    os.mkdir(model_subfolder ) if not os.path.exists(model_subfolder ) else None
+    trainer.save_model(model, model_subfolder)
 
     # 3. save model parameters in json files   
     print(f'Training session is over. Model has been saved in folder {model_folder_name}')
     parameters = {'train_samples': cnf.num_train_samples,
-                'test_samples': cnf.num_test_samples,
-                'picture_shape' : cnf.picture_shape,             
-                'kernel_size' : cnf.kernel_size,              
-                'augmentation' : cnf.augmentation,              
-                'batch_size' : cnf.batch_size,
-                'learning_rate' : cnf.learning_rate,
-                'epochs' : cnf.epochs,
-                'seed' : cnf.seed,
-                'tensorboard' : cnf.use_tensorboard}
+                  'test_samples': cnf.num_test_samples,
+                  'picture_shape' : cnf.picture_shape,             
+                  'kernel_size' : (3,3),              
+                  'augmentation' : cnf.augmentation,              
+                  'batch_size' : cnf.batch_size,
+                  'learning_rate' : cnf.learning_rate,
+                  'epochs' : cnf.epochs,
+                  'seed' : cnf.seed,
+                  'tensorboard' : cnf.use_tensorboard}
 
     model_parameters(parameters, model_folder_path)
                                 
@@ -128,7 +134,6 @@ if __name__ == '__main__':
 #     callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
 
 
-# model_files_path = os.path.join(model_folder_path, 'model')
-# model.save(model_files_path, save_format='tf')
+
 
 

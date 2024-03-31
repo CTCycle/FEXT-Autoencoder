@@ -6,6 +6,7 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchinfo import summary
 
 
 
@@ -40,8 +41,7 @@ def model_savefolder(path, model_name):
 class PooledConvBlock(nn.Module):
     def __init__(self, units, kernel_size, channels, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
-        torch.manual_seed(seed)
-        self.padding = kernel_size//2              
+        torch.manual_seed(seed)                   
         
         self.activation = nn.ReLU()
         self.pooling = nn.AvgPool2d(kernel_size=kernel_size, stride=2, padding=0) 
@@ -51,12 +51,12 @@ class PooledConvBlock(nn.Module):
             self.convolutions.append(nn.Conv2d(in_channels=current_channels,
                                                out_channels=units,
                                                kernel_size=kernel_size,
-                                               padding=self.padding))     
+                                               padding=(2,2)))     
 
     # implement forward pass
     #--------------------------------------------------------------------------   
     def forward(self, x):
-        print(x.shape)
+            
         for conv in self.convolutions:
             x = conv(x)
             x = self.activation(x)
@@ -70,46 +70,43 @@ class PooledConvBlock(nn.Module):
 class TransposeConvBlock(nn.Module):
     def __init__(self, units, kernel_size, channels, num_layers=3, seed=42, **kwargs):
         super(TransposeConvBlock, self).__init__(**kwargs)
-        torch.manual_seed(seed)
-        self.padding = kernel_size//2
-
-        # Initialize the upsampling layer
-        self.upsamp = nn.Upsample(scale_factor=2, mode='nearest')
+        torch.manual_seed(seed) 
         
-        # Initialize transposed convolutional layers
+        self.upsamp = nn.Upsample(scale_factor=2, mode='nearest')       
         self.deconvolutions = nn.ModuleList()
         for i in range(num_layers):  
             current_channels = channels if i == 0 else units      
             self.deconvolutions.append(nn.ConvTranspose2d(in_channels=current_channels, 
                                                           out_channels=units, 
-                                                            kernel_size=kernel_size, 
-                                                            padding=self.padding))
+                                                          kernel_size=kernel_size, 
+                                                          padding=(1,1)))
         self.activation = nn.ReLU()
 
     # implement forward pass
     #--------------------------------------------------------------------------
-    def forward(self, x):
-        print(x.shape)
+    def forward(self, x):         
         for conv in self.deconvolutions:            
             x = conv(x)
             x = self.activation(x)
-        x = self.upsamp(x)
+        x = self.upsamp(x)       
 
         return x
+    
        
 # [MACHINE LEARNING MODELS]
 #==============================================================================
 class FeXTEncoder(nn.Module):
-    def __init__(self, kernel_size, seed=42, **kwargs):
+    def __init__(self, seed=42, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)
         torch.manual_seed(seed)
+        self.kernel_size = (4,4)
 
         # Define convolutional blocks based on the previous conversion
-        self.convblock1 = PooledConvBlock(64, kernel_size, channels=3, num_layers=2, seed=seed)
-        self.convblock2 = PooledConvBlock(128, kernel_size, channels=64, num_layers=2, seed=seed)
-        self.convblock3 = PooledConvBlock(256, kernel_size, channels=128, num_layers=3, seed=seed)
-        self.convblock4 = PooledConvBlock(512, kernel_size, channels=256, num_layers=3, seed=seed)
-        self.convblock5 = PooledConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock1 = PooledConvBlock(64, self.kernel_size, channels=3, num_layers=2, seed=seed)
+        self.convblock2 = PooledConvBlock(128, self.kernel_size, channels=64, num_layers=2, seed=seed)
+        self.convblock3 = PooledConvBlock(256, self.kernel_size, channels=128, num_layers=2, seed=seed)
+        self.convblock4 = PooledConvBlock(512, self.kernel_size, channels=256, num_layers=3, seed=seed)
+        self.convblock5 = PooledConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
         
     # implement forward pass
     #--------------------------------------------------------------------------
@@ -122,20 +119,22 @@ class FeXTEncoder(nn.Module):
         x = self.convblock5(x)       
 
         return x
+    
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
 class FeXTDecoder(nn.Module):
-    def __init__(self, kernel_size, seed=42, **kwargs):
+    def __init__(self, seed=42, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
         torch.manual_seed(seed)
+        self.kernel_size = (3,3)
         
         # Initialize transposed convolution blocks
-        self.convblock1 = TransposeConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
-        self.convblock2 = TransposeConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
-        self.convblock3 = TransposeConvBlock(256, kernel_size, channels=512, num_layers=3, seed=seed)
-        self.convblock4 = TransposeConvBlock(128, kernel_size, channels=256, num_layers=2, seed=seed)
-        self.convblock5 = TransposeConvBlock(3, kernel_size, channels=128, num_layers=2, seed=seed)     
+        self.convblock1 = TransposeConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock2 = TransposeConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock3 = TransposeConvBlock(256, self.kernel_size, channels=512, num_layers=2, seed=seed)
+        self.convblock4 = TransposeConvBlock(128, self.kernel_size, channels=256, num_layers=2, seed=seed)
+        self.convblock5 = TransposeConvBlock(3, self.kernel_size, channels=128, num_layers=2, seed=seed)     
         self.activation = nn.Sigmoid()
 
     # implement forward pass
@@ -148,21 +147,28 @@ class FeXTDecoder(nn.Module):
         x = self.convblock5(x)   
         x = self.activation(x)
 
-        return x
+        return x     
+
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
 class FeXTAutoEncoder(nn.Module):
-    def __init__(self, kernel_size, seed=42, **kwargs):
+    def __init__(self, seed=42, **kwargs):
         super(FeXTAutoEncoder, self).__init__(**kwargs)
-        self.encoder = FeXTEncoder(kernel_size, seed)
-        self.decoder = FeXTDecoder(kernel_size, seed)               
+        self.encoder = FeXTEncoder(seed)
+        self.decoder = FeXTDecoder(seed)               
 
+    # implement forward pass
+    #--------------------------------------------------------------------------
     def forward(self, x):
         x = self.encoder(x)
         x = self.decoder(x)                                                
 
         return x
+    
+    #--------------------------------------------------------------------------
+    def print_summary(self):
+        summary(self, input_size=(1, 3, 256, 256))
        
 
 # [TRAINING MACHINE LEARNING MODELS]
@@ -202,14 +208,14 @@ class ModelTraining:
     #--------------------------------------------------------------------------
     def train_model(self, model, data, validation_data, epochs, learning_rate):
         
-        # Optimizer and Loss function
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        loss_fn = nn.MSELoss()        
-        metric_fn = nn.CosineSimilarity(dim=1)
-
         # load the model onto device
         device = self.get_device()
         model.to(device) 
+
+        # Optimizer and Loss function
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        loss_fn = nn.MSELoss()        
+        metric_fn = nn.CosineSimilarity(dim=1)         
         
         # loop over epochs
         for epoch in range(epochs):
@@ -220,17 +226,28 @@ class ModelTraining:
             validation_metric = 0.0
             
             # loop over batches
+            print(f'\nEpoch [{epoch+1}/{epochs}]') 
             for inputs, targets in tqdm(data):
                 inputs, targets = inputs.to(device), targets.to(device)
-                predictions = model(inputs)
-                print(predictions.shape, targets.shape)                
-                loss = loss_fn(predictions, targets)
-                metric = metric_fn(predictions, targets)
+
+                if self.use_mixed_precision==True:
+                    # Mixed precision training block
+                    with torch.cuda.amp.autocast(enabled=self.use_mixed_precision):
+                        predictions = model(inputs)                               
+                        loss = loss_fn(predictions, targets)
+                        metric = metric_fn(predictions, targets).mean()
+                    optimizer.zero_grad()
+                    self.scaler.scale(loss).backward()
+                    self.scaler.step(optimizer)
+                    self.scaler.update()
+                else:
+                    predictions = model(inputs)                               
+                    loss = loss_fn(predictions, targets)
+                    metric = metric_fn(predictions, targets).mean()
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()       
                 
-                # execute optimizer updating
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
                 
                 training_loss += loss.item() * inputs.size(0)
                 training_metric += metric.item() * inputs.size(0)
@@ -242,7 +259,7 @@ class ModelTraining:
             model.eval()  # Set the model to evaluation mode            
             with torch.no_grad():  # Disable gradient computation during validation
                 for inputs, targets in validation_data:
-                    inputs, labels = inputs.to(device), labels.to(device)
+                    inputs, targets = inputs.to(device), targets.to(device)
                     predictions = model(inputs)
                     loss = loss_fn(predictions, targets)
                     metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch                    
@@ -251,10 +268,19 @@ class ModelTraining:
             
             epoch_validation_loss = validation_loss/len(data.dataset)
             epoch_validation_metric = validation_metric/len(data.dataset)
-
-            print(f'Epoch [{epoch+1}/{epochs}]\n') 
-            print(f'Train data - Loss: {epoch_training_loss:.4f}, Metric: {epoch_training_metric:.4f}')
+            
+            print(f'\nTrain data - Loss: {epoch_training_loss:.4f}, Metric: {epoch_training_metric:.4f}')
             print(f'Test data - Loss: {epoch_validation_loss:.4f}, Metric: {epoch_validation_metric:.4f}')
+
+    #--------------------------------------------------------------------------
+    def save_model(self, model, path):
+
+        file_path = os.path.join(path, 'model_parameters.pth')        
+        torch.save(model.state_dict(), file_path)
+
+
+
+
 
 
 # [SAVE MODEL PARAMS]       

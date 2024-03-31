@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 #==============================================================================
 class DataGenerator(Dataset):
 
-    def __init__(self, dataframe, picture_shape=(244, 244), shuffle=True, 
+    def __init__(self, dataframe, picture_shape=(256, 256, 3), shuffle=True, 
                  augmentation=True, normalization=True):
         self.dataframe = dataframe
         self.path_col = 'path'
@@ -38,11 +38,10 @@ class DataGenerator(Dataset):
     # define method to get X and Y data through custom functions, and subsequently
     # create a batch of data converted to tensors
     #--------------------------------------------------------------------------
-    def __getitem__(self, idx):
-        picture_size = self.picture_shape[:-1]
+    def __getitem__(self, idx):        
         img_path = self.dataframe.loc[idx, self.path_col]
         image = Image.open(img_path).convert('RGB')
-        image = image.resize(picture_size)
+        image = image.resize(self.picture_shape[:-1])
         if self.transform:
             image = self.transform(image)
 
@@ -52,9 +51,10 @@ class DataGenerator(Dataset):
 # [CREATE DATA LOADER]    
 #------------------------------------------------------------------------------
 def dataloader(dataframe, batch_size, picture_shape, shuffle=True, 
-                augmentation=True, normalization=True, num_workers=0):
+               augmentation=True, normalization=True, device='CPU'):
     dataset = DataGenerator(dataframe, picture_shape, shuffle, augmentation, normalization)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=0,
+                            pin_memory=True if device == 'GPU' else False)
 
     return dataloader    
     
