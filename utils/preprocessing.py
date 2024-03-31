@@ -1,11 +1,5 @@
 import os
-import cv2
 import pandas as pd
-from tqdm import tqdm
-from PIL import Image
-import torch
-from torchvision import transforms
-from tqdm import tqdm
 
 #------------------------------------------------------------------------------
 def dataset_from_images(path, dataset=None):
@@ -36,26 +30,5 @@ def dataset_from_images(path, dataset=None):
 
         return dataset
 
-#------------------------------------------------------------------------------
-def load_images(paths, image_size, as_tensor=True, normalize=True):
-        
-        images = []
-        for pt in tqdm(paths):
-            if as_tensor==False:                
-                image = cv2.imread(pt)             
-                image = cv2.resize(image, image_size)            
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
-                if normalize==True:
-                    image = image/255.0
-            else:
-                image = tf.io.read_file(pt)
-                image = tf.image.decode_image(image, channels=3)
-                image = tf.image.resize(image, image_size)
-                image = tf.reverse(image, axis=[-1])
-                if normalize==True:
-                    image = image/255.0
-            
-            images.append(image) 
 
-        return images
 
