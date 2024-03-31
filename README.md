@@ -19,16 +19,10 @@ First, ensure that you have Python 3.10.12 installed on your system. Then, you c
 
 `pip install -r requirements.txt` 
 
-In addition to the Python packages, certain extra dependencies may be required for specific functionalities. These dependencies can be installed using conda or other external installation methods, depending on your operating system. Specifically, you will need to install graphviz and pydot to enable the visualization of the 2D model architecture:
-- graphviz version 2.38.0
-- pydot version 1.4.2
-
-You can install these dependencies using the appropriate package manager for your system. For instance, you might use conda or an external installation method based on your operating system's requirements.
-
 ## 4.1 CUDA GPU Support (Optional, for GPU Acceleration)
-If you have an NVIDIA GPU and want to harness the power of GPU acceleration using CUDA, please follow these additional steps. The application is built using TensorFlow 2.10.0 to ensure native Windows GPU support, so remember to install the appropriate versions:
+If you have an NVIDIA GPU and want to harness the power of GPU acceleration using CUDA, please follow these additional steps. The application is built using PyTorch 2.2.1 and has native Windows GPU support if specific packages are installed as well. 
 
-### 4.1.1 Install NVIDIA CUDA Toolkit (Version 11.2)
+### 4.1.1 Install NVIDIA CUDA Toolkit (Version 12.2)
 To enable GPU acceleration, you'll need to install the NVIDIA CUDA Toolkit. Visit the [NVIDIA CUDA Toolkit download page](https://developer.nvidia.com/cuda-downloads) and select the version that matches your GPU and operating system. Follow the installation instructions provided. Alternatively, you can install `cuda-toolkit` as a package within your environment.
 
 ### 4.1.2 Install cuDNN (NVIDIA Deep Neural Network Library, Version 8.1.0.77)

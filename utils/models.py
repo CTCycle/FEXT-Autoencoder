@@ -40,11 +40,11 @@ def model_savefolder(path, model_name):
 class PooledConvBlock(nn.Module):
     def __init__(self, units, kernel_size, channels, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
-        self.seed = torch.manual_seed(seed)
+        torch.manual_seed(seed)
         self.padding = kernel_size//2              
         
         self.activation = nn.ReLU()
-        self.pooling = nn.AvgPool2d(kernel_size=kernel_size, stride=1, padding=self.padding)
+        self.pooling = nn.AvgPool2d(kernel_size=kernel_size, stride=2, padding=0) 
         self.convolutions = nn.ModuleList()
         for i in range(num_layers):     
             current_channels = channels if i == 0 else units      
@@ -56,6 +56,7 @@ class PooledConvBlock(nn.Module):
     # implement forward pass
     #--------------------------------------------------------------------------   
     def forward(self, x):
+        print(x.shape)
         for conv in self.convolutions:
             x = conv(x)
             x = self.activation(x)
@@ -67,25 +68,29 @@ class PooledConvBlock(nn.Module):
 # [POOLING TRANSPOSE CONVOLUTIONAL BLOCKS]
 #==============================================================================
 class TransposeConvBlock(nn.Module):
-    def __init__(self, units, kernel_size, num_layers=3, seed=42, **kwargs):
+    def __init__(self, units, kernel_size, channels, num_layers=3, seed=42, **kwargs):
         super(TransposeConvBlock, self).__init__(**kwargs)
         torch.manual_seed(seed)
+        self.padding = kernel_size//2
 
         # Initialize the upsampling layer
         self.upsamp = nn.Upsample(scale_factor=2, mode='nearest')
         
         # Initialize transposed convolutional layers
-        self.convolutions = nn.ModuleList([nn.ConvTranspose2d(in_channels=units if x > 0 else units, 
-                                                               out_channels=units, 
-                                                               kernel_size=kernel_size, 
-                                                               padding='same') 
-                                                               for x in range(num_layers)])
+        self.deconvolutions = nn.ModuleList()
+        for i in range(num_layers):  
+            current_channels = channels if i == 0 else units      
+            self.deconvolutions.append(nn.ConvTranspose2d(in_channels=current_channels, 
+                                                          out_channels=units, 
+                                                            kernel_size=kernel_size, 
+                                                            padding=self.padding))
         self.activation = nn.ReLU()
 
     # implement forward pass
     #--------------------------------------------------------------------------
     def forward(self, x):
-        for conv in self.convolutions:
+        print(x.shape)
+        for conv in self.deconvolutions:            
             x = conv(x)
             x = self.activation(x)
         x = self.upsamp(x)
@@ -95,7 +100,7 @@ class TransposeConvBlock(nn.Module):
 # [MACHINE LEARNING MODELS]
 #==============================================================================
 class FeXTEncoder(nn.Module):
-    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
+    def __init__(self, kernel_size, seed=42, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)
         torch.manual_seed(seed)
 
@@ -126,11 +131,11 @@ class FeXTDecoder(nn.Module):
         torch.manual_seed(seed)
         
         # Initialize transposed convolution blocks
-        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)
-        self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
-        self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
-        self.convblock4 = TransposeConvBlock(128, kernel_size, 2, seed)
-        self.convblock5 = TransposeConvBlock(64, kernel_size, 2, seed)     
+        self.convblock1 = TransposeConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock2 = TransposeConvBlock(512, kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock3 = TransposeConvBlock(256, kernel_size, channels=512, num_layers=3, seed=seed)
+        self.convblock4 = TransposeConvBlock(128, kernel_size, channels=256, num_layers=2, seed=seed)
+        self.convblock5 = TransposeConvBlock(3, kernel_size, channels=128, num_layers=2, seed=seed)     
         self.activation = nn.Sigmoid()
 
     # implement forward pass
@@ -148,14 +153,15 @@ class FeXTDecoder(nn.Module):
 # [MACHINE LEARNING MODELS]
 #==============================================================================
 class FeXTAutoEncoder(nn.Module):
-    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
+    def __init__(self, kernel_size, seed=42, **kwargs):
         super(FeXTAutoEncoder, self).__init__(**kwargs)
-        self.encoder = FeXTEncoder(kernel_size, picture_shape, seed)
-        self.decoder = FeXTDecoder(kernel_size, seed)       
+        self.encoder = FeXTEncoder(kernel_size, seed)
+        self.decoder = FeXTDecoder(kernel_size, seed)               
 
     def forward(self, x):
         x = self.encoder(x)
-        x = self.decoder(x)
+        x = self.decoder(x)                                                
+
         return x
        
 
@@ -163,21 +169,16 @@ class FeXTAutoEncoder(nn.Module):
 #==============================================================================
 class ModelTraining:
     
-    def __init__(self, device='default', seed=42, use_mixed_precision=False):                            
+    def __init__(self, device='CPU', seed=42, use_mixed_precision=False):                            
         np.random.seed(seed)
         torch.manual_seed(seed)
-
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)  # For multi-GPU setups
+            torch.cuda.manual_seed_all(seed)  
 
-        self.available_devices = torch.cuda.device_count()
-        print('-------------------------------------------------------------------------------')        
-        print(f'{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')
-        print('-------------------------------------------------------------------------------')
-
+        self.available_devices = torch.cuda.device_count()        
+        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')  
         self.use_mixed_precision = use_mixed_precision
         self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
-
         if device.upper() == 'GPU' and torch.cuda.is_available():
             self.device = torch.device('cuda')
             print('GPU is set as the active device.')
@@ -185,9 +186,7 @@ class ModelTraining:
                 print('Mixed precision training is enabled.')
         else:
             self.device = torch.device('cpu')
-            print('CPU is set as the active device.')
-
-        print('-------------------------------------------------------------------------------')
+            print('CPU is set as the active device.')        
     
     #--------------------------------------------------------------------------
     def get_device(self):
@@ -201,54 +200,61 @@ class ModelTraining:
             return None
 
     #--------------------------------------------------------------------------
-    def train_model(self, data, validation_data, model, epochs, learning_rate):
+    def train_model(self, model, data, validation_data, epochs, learning_rate):
         
         # Optimizer and Loss function
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        loss_fn = nn.MSELoss()
-        
-        # Note: nn.CosineSimilarity() outputs a similarity score for each pair, so we need to average it to use as a metric.
+        loss_fn = nn.MSELoss()        
         metric_fn = nn.CosineSimilarity(dim=1)
+
+        # load the model onto device
+        device = self.get_device()
+        model.to(device) 
         
+        # loop over epochs
         for epoch in range(epochs):
             model.train()  # Set the model to training mode
-            running_loss = 0.0
-            running_metric = 0.0
+            training_loss = 0.0
+            training_metric = 0.0
+            validation_loss = 0.0
+            validation_metric = 0.0
             
+            # loop over batches
             for inputs, targets in tqdm(data):
-                predictions = model(inputs)                
+                inputs, targets = inputs.to(device), targets.to(device)
+                predictions = model(inputs)
+                print(predictions.shape, targets.shape)                
                 loss = loss_fn(predictions, targets)
-                metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch
+                metric = metric_fn(predictions, targets)
                 
+                # execute optimizer updating
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 
-                running_loss += loss.item() * inputs.size(0)
-                running_metric += metric.item() * inputs.size(0)
+                training_loss += loss.item() * inputs.size(0)
+                training_metric += metric.item() * inputs.size(0)
             
-            epoch_loss = running_loss / len(data.dataset)
-            epoch_metric = running_metric / len(data.dataset)
+            epoch_training_loss = training_loss/len(data.dataset)
+            epoch_training_metric = training_metric/len(data.dataset)
             
             # Validation phase
-            model.eval()  # Set the model to evaluation mode
-            validation_loss = 0.0
-            validation_metric = 0.0
-            
+            model.eval()  # Set the model to evaluation mode            
             with torch.no_grad():  # Disable gradient computation during validation
                 for inputs, targets in validation_data:
+                    inputs, labels = inputs.to(device), labels.to(device)
                     predictions = model(inputs)
                     loss = loss_fn(predictions, targets)
                     metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch                    
                     validation_loss += loss.item() * inputs.size(0)
                     validation_metric += metric.item() * inputs.size(0)
             
-            validation_loss /= len(validation_data.dataset)
-            validation_metric /= len(validation_data.dataset)
+            epoch_validation_loss = validation_loss/len(data.dataset)
+            epoch_validation_metric = validation_metric/len(data.dataset)
 
             print(f'Epoch [{epoch+1}/{epochs}]\n') 
-            print(f'Train data - Loss: {epoch_loss:.4f}, Metric: {epoch_metric:.4f}')
-            print(f'Test data - Loss: {validation_loss:.4f}, Metric: {validation_metric:.4f}')
+            print(f'Train data - Loss: {epoch_training_loss:.4f}, Metric: {epoch_training_metric:.4f}')
+            print(f'Test data - Loss: {epoch_validation_loss:.4f}, Metric: {epoch_validation_metric:.4f}')
 
 
 # [SAVE MODEL PARAMS]       
@@ -271,4 +277,13 @@ def model_parameters(parameters_dict, savepath):
     path = os.path.join(savepath, 'model_parameters.json')      
     with open(path, 'w') as f:
         json.dump(parameters_dict, f)  
+
+
         
+#------------------------------------------------------------------------------
+if __name__ == '__main__':  
+        
+    print('PyTorch Version:', torch.__version__)
+    trainer = ModelTraining(device='GPU', use_mixed_precision=True)
+    
+    

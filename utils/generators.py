@@ -24,11 +24,9 @@ class DataGenerator(Dataset):
         self.transformations = []
         if self.augmentation:
             self.transformations.extend([transforms.RandomHorizontalFlip(),
-                                        transforms.RandomVerticalFlip()])
+                                         transforms.RandomVerticalFlip()])
         if self.normalization:
             self.transformations.append(transforms.ToTensor())
-            self.transformations.append(transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                             std=[0.229, 0.224, 0.225]))
             
         self.transform = transforms.Compose(self.transformations)
 
@@ -45,7 +43,6 @@ class DataGenerator(Dataset):
         img_path = self.dataframe.loc[idx, self.path_col]
         image = Image.open(img_path).convert('RGB')
         image = image.resize(picture_size)
-
         if self.transform:
             image = self.transform(image)
 
@@ -54,8 +51,8 @@ class DataGenerator(Dataset):
     
 # [CREATE DATA LOADER]    
 #------------------------------------------------------------------------------
-def create_dataloader(dataframe, batch_size, picture_shape, shuffle=True, 
-                      augmentation=True, normalization=True, num_workers=6):
+def dataloader(dataframe, batch_size, picture_shape, shuffle=True, 
+                augmentation=True, normalization=True, num_workers=0):
     dataset = DataGenerator(dataframe, picture_shape, shuffle, augmentation, normalization)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
