@@ -55,20 +55,15 @@ if __name__ == '__main__':
     # [DEFINE IMAGES GENERATOR AND BUILD DATALOADER]
     #--------------------------------------------------------------------------  
     train_data.drop(columns='name', inplace=True)
-    test_data.drop(columns='name', inplace=True)
+    test_data.drop(columns='name', inplace=True)       
 
-    # 1. initialize training device
-    print('\nInitialize training device as per user configurations')
-    trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
-                            use_mixed_precision=cnf.use_mixed_precision)    
-
-    # 2. initialize the images generator for the train and test data
+    # 1. initialize the images generator for the train and test data
     train_generator = dataloader(train_data, cnf.batch_size, cnf.picture_shape,
                                  shuffle=True, augmentation=cnf.augmentation,
-                                 device=cnf.training_device)
+                                 device=cnf.training_device, num_workers=cnf.num_workers)
     test_generator = dataloader(test_data, cnf.batch_size, cnf.picture_shape,
                                 shuffle=True, augmentation=cnf.augmentation,
-                                device=cnf.training_device)    
+                                device=cnf.training_device, num_workers=cnf.num_workers)    
 
     # [TRAINING MODEL]
     #-------------------------------------------------------------------------- 
@@ -86,10 +81,17 @@ if __name__ == '__main__':
   
     # 1. build the autoencoder model and print summary
     print('\nInitialise FeXT autoencoder\n')   
-    model = FeXTAutoEncoder(cnf.seed)  
+    model = FeXTAutoEncoder(cnf.seed) 
+         
     model.print_summary()  
 
-    # 2. training loop and save model at end of training    
+    # 2. initialize training device
+    print('\nInitialize training device as per user configurations')
+    trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
+                            use_mixed_precision=cnf.use_mixed_precision,
+                            compiled=False) 
+
+    # 3. training loop and save model at end of training    
     training = trainer.train_model(model, train_generator, test_generator, 
                                    cnf.epochs, cnf.learning_rate)
     
@@ -97,7 +99,7 @@ if __name__ == '__main__':
     os.mkdir(model_subfolder ) if not os.path.exists(model_subfolder ) else None
     trainer.save_model(model, model_subfolder)
 
-    # 3. save model parameters in json files   
+    # 4. save model parameters in json files   
     print(f'Training session is over. Model has been saved in folder {model_folder_name}')
     parameters = {'train_samples': cnf.num_train_samples,
                   'test_samples': cnf.num_test_samples,

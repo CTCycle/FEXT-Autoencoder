@@ -175,16 +175,18 @@ class FeXTAutoEncoder(nn.Module):
 #==============================================================================
 class ModelTraining:
     
-    def __init__(self, device='CPU', seed=42, use_mixed_precision=False):                            
+    def __init__(self, device='CPU', seed=42, use_mixed_precision=False, compiled=True):                            
         np.random.seed(seed)
         torch.manual_seed(seed)
+        self.use_mixed_precision = use_mixed_precision
+        self.compiled = compiled
+        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)  
-
+        
         self.available_devices = torch.cuda.device_count()        
-        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')  
-        self.use_mixed_precision = use_mixed_precision
-        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
+        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.') 
+        
         if device.upper() == 'GPU' and torch.cuda.is_available():
             self.device = torch.device('cuda')
             print('GPU is set as the active device.')
@@ -203,10 +205,14 @@ class ModelTraining:
         if self.use_mixed_precision:
             return self.scaler
         else:
-            return None
+            return None   
 
     #--------------------------------------------------------------------------
     def train_model(self, model, data, validation_data, epochs, learning_rate):
+    
+        # compile model if requested
+        if self.compiled:
+            model = torch.compile(model)
         
         # load the model onto device
         device = self.get_device()
@@ -218,21 +224,20 @@ class ModelTraining:
         metric_fn = nn.CosineSimilarity(dim=1)         
         
         # loop over epochs
-        for epoch in range(epochs):
+        for i, epoch in enumerate(range(epochs)):
             model.train()  # Set the model to training mode
             training_loss = 0.0
             training_metric = 0.0
             validation_loss = 0.0
             validation_metric = 0.0
-            
-            # loop over batches
+
             print(f'\nEpoch [{epoch+1}/{epochs}]') 
             for inputs, targets in tqdm(data):
                 inputs, targets = inputs.to(device), targets.to(device)
 
                 if self.use_mixed_precision==True:
                     # Mixed precision training block
-                    with torch.cuda.amp.autocast(enabled=self.use_mixed_precision):
+                    with torch.cuda.amp.autocast(enabled=True):
                         predictions = model(inputs)                               
                         loss = loss_fn(predictions, targets)
                         metric = metric_fn(predictions, targets).mean()
@@ -241,19 +246,16 @@ class ModelTraining:
                     self.scaler.step(optimizer)
                     self.scaler.update()
                 else:
+                    # Float32 precision training block
                     predictions = model(inputs)                               
                     loss = loss_fn(predictions, targets)
                     metric = metric_fn(predictions, targets).mean()
                     optimizer.zero_grad()
                     loss.backward()
-                    optimizer.step()       
-                
+                    optimizer.step()                
                 
                 training_loss += loss.item() * inputs.size(0)
                 training_metric += metric.item() * inputs.size(0)
-            
-            epoch_training_loss = training_loss/len(data.dataset)
-            epoch_training_metric = training_metric/len(data.dataset)
             
             # Validation phase
             model.eval()  # Set the model to evaluation mode            
@@ -265,26 +267,26 @@ class ModelTraining:
                     metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch                    
                     validation_loss += loss.item() * inputs.size(0)
                     validation_metric += metric.item() * inputs.size(0)
+
+            # Calculate average losses and metrics
+            epoch_training_loss = training_loss / len(data.dataset)
+            epoch_training_metric = training_metric / len(data.dataset)
+            epoch_validation_loss = validation_loss / len(validation_data.dataset)
+            epoch_validation_metric = validation_metric / len(validation_data.dataset)
             
-            epoch_validation_loss = validation_loss/len(data.dataset)
-            epoch_validation_metric = validation_metric/len(data.dataset)
-            
+            # Print epoch-level statistics
             print(f'\nTrain data - Loss: {epoch_training_loss:.4f}, Metric: {epoch_training_metric:.4f}')
-            print(f'Test data - Loss: {epoch_validation_loss:.4f}, Metric: {epoch_validation_metric:.4f}')
+            print(f'Validation data - Loss: {epoch_validation_loss:.4f}, Metric: {epoch_validation_metric:.4f}')
 
     #--------------------------------------------------------------------------
     def save_model(self, model, path):
 
-        file_path = os.path.join(path, 'model_parameters.pth')        
+        file_path = os.path.join(path, 'model_pretrained.pth')        
         torch.save(model.state_dict(), file_path)
 
 
-
-
-
-
 # [SAVE MODEL PARAMS]       
-#-------------------------------------------------------------------------- 
+#------------------------------------------------------------------------------ 
 def model_parameters(parameters_dict, savepath):
 
     '''
@@ -302,14 +304,85 @@ def model_parameters(parameters_dict, savepath):
     '''
     path = os.path.join(savepath, 'model_parameters.json')      
     with open(path, 'w') as f:
-        json.dump(parameters_dict, f)  
+        json.dump(parameters_dict, f) 
 
+
+# [INFERENCE]
+#==============================================================================
+class Inference:
+
+    def __init__(self, seed):
+        self.seed = seed
+        torch.manual_seed(seed)
+
+    #--------------------------------------------------------------------------
+    def load_pretrained_model(self, path):
+
+        '''
+        Load a pretrained PyTorch model (state dict) from the specified directory. 
+        If multiple model directories are found, the user is prompted to select one,
+        while if only one model directory is found, that model is loaded directly.
+        If `load_parameters` is True, the function also loads the model parameters 
+        from the target .pth file in the same directory.
+
+        Keyword arguments:
+            path (str): The directory path where the pretrained models are stored.            
+
+        Returns:
+            model (torch.nn.Module): The loaded PyTorch model.
+            configuration (dict, optional): The loaded model parameters, if available.
+            
+        '''
+        model_folders = [entry.name for entry in os.scandir(path) if entry.is_dir()]
+        
+        if len(model_folders) > 1:
+            model_folders.sort()
+            print('Please select a pretrained model:') 
+            for i, directory in enumerate(model_folders):
+                print(f'{i + 1} - {directory}')
+            print()
+            dir_index = int(input('Type the model index to select it: '))
+            while dir_index not in range(1, len(model_folders) + 1):
+                dir_index = int(input('Input is not valid! Try again: '))
+            folder_path = os.path.join(path, model_folders[dir_index - 1])
+        elif len(model_folders) == 1:
+            folder_path = os.path.join(path, model_folders[0])
+        else:
+            raise FileNotFoundError('No model directories found.')
+
+        model = FeXTAutoEncoder(seed=42)  # Initialize your PyTorch model class here        
+        model_path = os.path.join(folder_path, 'model', 'pretrained_model.pth')
+        model.load_state_dict(torch.load(model_path))
+        model.eval()  # Set the model to evaluation mode
+        
+        # Load configuration if exists
+        config_path = os.path.join(folder_path, 'model_parameters.json')
+        configuration = {}
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                configuration = json.load(f)
+        
+        return model, configuration
+    
+    #--------------------------------------------------------------------------
+    def model_inference(self, data, model):        
+        
+        # load the model onto device
+        device = self.get_device()
+        model.to(device) 
+        predictions = []         
+        for inputs, targets in tqdm(data):
+            inputs, targets = inputs.to(device), targets.to(device)
+            prediction = model(inputs)
+            predictions.append(prediction)
+
+        return predictions
 
         
 #------------------------------------------------------------------------------
 if __name__ == '__main__':  
         
     print('PyTorch Version:', torch.__version__)
-    trainer = ModelTraining(device='GPU', use_mixed_precision=True)
+    
     
     
