@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # import modules and components
 #------------------------------------------------------------------------------
-from utils.generators import create_dataloader
+from utils.generators import dataloader
 from utils.preprocessing import dataset_from_images
 from utils.models import ModelTraining, FeXTAutoEncoder, model_savefolder, model_parameters
 import utils.global_paths as globpt
@@ -59,18 +59,18 @@ if __name__ == '__main__':
     test_data.drop(columns='name', inplace=True)
 
     # 1. initialize training device
-    print('\nStart training of FEXT AutoEncoder\n')
+    print('\nInitialize training device as per user configurations')
     trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
-                            use_mixed_precision=cnf.use_mixed_precision)
+                            use_mixed_precision=cnf.use_mixed_precision)    
 
     # 2. initialize the images generator for the train and test data
-    train_generator = create_dataloader(train_data, cnf.batch_size, cnf.picture_shape,
-                                        shuffle=True, augmentation=cnf.augmentation)
-    test_generator = create_dataloader(test_data, cnf.batch_size, cnf.picture_shape, 
-                                       augmentation=cnf.augmentation, shuffle=True)    
+    train_generator = dataloader(train_data, cnf.batch_size, cnf.picture_shape,
+                                 shuffle=True, augmentation=cnf.augmentation)
+    test_generator = dataloader(test_data, cnf.batch_size, cnf.picture_shape, 
+                                augmentation=cnf.augmentation, shuffle=True)    
 
     # [TRAINING MODEL]
-    #==============================================================================
+    #-------------------------------------------------------------------------- 
     # Setting callbacks and training routine for the features extraction model. 
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/
@@ -83,13 +83,13 @@ if __name__ == '__main__':
     print(f'Batch size:              {cnf.batch_size}')
     print(f'Epochs:                  {cnf.epochs}')
   
-    # 1. build the autoencoder model     
-    model = FeXTAutoEncoder(cnf.kernel_size, cnf.picture_shape, cnf.seed)
+    # 1. build the autoencoder model and load to device 
+    print('\nInitialise FeXT autoencoder\n')   
+    model = FeXTAutoEncoder(cnf.kernel_size, cnf.seed)    
 
-    # 2. training loop and save model at end of training
-    multiprocessing = cnf.num_processors > 1
-    training = trainer.train_model(train_generator, test_generator, 
-                                   model, cnf.epochs, cnf.learning_rate)
+    # 2. training loop and save model at end of training    
+    training = trainer.train_model(model, train_generator, test_generator, 
+                                   cnf.epochs, cnf.learning_rate)
 
     # 3. save model parameters in json files   
     print(f'Training session is over. Model has been saved in folder {model_folder_name}')
