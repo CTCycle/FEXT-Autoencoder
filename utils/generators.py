@@ -51,9 +51,9 @@ class DataGenerator(Dataset):
 # [CREATE DATA LOADER]    
 #------------------------------------------------------------------------------
 def dataloader(dataframe, batch_size, picture_shape, shuffle=True, 
-               augmentation=True, normalization=True, device='CPU'):
+               augmentation=True, normalization=True, device='CPU', num_workers=0):
     dataset = DataGenerator(dataframe, picture_shape, shuffle, augmentation, normalization)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=0,
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
                             pin_memory=True if device == 'GPU' else False)
 
     return dataloader    

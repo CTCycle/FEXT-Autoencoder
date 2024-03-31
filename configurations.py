@@ -4,12 +4,13 @@ use_mixed_precision = True
 use_tensorboard = False
 XLA_acceleration = False
 training_device = 'GPU'
+num_workers = 4
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-epochs = 2
+epochs = 10
 learning_rate = 0.0001
-batch_size = 20
+batch_size = 40
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
@@ -26,3 +27,4 @@ augmentation = False
 #------------------------------------------------------------------------------
 seed = 54
 split_seed = 45
+
