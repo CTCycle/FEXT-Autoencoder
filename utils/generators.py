@@ -1,4 +1,5 @@
 import torch  
+import cv2 
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
@@ -38,14 +39,18 @@ class DataGenerator(Dataset):
     # define method to get X and Y data through custom functions, and subsequently
     # create a batch of data converted to tensors
     #--------------------------------------------------------------------------
-    def __getitem__(self, idx):        
-        img_path = self.dataframe.loc[idx, self.path_col]
-        image = Image.open(img_path).convert('RGB')
-        image = image.resize(self.picture_shape[:-1])
+    def __getitem__(self, idx):
+
+        img_path = self.dataframe.iloc[idx][self.path_col]  
+        image = cv2.imread(img_path)        
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)        
+        image = cv2.resize(image, self.picture_shape[:-1])
+        
         if self.transform:
             image = self.transform(image)
-
-        return image, image 
+        
+        return image, image       
+      
      
     
 # [CREATE DATA LOADER]    

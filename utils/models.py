@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchinfo import summary
+import matplotlib.pyplot as plt
 
 
 
@@ -175,136 +176,133 @@ class FeXTAutoEncoder(nn.Module):
 #==============================================================================
 class ModelTraining:
     
-    def __init__(self, device='CPU', seed=42, use_mixed_precision=False, compiled=True):                            
+    def __init__(self, model, device='CPU', seed=42, use_mixed_precision=False, compiled=True):
         np.random.seed(seed)
         torch.manual_seed(seed)
-        self.use_mixed_precision = use_mixed_precision
-        self.compiled = compiled
-        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)  
+            torch.cuda.manual_seed_all(seed)
+
+        self.model = model
+        self.use_mixed_precision = use_mixed_precision
+        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
+        self.available_devices = torch.cuda.device_count()
+        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')
         
-        self.available_devices = torch.cuda.device_count()        
-        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.') 
-        
-        if device.upper() == 'GPU' and torch.cuda.is_available():
+        self.set_device(device)
+
+    #--------------------------------------------------------------------------
+    def set_device(self, device):
+        if device.upper() == 'GPU' and self.available_devices:
             self.device = torch.device('cuda')
+            self.model.cuda()
             print('GPU is set as the active device.')
-            if use_mixed_precision:
+            if self.use_mixed_precision:
                 print('Mixed precision training is enabled.')
         else:
             self.device = torch.device('cpu')
-            print('CPU is set as the active device.')        
-    
-    #--------------------------------------------------------------------------
-    def get_device(self):
-        return self.device
+            print('CPU is set as the active device.')
+        self.model.to(self.device)
 
     #--------------------------------------------------------------------------
-    def get_scaler(self):
-        if self.use_mixed_precision:
-            return self.scaler
-        else:
-            return None   
-
-    #--------------------------------------------------------------------------
-    def train_model(self, model, data, validation_data, epochs, learning_rate):
-    
-        # compile model if requested
-        if self.compiled:
-            model = torch.compile(model)
+    def train_model(self, data, validation_data, epochs, learning_rate,
+                    plot_history=True, plot_frequency=1, plot_path='./'):
         
-        # load the model onto device
-        device = self.get_device()
-        model.to(device) 
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        loss_fn = nn.MSELoss()
+        metric_fn = nn.CosineSimilarity(dim=1)
 
-        # Optimizer and Loss function
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-        loss_fn = nn.MSELoss()        
-        metric_fn = nn.CosineSimilarity(dim=1)         
-        
-        # loop over epochs
-        for i, epoch in enumerate(range(epochs)):
-            model.train()  # Set the model to training mode
-            training_loss = 0.0
-            training_metric = 0.0
-            validation_loss = 0.0
-            validation_metric = 0.0
+        train_losses, val_losses, train_metrics, val_metrics, epoch_nums = [], [], [], [], []
 
-            print(f'\nEpoch [{epoch+1}/{epochs}]') 
-            for inputs, targets in tqdm(data):
-                inputs, targets = inputs.to(device), targets.to(device)
+        for epoch in range(epochs):
+            print(f'\nEpoch [{epoch+1}/{epochs}]')
+            train_results = self.process_epoch(data, optimizer, loss_fn, metric_fn, train=True)
+            val_results = self.process_epoch(validation_data, optimizer, loss_fn, metric_fn, train=False)
 
-                if self.use_mixed_precision==True:
-                    # Mixed precision training block
-                    with torch.cuda.amp.autocast(enabled=True):
-                        predictions = model(inputs)                               
-                        loss = loss_fn(predictions, targets)
-                        metric = metric_fn(predictions, targets).mean()
-                    optimizer.zero_grad()
-                    self.scaler.scale(loss).backward()
-                    self.scaler.step(optimizer)
-                    self.scaler.update()
+            train_losses.append(train_results['loss'])
+            train_metrics.append(train_results['metric'])
+            val_losses.append(val_results['loss'])
+            val_metrics.append(val_results['metric'])
+            epoch_nums.append(epoch + 1)
+
+            if plot_history and (epoch + 1) % plot_frequency == 0:
+                self.realtime_training_plot((epoch_nums, train_losses, train_metrics, val_losses, val_metrics), plot_frequency, plot_path)
+
+    #--------------------------------------------------------------------------
+    def process_epoch(self, data, optimizer, loss_fn, metric_fn, train=True):
+        phase = 'train' if train else 'val'
+        running_loss, running_metric, total_samples = 0.0, 0.0, 0
+
+        for inputs, targets in tqdm(data, desc=f"Processing {phase} data"):
+            inputs, targets = inputs.to(self.device), targets.to(self.device)
+            predictions = self.model(inputs)
+            loss = loss_fn(predictions, targets)
+            metric = metric_fn(predictions, targets).mean()
+
+            if train:
+                optimizer.zero_grad()
+                if self.use_mixed_precision:
+                    with torch.cuda.amp.autocast():
+                        loss.backward()
+                        self.scaler.step(optimizer)
+                        self.scaler.update()
                 else:
-                    # Float32 precision training block
-                    predictions = model(inputs)                               
-                    loss = loss_fn(predictions, targets)
-                    metric = metric_fn(predictions, targets).mean()
-                    optimizer.zero_grad()
                     loss.backward()
-                    optimizer.step()                
-                
-                training_loss += loss.item() * inputs.size(0)
-                training_metric += metric.item() * inputs.size(0)
-            
-            # Validation phase
-            model.eval()  # Set the model to evaluation mode            
-            with torch.no_grad():  # Disable gradient computation during validation
-                for inputs, targets in validation_data:
-                    inputs, targets = inputs.to(device), targets.to(device)
-                    predictions = model(inputs)
-                    loss = loss_fn(predictions, targets)
-                    metric = metric_fn(predictions, targets).mean()  # Calculate mean metric for batch                    
-                    validation_loss += loss.item() * inputs.size(0)
-                    validation_metric += metric.item() * inputs.size(0)
+                    optimizer.step()
 
-            # Calculate average losses and metrics
-            epoch_training_loss = training_loss / len(data.dataset)
-            epoch_training_metric = training_metric / len(data.dataset)
-            epoch_validation_loss = validation_loss / len(validation_data.dataset)
-            epoch_validation_metric = validation_metric / len(validation_data.dataset)
-            
-            # Print epoch-level statistics
-            print(f'\nTrain data - Loss: {epoch_training_loss:.4f}, Metric: {epoch_training_metric:.4f}')
-            print(f'Validation data - Loss: {epoch_validation_loss:.4f}, Metric: {epoch_validation_metric:.4f}')
+            running_loss += loss.item() * inputs.size(0)
+            running_metric += metric.item() * inputs.size(0)
+            total_samples += inputs.size(0)
+
+        epoch_loss = running_loss / total_samples
+        epoch_metric = running_metric / total_samples
+        print(f'{phase.title()} Loss: {epoch_loss:.4f}, Metric: {epoch_metric:.4f}')
+
+        return {'loss': epoch_loss, 'metric': epoch_metric} 
+    
 
     #--------------------------------------------------------------------------
-    def save_model(self, model, path):
+    def realtime_training_plot(self, data, plot_frequency, plot_path):
 
-        file_path = os.path.join(path, 'model_pretrained.pth')        
+        epochs, train_losses, train_metrics, val_losses, val_metrics = data        
+        if epochs[-1] % plot_frequency == 0:
+            fig_path = os.path.join(plot_path, 'training_history.jpeg')
+            plt.figure(figsize=(10, 8))
+            
+            # Plotting training and validation loss
+            plt.subplot(2, 1, 1)
+            plt.plot(epochs, train_losses, label='Training Loss')
+            plt.plot(epochs, val_losses, label='Validation Loss')
+            plt.title('Training and Validation Loss')
+            plt.xlabel('Epochs')
+            plt.ylabel('Loss')
+            plt.legend()
+            
+            # Plotting training and validation metrics
+            plt.subplot(2, 1, 2)
+            plt.plot(epochs, train_metrics, label='Training Metric')
+            plt.plot(epochs, val_metrics, label='Validation Metric')
+            plt.title('Training and Validation Metric')
+            plt.xlabel('Epochs')
+            plt.ylabel('Metric')
+            plt.legend()
+            
+            plt.tight_layout()
+            plt.savefig(fig_path)
+            plt.close()
+
+    #--------------------------------------------------------------------------
+    def save_model(self, model, path, save_parameters=False, parameters=None):
+
+        model_subfolder = os.path.join(path, 'model')
+        os.mkdir(model_subfolder) if not os.path.exists(model_subfolder) else None
+        file_path = os.path.join(model_subfolder, 'model_pretrained.pth')        
         torch.save(model.state_dict(), file_path)
 
+        if save_parameters==True and parameters is not None:
+            path = os.path.join(path, 'model_parameters.json')      
+            with open(path, 'w') as f:
+                json.dump(parameters, f)   
 
-# [SAVE MODEL PARAMS]       
-#------------------------------------------------------------------------------ 
-def model_parameters(parameters_dict, savepath):
-
-    '''
-    Saves the model parameters to a JSON file. The parameters are provided 
-    as a dictionary and are written to a file named 'model_parameters.json' 
-    in the specified directory.
-
-    Keyword arguments:
-        parameters_dict (dict): A dictionary containing the parameters to be saved.
-        savepath (str): The directory path where the parameters will be saved.
-
-    Returns:
-        None       
-
-    '''
-    path = os.path.join(savepath, 'model_parameters.json')      
-    with open(path, 'w') as f:
-        json.dump(parameters_dict, f) 
 
 
 # [INFERENCE]
