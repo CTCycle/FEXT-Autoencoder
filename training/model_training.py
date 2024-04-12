@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 #------------------------------------------------------------------------------
 from utils.generators import dataloader
 from utils.preprocessing import dataset_from_images
-from utils.models import ModelTraining, FeXTAutoEncoder, model_savefolder, model_parameters
+from utils.models import ModelTraining, FeXTAutoEncoder, model_savefolder
 import utils.global_paths as globpt
 import configurations as cnf
 
@@ -63,7 +63,8 @@ if __name__ == '__main__':
                                  device=cnf.training_device, num_workers=cnf.num_workers)
     test_generator = dataloader(test_data, cnf.batch_size, cnf.picture_shape,
                                 shuffle=True, augmentation=cnf.augmentation,
-                                device=cnf.training_device, num_workers=cnf.num_workers)    
+                                device=cnf.training_device, num_workers=cnf.num_workers)
+       
 
     # [TRAINING MODEL]
     #-------------------------------------------------------------------------- 
@@ -81,26 +82,16 @@ if __name__ == '__main__':
   
     # 1. build the autoencoder model and print summary
     print('\nInitialise FeXT autoencoder\n')   
-    model = FeXTAutoEncoder(cnf.seed) 
-         
+    model = FeXTAutoEncoder(cnf.seed)         
     model.print_summary()  
 
     # 2. initialize training device
     print('\nInitialize training device as per user configurations')
-    trainer = ModelTraining(device=cnf.training_device, seed=cnf.seed, 
+    trainer = ModelTraining(model, device=cnf.training_device, seed=cnf.seed, 
                             use_mixed_precision=cnf.use_mixed_precision,
                             compiled=False) 
 
-    # 3. training loop and save model at end of training    
-    training = trainer.train_model(model, train_generator, test_generator, 
-                                   cnf.epochs, cnf.learning_rate)
-    
-    model_subfolder = os.path.join(model_folder_path, 'model')
-    os.mkdir(model_subfolder ) if not os.path.exists(model_subfolder ) else None
-    trainer.save_model(model, model_subfolder)
-
-    # 4. save model parameters in json files   
-    print(f'Training session is over. Model has been saved in folder {model_folder_name}')
+    # 3. training loop and save model and its parameters at end of training   
     parameters = {'train_samples': cnf.num_train_samples,
                   'test_samples': cnf.num_test_samples,
                   'picture_shape' : cnf.picture_shape,             
@@ -111,8 +102,14 @@ if __name__ == '__main__':
                   'epochs' : cnf.epochs,
                   'seed' : cnf.seed,
                   'tensorboard' : cnf.use_tensorboard}
+     
+    training = trainer.train_model(train_generator, test_generator, 
+                                   cnf.epochs, cnf.learning_rate, 
+                                   plot_frequency=5, plot_path=model_folder_path)   
+    
+    trainer.save_model(model, model_folder_path, save_parameters=True, parameters=parameters)
 
-    model_parameters(parameters, model_folder_path)
+    
                                 
 
 
