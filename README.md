@@ -19,20 +19,31 @@ First, ensure that you have Python 3.10.12 installed on your system. Then, you c
 
 `pip install -r requirements.txt` 
 
-## 4.1 CUDA GPU Support (Optional, for GPU Acceleration)
-If you have an NVIDIA GPU and want to harness the power of GPU acceleration using CUDA, please follow these additional steps. The application is built using PyTorch 2.2.1 and has native Windows GPU support if specific packages are installed as well. 
+This application is based on pytorch 2.2.2, which needs to be installed separately (please refer to https://pytorch.org/get-started/locally/ for more information). If you do not have a NVIDIA GPU with CUDA acceleration enabled, you can install a pytorch version that runs on CPU only: 
 
-### 4.1.1 Install NVIDIA CUDA Toolkit (Version 12.2)
-To enable GPU acceleration, you'll need to install the NVIDIA CUDA Toolkit. Visit the [NVIDIA CUDA Toolkit download page](https://developer.nvidia.com/cuda-downloads) and select the version that matches your GPU and operating system. Follow the installation instructions provided. Alternatively, you can install `cuda-toolkit` as a package within your environment.
+**with pip:** 
 
-### 4.1.2 Install cuDNN (NVIDIA Deep Neural Network Library, Version 8.1.0.77)
-Next, you'll need to install cuDNN, which is the NVIDIA Deep Neural Network Library. Visit the [cuDNN download page](https://developer.nvidia.com/cudnn) and download the cuDNN library version that corresponds to your CUDA version (in this case, version 8.1.0.77). Follow the installation instructions provided.
+`pip install torch torchvision torchaudio`
 
-### 4.1.3 Additional Package (If CUDA Toolkit Is Installed)
-If you've installed the NVIDIA CUDA Toolkit within your environment, you may also need to install an additional package called `cuda-nvcc` (Version 12.3.107). This package provides the CUDA compiler and tools necessary for building CUDA-enabled applications.
+**with conda:** 
+
+`conda install pytorch torchvision torchaudio cpuonly -c pytorch`
+
+## 4.1 CUDA GPU Support (optional, for GPU Acceleration)
+If you have an NVIDIA GPU and want to harness the power of GPU acceleration using CUDA, you can use the following commands (you need to select the proper CUDA Toolkit version, as these will install v12.2 by default): 
+
+**with pip:** 
+
+`pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121`
+
+**with conda:** 
+
+`conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia`
+
+Alternatively, one can also install the NVIDIA CUDA Toolkit using the official download page. Visit the [NVIDIA CUDA Toolkit download page](https://developer.nvidia.com/cuda-downloads) and select the version that matches your GPU and operating system. Follow the installation instructions provided.
 
 ### 4.2 Additional Package for XLA Acceleration
-XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
+XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
 
 To enable XLA acceleration globally across your system, you need to set an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
 

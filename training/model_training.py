@@ -83,13 +83,13 @@ if __name__ == '__main__':
     # 1. build the autoencoder model and print summary
     print('\nInitialise FeXT autoencoder\n')   
     model = FeXTAutoEncoder(cnf.seed)         
-    model.print_summary()  
+    model.print_summary()     
 
     # 2. initialize training device
     print('\nInitialize training device as per user configurations')
     trainer = ModelTraining(model, device=cnf.training_device, seed=cnf.seed, 
-                            use_mixed_precision=cnf.use_mixed_precision,
-                            compiled=False) 
+                            use_mixed_precision=cnf.use_mixed_precision) 
+    #trainer.plot_model(path=model_folder_path) 
 
     # 3. training loop and save model and its parameters at end of training   
     parameters = {'train_samples': cnf.num_train_samples,
@@ -105,26 +105,17 @@ if __name__ == '__main__':
      
     training = trainer.train_model(train_generator, test_generator, 
                                    cnf.epochs, cnf.learning_rate, 
-                                   plot_frequency=5, plot_path=model_folder_path)   
+                                   plot_frequency=cnf.plot_frequency, 
+                                   plot_path=model_folder_path)   
     
     trainer.save_model(model, model_folder_path, save_parameters=True, parameters=parameters)
 
     
-                                
+                              
 
 
-# generate graphviz plot fo the model layout
-#------------------------------------------------------------------------------
-# if cnf.generate_model_graph==True:
-#     plot_path = os.path.join(model_folder_path, 'model_layout.png')       
-#     plot_model(model, to_file = plot_path, show_shapes = True, 
-#                show_layer_names = True, show_layer_activations = True, 
-#                expand_nested = True, rankdir = 'TB', dpi = 400)
 
-# initialize the real time history callback
-#------------------------------------------------------------------------------
-# RTH_callback = RealTimeHistory(model_folder_path, validation=True)
-# callbacks_list = [RTH_callback]
+
 
 # initialize tensorboard if requested
 #------------------------------------------------------------------------------

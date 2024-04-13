@@ -8,9 +8,10 @@ num_workers = 0
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-epochs = 20
+epochs = 5
 learning_rate = 0.0001
-batch_size = 30
+batch_size = 20
+plot_frequency = 1
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
@@ -19,8 +20,8 @@ generate_model_graph = True
 
 # Settings for training data 
 #------------------------------------------------------------------------------
-num_train_samples = 500
-num_test_samples = 100
+num_train_samples = 2000
+num_test_samples = 200
 augmentation = False
 
 # General settings 
