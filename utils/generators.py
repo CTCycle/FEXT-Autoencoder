@@ -1,6 +1,5 @@
 import torch  
 import cv2 
-from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 
@@ -49,8 +48,7 @@ class DataGenerator(Dataset):
         if self.transform:
             image = self.transform(image)
         
-        return image, image       
-      
+        return image, image     
      
     
 # [CREATE DATA LOADER]    

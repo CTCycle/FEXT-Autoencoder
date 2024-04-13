@@ -5,10 +5,9 @@ from datetime import datetime
 from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torchviz import make_dot
 from torchinfo import summary
 import matplotlib.pyplot as plt
-
 
 
 # function to create a folder where to save model checkpoints
@@ -170,68 +169,67 @@ class FeXTAutoEncoder(nn.Module):
     #--------------------------------------------------------------------------
     def print_summary(self):
         summary(self, input_size=(1, 3, 256, 256))
+
+    
        
 
 # [TRAINING MACHINE LEARNING MODELS]
 #==============================================================================
 class ModelTraining:
-    
-    def __init__(self, model, device='CPU', seed=42, use_mixed_precision=False, compiled=True):
+    def __init__(self, model, device='CPU', seed=42, use_mixed_precision=False):
         np.random.seed(seed)
         torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)
-
-        self.model = model
-        self.use_mixed_precision = use_mixed_precision
-        self.scaler = torch.cuda.amp.GradScaler() if self.use_mixed_precision else None
-        self.available_devices = torch.cuda.device_count()
-        print(f'\n{self.available_devices} GPU(s) are available.' if self.available_devices else 'Only CPU is available.')
+        torch.cuda.manual_seed_all(seed) if torch.cuda.is_available() else None
         
-        self.set_device(device)
-
-    #--------------------------------------------------------------------------
-    def set_device(self, device):
-        if device.upper() == 'GPU' and self.available_devices:
-            self.device = torch.device('cuda')
-            self.model.cuda()
-            print('GPU is set as the active device.')
-            if self.use_mixed_precision:
-                print('Mixed precision training is enabled.')
+        self.device = torch.device('cuda' if device.upper() == 'GPU' and torch.cuda.is_available() else 'cpu')
+        self.model = model.to(self.device)
+        print(f"{torch.cuda.device_count()} GPU(s) are available." if torch.cuda.is_available() else "Only CPU is available.")
+        
+        if use_mixed_precision and torch.cuda.is_available():
+            self.scaler = torch.cuda.amp.GradScaler()
+            print('Mixed precision training is enabled.')
         else:
-            self.device = torch.device('cpu')
-            print('CPU is set as the active device.')
-        self.model.to(self.device)
+            self.scaler = None
 
     #--------------------------------------------------------------------------
-    def train_model(self, data, validation_data, epochs, learning_rate,
-                    plot_history=True, plot_frequency=1, plot_path='./'):
+    def plot_model(self, sample_input=torch.randn(1, 3, 256, 256), path='.'):
         
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
-        loss_fn = nn.MSELoss()
-        metric_fn = nn.CosineSimilarity(dim=1)
+        sample_input = sample_input.to(self.device)        
+        self.model.eval()
+        with torch.no_grad():
+            pred = self.model(sample_input)
 
-        train_losses, val_losses, train_metrics, val_metrics, epoch_nums = [], [], [], [], []
+        # Create the visualization using torchviz
+        dot = make_dot(pred, params=dict(list(self.model.named_parameters())))
+        dot.render('model_visualization', format='png', directory=path)
+        self.model.train()
+        
+
+    #--------------------------------------------------------------------------
+    def train_model(self, data, validation_data, epochs, learning_rate, 
+                    plot_history=True, plot_frequency=1, plot_path='./'):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        loss_fn, metric_fn = torch.nn.MSELoss(), torch.nn.CosineSimilarity(dim=1)
+        results = {'train': [], 'val': []}
 
         for epoch in range(epochs):
-            print(f'\nEpoch [{epoch+1}/{epochs}]')
-            train_results = self.process_epoch(data, optimizer, loss_fn, metric_fn, train=True)
-            val_results = self.process_epoch(validation_data, optimizer, loss_fn, metric_fn, train=False)
-
-            train_losses.append(train_results['loss'])
-            train_metrics.append(train_results['metric'])
-            val_losses.append(val_results['loss'])
-            val_metrics.append(val_results['metric'])
-            epoch_nums.append(epoch + 1)
+            print(f'\nEpoch [{epoch + 1}/{epochs}]')
+            
+            # Training phase
+            train_loss, train_metric = self.process_epoch(data, optimizer, loss_fn, metric_fn, train=True)
+            results['train'].append((train_loss, train_metric))
+            
+            # Validation phase
+            val_loss, val_metric = self.process_epoch(validation_data, optimizer, loss_fn, metric_fn, train=False)
+            results['val'].append((val_loss, val_metric))
 
             if plot_history and (epoch + 1) % plot_frequency == 0:
-                self.realtime_training_plot((epoch_nums, train_losses, train_metrics, val_losses, val_metrics), plot_frequency, plot_path)
+                self.plot_results(results, epoch+1, plot_path)
 
     #--------------------------------------------------------------------------
-    def process_epoch(self, data, optimizer, loss_fn, metric_fn, train=True):
+    def process_epoch(self, data, optimizer, loss_fn, metric_fn, train):
         phase = 'train' if train else 'val'
         running_loss, running_metric, total_samples = 0.0, 0.0, 0
-
         for inputs, targets in tqdm(data, desc=f"Processing {phase} data"):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
             predictions = self.model(inputs)
@@ -240,11 +238,11 @@ class ModelTraining:
 
             if train:
                 optimizer.zero_grad()
-                if self.use_mixed_precision:
+                if self.scaler:
                     with torch.cuda.amp.autocast():
-                        loss.backward()
-                        self.scaler.step(optimizer)
-                        self.scaler.update()
+                        self.scaler.scale(loss).backward()
+                    self.scaler.step(optimizer)
+                    self.scaler.update()
                 else:
                     loss.backward()
                     optimizer.step()
@@ -253,56 +251,36 @@ class ModelTraining:
             running_metric += metric.item() * inputs.size(0)
             total_samples += inputs.size(0)
 
-        epoch_loss = running_loss / total_samples
-        epoch_metric = running_metric / total_samples
-        print(f'{phase.title()} Loss: {epoch_loss:.4f}, Metric: {epoch_metric:.4f}')
-
-        return {'loss': epoch_loss, 'metric': epoch_metric} 
-    
+        return running_loss / total_samples, running_metric / total_samples
 
     #--------------------------------------------------------------------------
-    def realtime_training_plot(self, data, plot_frequency, plot_path):
+    def plot_results(self, results, current_epoch, plot_path):
+        fig_path = os.path.join(plot_path, f'training_history_epoch_{current_epoch}.jpeg')
+        plt.figure(figsize=(10, 8))
 
-        epochs, train_losses, train_metrics, val_losses, val_metrics = data        
-        if epochs[-1] % plot_frequency == 0:
-            fig_path = os.path.join(plot_path, 'training_history.jpeg')
-            plt.figure(figsize=(10, 8))
-            
-            # Plotting training and validation loss
-            plt.subplot(2, 1, 1)
-            plt.plot(epochs, train_losses, label='Training Loss')
-            plt.plot(epochs, val_losses, label='Validation Loss')
-            plt.title('Training and Validation Loss')
+        for i, metric in enumerate(['Loss', 'Metric']):
+            plt.subplot(2, 1, i + 1)
+            for phase in ['train', 'val']:
+                plt.plot([result[i] for result in results[phase]], label=f'{phase.capitalize()} {metric}')
+            plt.title(f'Training and Validation {metric}')
             plt.xlabel('Epochs')
-            plt.ylabel('Loss')
+            plt.ylabel(metric)
             plt.legend()
-            
-            # Plotting training and validation metrics
-            plt.subplot(2, 1, 2)
-            plt.plot(epochs, train_metrics, label='Training Metric')
-            plt.plot(epochs, val_metrics, label='Validation Metric')
-            plt.title('Training and Validation Metric')
-            plt.xlabel('Epochs')
-            plt.ylabel('Metric')
-            plt.legend()
-            
-            plt.tight_layout()
-            plt.savefig(fig_path)
-            plt.close()
+
+        plt.tight_layout()
+        plt.savefig(fig_path)
+        plt.close()
 
     #--------------------------------------------------------------------------
-    def save_model(self, model, path, save_parameters=False, parameters=None):
+    def save_model(self, path, save_parameters=False, parameters=None):
+        model_path = os.path.join(path, 'model', 'model_pretrained.pth')
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        torch.save(self.model.state_dict(), model_path)
 
-        model_subfolder = os.path.join(path, 'model')
-        os.mkdir(model_subfolder) if not os.path.exists(model_subfolder) else None
-        file_path = os.path.join(model_subfolder, 'model_pretrained.pth')        
-        torch.save(model.state_dict(), file_path)
-
-        if save_parameters==True and parameters is not None:
-            path = os.path.join(path, 'model_parameters.json')      
-            with open(path, 'w') as f:
-                json.dump(parameters, f)   
-
+        if save_parameters and parameters is not None:
+            param_path = os.path.join(path, 'model_parameters.json')
+            with open(param_path, 'w') as f:
+                json.dump(parameters, f)    
 
 
 # [INFERENCE]
@@ -312,6 +290,7 @@ class Inference:
     def __init__(self, seed):
         self.seed = seed
         torch.manual_seed(seed)
+        self.model = FeXTAutoEncoder(seed=42)
 
     #--------------------------------------------------------------------------
     def load_pretrained_model(self, path):
@@ -348,10 +327,10 @@ class Inference:
         else:
             raise FileNotFoundError('No model directories found.')
 
-        model = FeXTAutoEncoder(seed=42)  # Initialize your PyTorch model class here        
+               
         model_path = os.path.join(folder_path, 'model', 'pretrained_model.pth')
-        model.load_state_dict(torch.load(model_path))
-        model.eval()  # Set the model to evaluation mode
+        self.model.load_state_dict(torch.load(model_path))
+        self.model.eval()  # Set the model to evaluation mode
         
         # Load configuration if exists
         config_path = os.path.join(folder_path, 'model_parameters.json')
@@ -360,7 +339,7 @@ class Inference:
             with open(config_path, 'r') as f:
                 configuration = json.load(f)
         
-        return model, configuration
+        return self.model, configuration
     
     #--------------------------------------------------------------------------
     def model_inference(self, data, model):        
