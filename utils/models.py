@@ -1,365 +1,410 @@
 import os
 import numpy as np
 import json
-from datetime import datetime
-from tqdm import tqdm
-import torch
-import torch.nn as nn
-from torchviz import make_dot
-from torchinfo import summary
-import matplotlib.pyplot as plt
-
-
-# function to create a folder where to save model checkpoints
-#------------------------------------------------------------------------------
-def model_savefolder(path, model_name):
-
-    '''
-    Creates a folder with the current date and time to save the model.
-    
-    Keyword arguments:
-        path (str):       A string containing the path where the folder will be created.
-        model_name (str): A string containing the name of the model.
-    
-    Returns:
-        str: A string containing the path of the folder where the model will be saved.
-        
-    '''        
-    today_datetime = str(datetime.now())
-    truncated_datetime = today_datetime[:-10]
-    today_datetime = truncated_datetime.replace(':', '').replace('-', '').replace(' ', 'H') 
-    folder_name = f'{model_name}_{today_datetime}'
-    model_folder_path = os.path.join(path, folder_name)
-    if not os.path.exists(model_folder_path):
-        os.mkdir(model_folder_path) 
-                    
-    return model_folder_path, folder_name
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
+from keras.models import Model
 
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
-class PooledConvBlock(nn.Module):
-    def __init__(self, units, kernel_size, channels, num_layers=2, seed=42, **kwargs):
+# Positional embedding custom layer
+#==============================================================================
+@keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
+class PooledConvBlock(layers.Layer):
+    def __init__(self, units, kernel_size, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
-        torch.manual_seed(seed)                   
+        self.units = units
+        self.kernel_size = kernel_size
+        self.num_layers = num_layers
+        self.seed = seed        
+        self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(num_layers)]         
+        self.pooling = layers.AveragePooling2D(padding='same')         
         
-        self.activation = nn.ReLU()
-        self.pooling = nn.AvgPool2d(kernel_size=kernel_size, stride=2, padding=0) 
-        self.convolutions = nn.ModuleList()
-        for i in range(num_layers):     
-            current_channels = channels if i == 0 else units      
-            self.convolutions.append(nn.Conv2d(in_channels=current_channels,
-                                               out_channels=units,
-                                               kernel_size=kernel_size,
-                                               padding=(2,2)))     
-
-    # implement forward pass
-    #--------------------------------------------------------------------------   
-    def forward(self, x):
-            
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training=True):
+        layer = inputs
         for conv in self.convolutions:
-            x = conv(x)
-            x = self.activation(x)
-        x = self.pooling(x)
+            layer = conv(layer) 
+        output = self.pooling(layer)           
         
-        return x  
+        return output
+    
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(PooledConvBlock, self).get_config()
+        config.update({'units': self.units,
+                       'kernel_size': self.kernel_size,
+                       'num_layers': self.num_layers,
+                       'seed': self.seed})
+        return config
+
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)  
     
 
-# [POOLING TRANSPOSE CONVOLUTIONAL BLOCKS]
+# [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
-class TransposeConvBlock(nn.Module):
-    def __init__(self, units, kernel_size, channels, num_layers=3, seed=42, **kwargs):
+# Positional embedding custom layer
+#==============================================================================
+@keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
+class TransposeConvBlock(layers.Layer):
+    def __init__(self, units, kernel_size, num_layers=3, seed=42, **kwargs):
         super(TransposeConvBlock, self).__init__(**kwargs)
-        torch.manual_seed(seed) 
+        self.units = units
+        self.kernel_size = kernel_size
+        self.num_layers = num_layers
+        self.seed = seed        
+        self.upsamp = layers.UpSampling2D()
+        self.convolutions = [layers.Conv2DTranspose(units, 
+                                                    kernel_size=kernel_size, 
+                                                    padding='same', 
+                                                    activation='relu') for x in range(num_layers)]                
         
-        self.upsamp = nn.Upsample(scale_factor=2, mode='nearest')       
-        self.deconvolutions = nn.ModuleList()
-        for i in range(num_layers):  
-            current_channels = channels if i == 0 else units      
-            self.deconvolutions.append(nn.ConvTranspose2d(in_channels=current_channels, 
-                                                          out_channels=units, 
-                                                          kernel_size=kernel_size, 
-                                                          padding=(1,1)))
-        self.activation = nn.ReLU()
-
-    # implement forward pass
+    # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def forward(self, x):         
-        for conv in self.deconvolutions:            
-            x = conv(x)
-            x = self.activation(x)
-        x = self.upsamp(x)       
-
-        return x
+    def call(self, inputs, training=True):
+        layer = inputs
+        for conv in self.convolutions:
+            layer = conv(layer) 
+        output = self.upsamp(layer)           
+        
+        return output
     
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(TransposeConvBlock, self).get_config()
+        config.update({'units': self.units,
+                       'kernel_size': self.kernel_size,
+                       'num_layers': self.num_layers,
+                       'seed': self.seed})
+        return config
+
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)     
+
        
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-class FeXTEncoder(nn.Module):
-    def __init__(self, seed=42, **kwargs):
+# collection of model and submodels
+#==============================================================================
+@keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
+class FeXTEncoder(layers.Layer):
+    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)
-        torch.manual_seed(seed)
-        self.kernel_size = (4,4)
-
-        # Define convolutional blocks based on the previous conversion
-        self.convblock1 = PooledConvBlock(64, self.kernel_size, channels=3, num_layers=2, seed=seed)
-        self.convblock2 = PooledConvBlock(128, self.kernel_size, channels=64, num_layers=2, seed=seed)
-        self.convblock3 = PooledConvBlock(256, self.kernel_size, channels=128, num_layers=2, seed=seed)
-        self.convblock4 = PooledConvBlock(512, self.kernel_size, channels=256, num_layers=3, seed=seed)
-        self.convblock5 = PooledConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
+        self.kernel_size = kernel_size
+        self.seed = seed        
+        self.picture_shape = picture_shape
+        self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
+        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
+        self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
+        self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.dense = layers.Dense(512, activation='relu', kernel_initializer='he_uniform')
         
-    # implement forward pass
-    #--------------------------------------------------------------------------
-    def forward(self, x):
-        # Apply each convolutional block in sequence
-        x = self.convblock1(x)
-        x = self.convblock2(x)
-        x = self.convblock3(x)
-        x = self.convblock4(x)
-        x = self.convblock5(x)       
 
-        return x
-    
+    # implement transformer encoder through call method  
+    #--------------------------------------------------------------------------
+    def call(self, inputs, training=True):
+        layer = inputs
+        layer = self.convblock1(layer)
+        layer = self.convblock2(layer)
+        layer = self.convblock3(layer)
+        layer = self.convblock4(layer)
+        layer = self.convblock5(layer) 
+        output = self.dense(layer)       
+
+        return output
+
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(FeXTEncoder, self).get_config()
+        config.update({'kernel_size': self.kernel_size,                                             
+                       'picture_shape': self.picture_shape,
+                       'seed': self.seed})
+        return config
+
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config) 
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-class FeXTDecoder(nn.Module):
-    def __init__(self, seed=42, **kwargs):
+# collection of model and submodels
+#==============================================================================
+@keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
+class FeXTDecoder(keras.layers.Layer):
+    def __init__(self, kernel_size, seed=42, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
-        torch.manual_seed(seed)
-        self.kernel_size = (3,3)
+        self.kernel_size = kernel_size
+        self.seed = seed 
         
-        # Initialize transposed convolution blocks
-        self.convblock1 = TransposeConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
-        self.convblock2 = TransposeConvBlock(512, self.kernel_size, channels=512, num_layers=3, seed=seed)
-        self.convblock3 = TransposeConvBlock(256, self.kernel_size, channels=512, num_layers=2, seed=seed)
-        self.convblock4 = TransposeConvBlock(128, self.kernel_size, channels=256, num_layers=2, seed=seed)
-        self.convblock5 = TransposeConvBlock(3, self.kernel_size, channels=128, num_layers=2, seed=seed)     
-        self.activation = nn.Sigmoid()
+        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)    
+        self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
+        self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
+        self.convblock4 = TransposeConvBlock(128, kernel_size, 2, seed)
+        self.convblock5 = TransposeConvBlock(64, kernel_size, 2, seed)
+        self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
-    # implement forward pass
+    # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def forward(self, x):
-        x = self.convblock1(x)
-        x = self.convblock2(x)
-        x = self.convblock3(x)
-        x = self.convblock4(x)
-        x = self.convblock5(x)   
-        x = self.activation(x)
+    def call(self, inputs, training=True):        
+        
+        layer = self.convblock1(inputs)
+        layer = self.convblock2(layer)
+        layer = self.convblock3(layer)
+        layer = self.convblock4(layer)
+        layer = self.convblock5(layer)
+        output = self.dense(layer)
 
-        return x     
+        return output
 
+    # serialize layer for saving  
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(FeXTDecoder, self).get_config()
+        config.update({'kernel_size': self.kernel_size,
+                       'seed': self.seed})
+        return config
+
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)       
+    
+# [LEARNING RATE SCHEDULER]
+#==============================================================================
+# Use TensorFlow's conditional to handle the tensor-based condition, such as
+# building an autograph for training   
+#==============================================================================
+@keras.utils.register_keras_serializable(package='LRScheduler')
+class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, initial_lr, decay_steps, decay_rate, warmup_steps=0):
+        self.initial_lr = initial_lr
+        self.decay_steps = decay_steps
+        self.decay_rate = decay_rate
+        self.warmup_steps = warmup_steps
+        self.warmup_lr = initial_lr * warmup_steps
+        
+    # call on step
+    #--------------------------------------------------------------------------
+    def __call__(self, step):               
+        step = step + 1
+        step_tensor = tf.convert_to_tensor(step, dtype=tf.float32)
+        if self.warmup_steps > 0:
+            warmup_lr = self.warmup_lr * (step_tensor/self.warmup_steps)
+        else:
+            warmup_lr = self.initial_lr
+
+        decay_lr = self.initial_lr * (self.decay_rate ** ((step - self.warmup_steps) // self.decay_steps))
+        lr = tf.cond(tf.math.less(step_tensor, self.warmup_steps),
+                     lambda: warmup_lr,
+                     lambda: decay_lr)
+        
+        return lr
+    
+    # custom configurations
+    #--------------------------------------------------------------------------
+    def get_config(self):
+        config = super(LRScheduler, self).get_config()
+        config.update({'initial_lr': self.initial_lr,
+                       'decay_steps': self.decay_steps,
+                       'decay_rate': self.decay_rate,
+                       'warmup_steps': self.warmup_steps})
+        return config        
+    
+    # deserialization method 
+    #--------------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+    
 
 # [MACHINE LEARNING MODELS]
 #==============================================================================
-class FeXTAutoEncoder(nn.Module):
-    def __init__(self, seed=42, **kwargs):
-        super(FeXTAutoEncoder, self).__init__(**kwargs)
-        self.encoder = FeXTEncoder(seed)
-        self.decoder = FeXTDecoder(seed)               
+# autoencoder model built using the functional keras API. use get_model() method
+# to build and compile the model (print summary as optional)
+#==============================================================================
+class FeXTAutoEncoder: 
 
-    # implement forward pass
+    def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), 
+                 seed=42, XLA_state=False):         
+        self.learning_rate = learning_rate
+        self.kernel_size = kernel_size
+        self.seed = seed        
+        self.picture_shape = picture_shape         
+        self.XLA_state = XLA_state
+        self.encoder = FeXTEncoder(kernel_size, picture_shape, seed)
+        self.decoder = FeXTDecoder(kernel_size, seed)        
+
+    # build model given the architecture
     #--------------------------------------------------------------------------
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)                                                
+    def get_model(self, summary=True):       
+       
+        inputs = layers.Input(shape = self.picture_shape)           
+        encoder_block = self.encoder(inputs)        
+        decoder_block = self.decoder(encoder_block)        
+        model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
+        loss = keras.losses.MeanSquaredError()
+        metric = keras.metrics.CosineSimilarity()
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=self.XLA_state)         
+        if summary==True:
+            model.summary(expand_nested=True)
 
-        return x
-    
-    #--------------------------------------------------------------------------
-    def print_summary(self):
-        summary(self, input_size=(1, 3, 256, 256))
-
-    
+        return model
        
 
-# [TRAINING MACHINE LEARNING MODELS]
+# [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
 #==============================================================================
-class ModelTraining:
-    def __init__(self, model, device='CPU', seed=42, use_mixed_precision=False):
+# Collection of methods for machine learning training and tensorflow settings
+#==============================================================================
+class ModelTraining:    
+       
+    def __init__(self, device='default', seed=42, use_mixed_precision=False):                            
         np.random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed) if torch.cuda.is_available() else None
-        
-        self.device = torch.device('cuda' if device.upper() == 'GPU' and torch.cuda.is_available() else 'cpu')
-        self.model = model.to(self.device)
-        print(f"{torch.cuda.device_count()} GPU(s) are available." if torch.cuda.is_available() else "Only CPU is available.")
-        
-        if use_mixed_precision and torch.cuda.is_available():
-            self.scaler = torch.cuda.amp.GradScaler()
-            print('Mixed precision training is enabled.')
-        else:
-            self.scaler = None
+        tf.random.set_seed(seed)         
+        self.available_devices = tf.config.list_physical_devices()
+        print('-------------------------------------------------------------------------------')        
+        print('The current devices are available: ')
+        print('-------------------------------------------------------------------------------')
+        for dev in self.available_devices:
+            print()
+            print(dev)
+        print()
+        print('-------------------------------------------------------------------------------')
+        if device == 'GPU':
+            self.physical_devices = tf.config.list_physical_devices('GPU')
+            if not self.physical_devices:
+                print('No GPU found. Falling back to CPU')
+                tf.config.set_visible_devices([], 'GPU')
+            else:
+                if use_mixed_precision == True:
+                    policy = keras.mixed_precision.Policy('mixed_float16')
+                    keras.mixed_precision.set_global_policy(policy) 
+                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
+                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
+                print('GPU is set as active device')
+            print('-------------------------------------------------------------------------------')
+            print()        
+        elif device == 'CPU':
+            tf.config.set_visible_devices([], 'GPU')
+            print('CPU is set as active device')
+            print('-------------------------------------------------------------------------------')
+            print()   
+    
+    #-------------------------------------------------------------------------- 
+    def model_parameters(self, parameters_dict, savepath):
 
-    #--------------------------------------------------------------------------
-    def plot_model(self, sample_input=torch.randn(1, 3, 256, 256), path='.'):
-        
-        sample_input = sample_input.to(self.device)        
-        self.model.eval()
-        with torch.no_grad():
-            pred = self.model(sample_input)
+        '''
+        Saves the model parameters to a JSON file. The parameters are provided 
+        as a dictionary and are written to a file named 'model_parameters.json' 
+        in the specified directory.
 
-        # Create the visualization using torchviz
-        dot = make_dot(pred, params=dict(list(self.model.named_parameters())))
-        dot.render('model_visualization', format='png', directory=path)
-        self.model.train()
-        
+        Keyword arguments:
+            parameters_dict (dict): A dictionary containing the parameters to be saved.
+            savepath (str): The directory path where the parameters will be saved.
 
-    #--------------------------------------------------------------------------
-    def train_model(self, data, validation_data, epochs, learning_rate, 
-                    plot_history=True, plot_frequency=1, plot_path='./'):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
-        loss_fn, metric_fn = torch.nn.MSELoss(), torch.nn.CosineSimilarity(dim=1)
-        results = {'train': [], 'val': []}
+        Returns:
+            None       
 
-        for epoch in range(epochs):
-            print(f'\nEpoch [{epoch + 1}/{epochs}]')
-            
-            # Training phase
-            train_loss, train_metric = self.process_epoch(data, optimizer, loss_fn, metric_fn, train=True)
-            results['train'].append((train_loss, train_metric))
-            
-            # Validation phase
-            val_loss, val_metric = self.process_epoch(validation_data, optimizer, loss_fn, metric_fn, train=False)
-            results['val'].append((val_loss, val_metric))
-
-            if plot_history and (epoch + 1) % plot_frequency == 0:
-                self.plot_results(results, epoch+1, plot_path)
-
-    #--------------------------------------------------------------------------
-    def process_epoch(self, data, optimizer, loss_fn, metric_fn, train):
-        phase = 'train' if train else 'val'
-        running_loss, running_metric, total_samples = 0.0, 0.0, 0
-        for inputs, targets in tqdm(data, desc=f"Processing {phase} data"):
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
-            predictions = self.model(inputs)
-            loss = loss_fn(predictions, targets)
-            metric = metric_fn(predictions, targets).mean()
-
-            if train:
-                optimizer.zero_grad()
-                if self.scaler:
-                    with torch.cuda.amp.autocast():
-                        self.scaler.scale(loss).backward()
-                    self.scaler.step(optimizer)
-                    self.scaler.update()
-                else:
-                    loss.backward()
-                    optimizer.step()
-
-            running_loss += loss.item() * inputs.size(0)
-            running_metric += metric.item() * inputs.size(0)
-            total_samples += inputs.size(0)
-
-        return running_loss / total_samples, running_metric / total_samples
-
-    #--------------------------------------------------------------------------
-    def plot_results(self, results, current_epoch, plot_path):
-        fig_path = os.path.join(plot_path, f'training_history_epoch_{current_epoch}.jpeg')
-        plt.figure(figsize=(10, 8))
-
-        for i, metric in enumerate(['Loss', 'Metric']):
-            plt.subplot(2, 1, i + 1)
-            for phase in ['train', 'val']:
-                plt.plot([result[i] for result in results[phase]], label=f'{phase.capitalize()} {metric}')
-            plt.title(f'Training and Validation {metric}')
-            plt.xlabel('Epochs')
-            plt.ylabel(metric)
-            plt.legend()
-
-        plt.tight_layout()
-        plt.savefig(fig_path)
-        plt.close()
-
-    #--------------------------------------------------------------------------
-    def save_model(self, path, save_parameters=False, parameters=None):
-        model_path = os.path.join(path, 'model', 'model_pretrained.pth')
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        torch.save(self.model.state_dict(), model_path)
-
-        if save_parameters and parameters is not None:
-            param_path = os.path.join(path, 'model_parameters.json')
-            with open(param_path, 'w') as f:
-                json.dump(parameters, f)    
-
-
+        '''
+        path = os.path.join(savepath, 'model_parameters.json')      
+        with open(path, 'w') as f:
+            json.dump(parameters_dict, f)
+  
+    
 # [INFERENCE]
+#==============================================================================
+# Collection of methods for machine learning validation and model evaluation
 #==============================================================================
 class Inference:
 
     def __init__(self, seed):
         self.seed = seed
-        torch.manual_seed(seed)
-        self.model = FeXTAutoEncoder(seed=42)
+        np.random.seed(seed)
+        tf.random.set_seed(seed) 
 
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------- 
     def load_pretrained_model(self, path):
 
         '''
-        Load a pretrained PyTorch model (state dict) from the specified directory. 
+        Load pretrained keras model (in folders) from the specified directory. 
         If multiple model directories are found, the user is prompted to select one,
         while if only one model directory is found, that model is loaded directly.
         If `load_parameters` is True, the function also loads the model parameters 
-        from the target .pth file in the same directory.
+        from the target .json file in the same directory. 
 
         Keyword arguments:
-            path (str): The directory path where the pretrained models are stored.            
+            path (str): The directory path where the pretrained models are stored.
+            load_parameters (bool, optional): If True, the function also loads the 
+                                              model parameters from a JSON file. 
+                                              Default is True.
 
         Returns:
-            model (torch.nn.Module): The loaded PyTorch model.
-            configuration (dict, optional): The loaded model parameters, if available.
-            
-        '''
-        model_folders = [entry.name for entry in os.scandir(path) if entry.is_dir()]
-        
+            model (keras.Model): The loaded Keras model.
+
+        '''        
+        model_folders = []
+        for entry in os.scandir(path):
+            if entry.is_dir():
+                model_folders.append(entry.name)
         if len(model_folders) > 1:
             model_folders.sort()
+            index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
             print('Please select a pretrained model:') 
-            for i, directory in enumerate(model_folders):
-                print(f'{i + 1} - {directory}')
             print()
-            dir_index = int(input('Type the model index to select it: '))
-            while dir_index not in range(1, len(model_folders) + 1):
-                dir_index = int(input('Input is not valid! Try again: '))
-            folder_path = os.path.join(path, model_folders[dir_index - 1])
+            for i, directory in enumerate(model_folders):
+                print(f'{i + 1} - {directory}')        
+            print()               
+            while True:
+                try:
+                    dir_index = int(input('Type the model index to select it: '))
+                    print()
+                except:
+                    continue
+                break                         
+            while dir_index not in index_list:
+                try:
+                    dir_index = int(input('Input is not valid! Try again: '))
+                    print()
+                except:
+                    continue
+            self.folder_path = os.path.join(path, model_folders[dir_index - 1])
+
         elif len(model_folders) == 1:
-            folder_path = os.path.join(path, model_folders[0])
-        else:
-            raise FileNotFoundError('No model directories found.')
-
-               
-        model_path = os.path.join(folder_path, 'model', 'pretrained_model.pth')
-        self.model.load_state_dict(torch.load(model_path))
-        self.model.eval()  # Set the model to evaluation mode
+            self.folder_path = os.path.join(path, model_folders[0])                 
         
-        # Load configuration if exists
-        config_path = os.path.join(folder_path, 'model_parameters.json')
-        configuration = {}
-        if os.path.exists(config_path):
-            with open(config_path, 'r') as f:
-                configuration = json.load(f)
+        model_path = os.path.join(self.folder_path, 'model') 
+        model = tf.keras.models.load_model(model_path)
+        path = os.path.join(self.folder_path, 'model_parameters.json')
+        with open(path, 'r') as f:
+            configuration = json.load(f)               
         
-        return self.model, configuration
-    
+        return model, configuration 
+   
     #--------------------------------------------------------------------------
-    def model_inference(self, data, model):        
-        
-        # load the model onto device
-        device = self.get_device()
-        model.to(device) 
-        predictions = []         
-        for inputs, targets in tqdm(data):
-            inputs, targets = inputs.to(device), targets.to(device)
-            prediction = model(inputs)
-            predictions.append(prediction)
+    def images_loader(self, path, picture_shape=(244, 244, 3)):
+        image = tf.io.read_file(path)
+        rgb_image = tf.image.decode_image(image, channels=3)
+        rgb_image = tf.image.resize(rgb_image, picture_shape[:-1])        
+        rgb_image = rgb_image/255.0        
 
-        return predictions
+        return rgb_image    
 
-        
-#------------------------------------------------------------------------------
-if __name__ == '__main__':  
-        
-    print('PyTorch Version:', torch.__version__)
-    
-    
-    
+
+

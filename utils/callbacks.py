@@ -1,4 +1,5 @@
 import os
+from tensorflow import keras
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -6,7 +7,9 @@ import matplotlib.pyplot as plt
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 #==============================================================================
-class RealTimeHistory():    
+# Callback to check real time model history and visualize it through custom plot
+#==============================================================================
+class RealTimeHistory(keras.callbacks.Callback):    
      
     def __init__(self, plot_path, validation=True):        
         super().__init__()
