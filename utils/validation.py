@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 # [VALIDATION OF DATA]
 #==============================================================================
+# Series of methods and functions to preprocess data for model training
+#==============================================================================
 class DataValidation:
 
     def pixel_intensity_histograms(self, image_set_1, image_set_2, path, params,
@@ -26,6 +28,8 @@ class DataValidation:
         
 
 # [VALIDATION OF PRETRAINED MODELS]
+#==============================================================================
+# Collection of methods for machine learning validation and model evaluation
 #==============================================================================
 class ModelValidation:
 
