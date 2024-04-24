@@ -49,16 +49,28 @@ def dataset_from_images(path, dataset=None):
             dataframe: the modified dataframe
         
         '''
+        valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}  
+
         if dataset is None:
             image_locations = []
             image_names = []
+
             for root, dirs, files in os.walk(path):
                 for file in files:
-                    image_locations.append(os.path.join(root, file))
-                    image_names.append(file)            
-            dataset = pd.DataFrame({'name': image_names, 'path': image_locations})  
-        else:      
-            dataset['path'] = dataset['name'].apply(lambda x : os.path.join(path, x))  
+                    if os.path.splitext(file)[1].lower() in valid_extensions:  
+                        image_locations.append(os.path.join(root, file))
+                        image_names.append(file)
+
+            dataset = pd.DataFrame({'name': image_names, 'path': image_locations})
+
+        else:
+            # This assumes 'name' in the existing dataset contains the full file name with extension
+            dataset['path'] = dataset['name'].apply(lambda x: os.path.join(path, x) 
+                                                    if os.path.splitext(x)[1].lower() in valid_extensions 
+                                                    else None)
+
+            # Filter out any rows where path is None (i.e., files that are not images)
+            dataset = dataset.dropna(subset=['path'])
 
         return dataset
 
