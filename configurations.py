@@ -1,6 +1,6 @@
 # Advanced settings for training 
 #------------------------------------------------------------------------------
-use_mixed_precision = True
+use_mixed_precision = False
 use_tensorboard = False
 XLA_acceleration = False
 training_device = 'GPU'
@@ -20,8 +20,8 @@ generate_model_graph = True
 
 # Settings for training data 
 #------------------------------------------------------------------------------
-num_train_samples = 3000
-num_test_samples = 300
+num_train_samples = 2000
+num_test_samples = 200
 augmentation = False
 
 # General settings 
