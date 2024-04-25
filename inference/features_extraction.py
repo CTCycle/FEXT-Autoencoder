@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 #------------------------------------------------------------------------------ 
 from utils.preprocessing import dataset_from_images
 from utils.models import Inference
-import utils.global_paths as globpt
+import utils.constants as globpt
 import configurations as cnf
 
 # specify relative paths from global paths and create subfolders
