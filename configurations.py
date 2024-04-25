@@ -1,6 +1,6 @@
 # Advanced settings for training 
 #------------------------------------------------------------------------------
-use_mixed_precision = False
+use_mixed_precision = True
 use_tensorboard = False
 XLA_acceleration = False
 training_device = 'GPU'
@@ -10,7 +10,7 @@ num_processors = 6
 #------------------------------------------------------------------------------
 epochs = 1
 learning_rate = 0.0001
-batch_size = 25
+batch_size = 40
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
