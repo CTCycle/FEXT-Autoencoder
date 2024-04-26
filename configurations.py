@@ -1,10 +1,10 @@
 # Advanced settings for training 
 #------------------------------------------------------------------------------
-use_mixed_precision = True
-use_tensorboard = False
-XLA_acceleration = False
-training_device = 'GPU'
-num_processors = 6
+MIXED_PRECISION = True
+USE_TENSORBOARD = False
+XLA_STATE = False
+ML_DEVICE = 'GPU'
+NUM_PROCESSORS = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
