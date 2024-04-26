@@ -7,9 +7,26 @@ from keras import layers
 from keras.models import Model
 
 
+def save_model_parameters(parameters_dict, savepath):
+
+    '''
+    Saves the model parameters to a JSON file. The parameters are provided 
+    as a dictionary and are written to a file named 'model_parameters.json' 
+    in the specified directory.
+
+    Keyword arguments:
+        parameters_dict (dict): A dictionary containing the parameters to be saved.
+        savepath (str): The directory path where the parameters will be saved.
+
+    Returns:
+        None       
+
+    '''
+    path = os.path.join(savepath, 'model_parameters.json')      
+    with open(path, 'w') as f:
+        json.dump(parameters_dict, f)
+
 # [POOLING CONVOLUTIONAL BLOCKS]
-#==============================================================================
-# Positional embedding custom layer
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
 class PooledConvBlock(layers.Layer):
@@ -18,9 +35,11 @@ class PooledConvBlock(layers.Layer):
         self.units = units
         self.kernel_size = kernel_size
         self.num_layers = num_layers
-        self.seed = seed        
-        self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, padding='same', activation='relu') for x in range(num_layers)]         
-        self.pooling = layers.AveragePooling2D(padding='same')         
+        self.seed = seed 
+        self.pooling = layers.AveragePooling2D(padding='same')       
+        self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, 
+                                           padding='same', activation='relu') for x in range(num_layers)]         
+                 
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -50,8 +69,6 @@ class PooledConvBlock(layers.Layer):
     
 
 # [POOLING CONVOLUTIONAL BLOCKS]
-#==============================================================================
-# Positional embedding custom layer
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
 class TransposeConvBlock(layers.Layer):
@@ -94,9 +111,7 @@ class TransposeConvBlock(layers.Layer):
         return cls(**config)     
 
        
-# [MACHINE LEARNING MODELS]
-#==============================================================================
-# collection of model and submodels
+# [ENCODER MODEL]
 #==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
 class FeXTEncoder(layers.Layer):
@@ -141,9 +156,7 @@ class FeXTEncoder(layers.Layer):
     def from_config(cls, config):
         return cls(**config) 
 
-# [MACHINE LEARNING MODELS]
-#==============================================================================
-# collection of model and submodels
+# [DECODER MODEL]
 #==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
@@ -184,12 +197,10 @@ class FeXTDecoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
-        return cls(**config)       
+        return cls(**config)
+           
     
 # [LEARNING RATE SCHEDULER]
-#==============================================================================
-# Use TensorFlow's conditional to handle the tensor-based condition, such as
-# building an autograph for training   
 #==============================================================================
 @keras.utils.register_keras_serializable(package='LRScheduler')
 class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
@@ -234,11 +245,10 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
         return cls(**config)
     
 
-# [MACHINE LEARNING MODELS]
+# [AUTOENCODER MODEL]
 #==============================================================================
 # autoencoder model built using the functional keras API. use get_model() method
 # to build and compile the model (print summary as optional)
-#==============================================================================
 class FeXTAutoEncoder: 
 
     def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), 
@@ -271,26 +281,22 @@ class FeXTAutoEncoder:
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
 #==============================================================================
-# Collection of methods for machine learning training and tensorflow settings
-#==============================================================================
 class ModelTraining:    
        
-    def __init__(self, device='default', seed=42, use_mixed_precision=False):                            
+    def __init__(self, seed=42):                            
         np.random.seed(seed)
         tf.random.set_seed(seed)         
-        self.available_devices = tf.config.list_physical_devices()
-        print('-------------------------------------------------------------------------------')        
-        print('The current devices are available: ')
-        print('-------------------------------------------------------------------------------')
-        for dev in self.available_devices:
-            print()
+        self.available_devices = tf.config.list_physical_devices()               
+        print('The current devices are available:\n')        
+        for dev in self.available_devices:            
             print(dev)
-        print()
-        print('-------------------------------------------------------------------------------')
+
+    def set_device(self, device='default', use_mixed_precision=False):
+
         if device == 'GPU':
             self.physical_devices = tf.config.list_physical_devices('GPU')
             if not self.physical_devices:
-                print('No GPU found. Falling back to CPU')
+                print('\nNo GPU found. Falling back to CPU\n')
                 tf.config.set_visible_devices([], 'GPU')
             else:
                 if use_mixed_precision == True:
@@ -298,34 +304,14 @@ class ModelTraining:
                     keras.mixed_precision.set_global_policy(policy) 
                 tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
                 os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                print('GPU is set as active device')
-            print('-------------------------------------------------------------------------------')
-            print()        
+                print('\nGPU is set as active device\n')
+                   
         elif device == 'CPU':
             tf.config.set_visible_devices([], 'GPU')
-            print('CPU is set as active device')
-            print('-------------------------------------------------------------------------------')
-            print()   
+            print('\nCPU is set as active device\n')
+             
     
-    #-------------------------------------------------------------------------- 
-    def model_parameters(self, parameters_dict, savepath):
-
-        '''
-        Saves the model parameters to a JSON file. The parameters are provided 
-        as a dictionary and are written to a file named 'model_parameters.json' 
-        in the specified directory.
-
-        Keyword arguments:
-            parameters_dict (dict): A dictionary containing the parameters to be saved.
-            savepath (str): The directory path where the parameters will be saved.
-
-        Returns:
-            None       
-
-        '''
-        path = os.path.join(savepath, 'model_parameters.json')      
-        with open(path, 'w') as f:
-            json.dump(parameters_dict, f)
+    
   
     
 # [INFERENCE]
