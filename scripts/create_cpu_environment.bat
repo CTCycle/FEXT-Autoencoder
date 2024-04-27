@@ -12,6 +12,7 @@ echo Environment FEXT successfully created!
 rem If present, activate the environment
 call conda activate FEXT
 
+
 rem Install additional packages with pip
 echo STEP 2: Install python libraries and packages
 call pip install numpy pandas scikit-learn matplotlib python-opencv tensorflow==2.10 
@@ -20,16 +21,9 @@ if errorlevel 1 (
     goto :eof
 )
 
-rem Install CUDA and cuDNN via conda from specific channels
-echo STEP 3: Install conda libraries for CUDA GPU support
-call conda install conda-forge::cudatoolkit nvidia/label/cuda-12.0.0::cuda-nvcc conda-forge::cudnn
-if errorlevel 1 (
-    echo Failed to install CUDA toolkits.
-    goto :eof
-)
 
 rem Install additional tools
-echo STEP 4: Install additional libraries
+echo STEP 3: Install additional libraries
 call conda install graphviz
 call pip install pydot
 if errorlevel 1 (

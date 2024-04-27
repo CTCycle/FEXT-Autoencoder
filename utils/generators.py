@@ -7,7 +7,6 @@ from tensorflow import keras
 #==============================================================================
 # Generate batches of inputs and outputs using a custom generator function and 
 # tf.dataset with prefetching
-#==============================================================================
 class DataGenerator(keras.utils.Sequence):
 
     def __init__(self, dataframe, batch_size, picture_shape=(244, 244, 3), shuffle=True,
@@ -73,27 +72,18 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_index = next_index
         return self.__getitem__(next_index)
         
-    
-# [TF.DATASET GENERATION]
-#==============================================================================
-# Generate batches of inputs and outputs using a custom generator function and 
-# tf.dataset with prefetching
-#==============================================================================
-class TensorDataSet():
-
-    
-    # create tensorflow dataset from generator    
-    #--------------------------------------------------------------------------
-    def create_tf_dataset(self, generator, buffer_size=tf.data.AUTOTUNE):
+# create tensorflow dataset from generator    
+#--------------------------------------------------------------------------
+def create_tf_dataset(generator, buffer_size=tf.data.AUTOTUNE):
         
-        x_batch, y_batch = generator.__getitem__(0)        
-        output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                            tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
-        dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature=output_signature)
-        dataset = dataset.prefetch(buffer_size=buffer_size) 
+    x_batch, y_batch = generator.__getitem__(0)        
+    output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
+                        tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
+    dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature=output_signature)
+    dataset = dataset.prefetch(buffer_size=buffer_size) 
 
-        return dataset
-              
+    return dataset
+        
 
               
         

@@ -5,31 +5,31 @@ import matplotlib.pyplot as plt
 
 # [VALIDATION OF DATA]
 #==============================================================================
-# Series of methods and functions to preprocess data for model training
-#==============================================================================
 class DataValidation:
 
-    def pixel_intensity_histograms(self, image_set_1, image_set_2, path, params,
+    def __init__(self):
+        self.DPI = 400
+        self.file_type = 'jpeg'
+
+    #--------------------------------------------------------------------------
+    def pixel_intensity_histograms(self, image_set_1, image_set_2, path, 
                                    names=['First set', 'Second set']):
         
         pixel_intensities_1 = np.concatenate([image.flatten() for image in image_set_1])
         pixel_intensities_2 = np.concatenate([image.flatten() for image in image_set_2])        
         plt.hist(pixel_intensities_1, bins='auto', alpha=0.5, color='blue', label=names[0])
         plt.hist(pixel_intensities_2, bins='auto', alpha=0.5, color='red', label=names[1])
-        plt.title(params['title'],)
-        plt.xlabel('Pixel Intensity', fontsize=params['fontsize_labels'])
-        plt.ylabel(params['ylabel'],  fontsize=params['fontsize_labels'])
+        plt.title('Pixel Intensity Histograms', fontsize=16)
+        plt.xlabel('Pixel Intensity', fontsize=12)
+        plt.ylabel('Frequency',  fontsize=12)
         plt.legend()            
-        plt.tight_layout()
-        plot_loc = os.path.join(path, params['filename'])
-        plt.savefig(plot_loc, bbox_inches='tight', format='jpeg', dpi=400)   
+        plt.tight_layout()        
+        plt.savefig(path, bbox_inches='tight', format=self.file_type, dpi=self.DPI)   
         plt.show()         
         plt.close()
         
 
 # [VALIDATION OF PRETRAINED MODELS]
-#==============================================================================
-# Collection of methods for machine learning validation and model evaluation
 #==============================================================================
 class ModelValidation:
 
@@ -37,8 +37,7 @@ class ModelValidation:
         self.model = model
 
     #-------------------------------------------------------------------------- 
-    def visualize_features_vector(self, real_image, features, predicted_image, name, path):          
-
+    def visualize_features_vector(self, real_image, features, predicted_image, name, path):
         
         fig_path = os.path.join(path, f'{name}.jpeg')
         fig, axs = plt.subplots(1, 3, figsize=(14, 20), dpi=600)                                     
