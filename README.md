@@ -15,7 +15,10 @@ The encoder part of the FEXT autoencoder is composed of convolutional layers tha
 The decoder part of the VGG16 autoencoder is typically composed of layers that perform the opposite operation to the encoder, upsampling the lower-dimensional representation back to the original input size. This part of the network is responsible for reconstructing the input data from its lower-dimensional representation, obtaining on output with shape 256x256x3.
 
 ## 4. Installation
-To set up the project environment with all required dependencies, utilize the .bat files found in the scripts folder. The file `create_cpu_environment.bat` creates a CPU-only environment by installing the base version of TensorFlow, which is lighter due to the absence of CUDA libraries. If GPU support is needed for model training, use `create_gpu_environment.bat` instead, which includes all necessary CUDA dependencies for GPU utilization
+The installation process is designed for simplicity, using .bat scripts to automatically create a virtual environment with all necessary dependencies. Please ensure that Anaconda or Miniconda is installed on your system before proceeding.
+
+- To set up a CPU-only environment, run `create_cpu_environment.bat`. This script installs the base version of TensorFlow, which is lighter and does not include CUDA libraries.
+- For GPU support, which is necessary for model training on a GPU, use `create_gpu_environment.bat`. This script includes all required CUDA dependencies to enable GPU utilization. 
 
 ### 4.1 Additional Package for XLA Acceleration
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
