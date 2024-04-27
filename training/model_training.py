@@ -117,8 +117,7 @@ if __name__ == '__main__':
     # save model parameters in json files    
     parameters = {'train_samples': cnf.TRAIN_SAMPLES,
                 'test_samples': cnf.TEST_SAMPLES,
-                'picture_shape' : cnf.IMG_SHAPE,             
-                'kernel_size' : cnf.KERNEL_SIZE,              
+                'picture_shape' : cnf.IMG_SHAPE,                           
                 'augmentation' : cnf.IMG_AUGMENT,              
                 'batch_size' : cnf.BATCH_SIZE,
                 'learning_rate' : cnf.LEARNING_RATE,
