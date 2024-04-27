@@ -1,0 +1,38 @@
+@echo off
+rem Use this script to create a new environment called "FEXT"
+
+echo STEP 1: Creation of FEXT environment
+call conda create -n FEXT python=3.10 
+if errorlevel 1 (
+    echo Failed to create the environment FEXT
+    goto :eof
+)
+
+echo Environment FEXT successfully created!
+rem If present, activate the environment
+call conda activate FEXT
+
+
+rem Install additional packages with pip
+echo STEP 2: Install python libraries and packages
+call pip install numpy pandas scikit-learn matplotlib python-opencv tensorflow==2.10 
+if errorlevel 1 (
+    echo Failed to install Python libraries.
+    goto :eof
+)
+
+
+rem Install additional tools
+echo STEP 3: Install additional libraries
+call conda install graphviz
+call pip install pydot
+if errorlevel 1 (
+    echo Failed to install Graphviz or Pydot.
+    goto :eof
+)
+
+rem Print the list of dependencies installed in the environment
+echo List of installed dependencies
+call conda list
+
+set/p<nul =Press any key to exit... & pause>nul

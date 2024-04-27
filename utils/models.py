@@ -25,19 +25,19 @@ def save_model_parameters(parameters_dict, savepath):
     path = os.path.join(savepath, 'model_parameters.json')      
     with open(path, 'w') as f:
         json.dump(parameters_dict, f)
+        
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
 class PooledConvBlock(layers.Layer):
-    def __init__(self, units, kernel_size, num_layers=2, seed=42, **kwargs):
+    def __init__(self, units, num_layers=2, seed=42, **kwargs):
         super(PooledConvBlock, self).__init__(**kwargs)
-        self.units = units
-        self.kernel_size = kernel_size
+        self.units = units        
         self.num_layers = num_layers
         self.seed = seed 
         self.pooling = layers.AveragePooling2D(padding='same')       
-        self.convolutions = [layers.Conv2D(units, kernel_size=kernel_size, 
+        self.convolutions = [layers.Conv2D(units, kernel_size=(2,2), 
                                            padding='same', activation='relu') for x in range(num_layers)]         
                  
         
@@ -55,8 +55,7 @@ class PooledConvBlock(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(PooledConvBlock, self).get_config()
-        config.update({'units': self.units,
-                       'kernel_size': self.kernel_size,
+        config.update({'units': self.units,                       
                        'num_layers': self.num_layers,
                        'seed': self.seed})
         return config
@@ -72,15 +71,14 @@ class PooledConvBlock(layers.Layer):
 #==============================================================================
 @keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
 class TransposeConvBlock(layers.Layer):
-    def __init__(self, units, kernel_size, num_layers=3, seed=42, **kwargs):
+    def __init__(self, units, num_layers=3, seed=42, **kwargs):
         super(TransposeConvBlock, self).__init__(**kwargs)
-        self.units = units
-        self.kernel_size = kernel_size
+        self.units = units        
         self.num_layers = num_layers
         self.seed = seed        
         self.upsamp = layers.UpSampling2D()
         self.convolutions = [layers.Conv2DTranspose(units, 
-                                                    kernel_size=kernel_size, 
+                                                    kernel_size=(2,2), 
                                                     padding='same', 
                                                     activation='relu') for x in range(num_layers)]                
         
@@ -98,8 +96,7 @@ class TransposeConvBlock(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(TransposeConvBlock, self).get_config()
-        config.update({'units': self.units,
-                       'kernel_size': self.kernel_size,
+        config.update({'units': self.units,                  
                        'num_layers': self.num_layers,
                        'seed': self.seed})
         return config
@@ -115,16 +112,16 @@ class TransposeConvBlock(layers.Layer):
 #==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
 class FeXTEncoder(layers.Layer):
-    def __init__(self, kernel_size, picture_shape=(144, 144, 3), seed=42, **kwargs):
+    def __init__(self, picture_shape=(144, 144, 3), seed=42, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)
-        self.kernel_size = kernel_size
+        self.kernel_size = (2,2)
         self.seed = seed        
         self.picture_shape = picture_shape
-        self.convblock1 = PooledConvBlock(64, kernel_size, 2, seed)
-        self.convblock2 = PooledConvBlock(128, kernel_size, 2, seed)
-        self.convblock3 = PooledConvBlock(256, kernel_size, 3, seed)
-        self.convblock4 = PooledConvBlock(512, kernel_size, 3, seed)
-        self.convblock5 = PooledConvBlock(512, kernel_size, 3, seed)
+        self.convblock1 = PooledConvBlock(64, self.kernel_size, 2, seed)
+        self.convblock2 = PooledConvBlock(128, self.kernel_size, 2, seed)
+        self.convblock3 = PooledConvBlock(256, self.kernel_size, 3, seed)
+        self.convblock4 = PooledConvBlock(512, self.kernel_size, 3, seed)
+        self.convblock5 = PooledConvBlock(512, self.kernel_size, 3, seed)
         self.dense = layers.Dense(512, activation='relu', kernel_initializer='he_uniform')
         
 
@@ -145,8 +142,7 @@ class FeXTEncoder(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTEncoder, self).get_config()
-        config.update({'kernel_size': self.kernel_size,                                             
-                       'picture_shape': self.picture_shape,
+        config.update({'picture_shape': self.picture_shape,
                        'seed': self.seed})
         return config
 
@@ -160,16 +156,15 @@ class FeXTEncoder(layers.Layer):
 #==============================================================================
 @keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
-    def __init__(self, kernel_size, seed=42, **kwargs):
+    def __init__(self, seed=42, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
-        self.kernel_size = kernel_size
-        self.seed = seed 
-        
-        self.convblock1 = TransposeConvBlock(512, kernel_size, 3, seed)    
-        self.convblock2 = TransposeConvBlock(512, kernel_size, 3, seed)
-        self.convblock3 = TransposeConvBlock(256, kernel_size, 3, seed)
-        self.convblock4 = TransposeConvBlock(128, kernel_size, 2, seed)
-        self.convblock5 = TransposeConvBlock(64, kernel_size, 2, seed)
+        self.kernel_size = (2,2)
+        self.seed = seed         
+        self.convblock1 = TransposeConvBlock(512, self.kernel_size, 3, seed)    
+        self.convblock2 = TransposeConvBlock(512, self.kernel_size, 3, seed)
+        self.convblock3 = TransposeConvBlock(256, self.kernel_size, 3, seed)
+        self.convblock4 = TransposeConvBlock(128, self.kernel_size, 2, seed)
+        self.convblock5 = TransposeConvBlock(64, self.kernel_size, 2, seed)
         self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
@@ -189,8 +184,7 @@ class FeXTDecoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTDecoder, self).get_config()
-        config.update({'kernel_size': self.kernel_size,
-                       'seed': self.seed})
+        config.update({'seed': self.seed})
         return config
 
     # deserialization method 
@@ -251,15 +245,15 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
 # to build and compile the model (print summary as optional)
 class FeXTAutoEncoder: 
 
-    def __init__(self, learning_rate, kernel_size, picture_shape=(144, 144, 3), 
+    def __init__(self, learning_rate, picture_shape=(144, 144, 3), 
                  seed=42, XLA_state=False):         
         self.learning_rate = learning_rate
-        self.kernel_size = kernel_size
+        self.kernel_size = (2,2)
         self.seed = seed        
         self.picture_shape = picture_shape         
         self.XLA_state = XLA_state
-        self.encoder = FeXTEncoder(kernel_size, picture_shape, seed)
-        self.decoder = FeXTDecoder(kernel_size, seed)        
+        self.encoder = FeXTEncoder(self.kernel_size, picture_shape, seed)
+        self.decoder = FeXTDecoder(self.kernel_size, seed)        
 
     # build model given the architecture
     #--------------------------------------------------------------------------
@@ -291,6 +285,8 @@ class ModelTraining:
         for dev in self.available_devices:            
             print(dev)
 
+    # set device
+    #--------------------------------------------------------------------------
     def set_device(self, device='default', use_mixed_precision=False):
 
         if device == 'GPU':
@@ -308,15 +304,10 @@ class ModelTraining:
                    
         elif device == 'CPU':
             tf.config.set_visible_devices([], 'GPU')
-            print('\nCPU is set as active device\n')
-             
-    
-    
+            print('\nCPU is set as active device\n')    
   
     
 # [INFERENCE]
-#==============================================================================
-# Collection of methods for machine learning validation and model evaluation
 #==============================================================================
 class Inference:
 

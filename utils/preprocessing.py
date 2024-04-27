@@ -5,8 +5,6 @@ from tqdm import tqdm
 from datetime import datetime
 import tensorflow as tf
 
-
-
 # function to create a folder where to save model checkpoints
 #------------------------------------------------------------------------------
 def model_savefolder(path, model_name):

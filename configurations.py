@@ -8,23 +8,22 @@ NUM_PROCESSORS = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-epochs = 1
-learning_rate = 0.0001
-batch_size = 40
+EPOCHS = 1
+LEARNING_RATE = 0.0001
+BATCH_SIZE = 40
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
-picture_shape = (256, 256, 3)
-kernel_size = 2
-generate_model_graph = True
+IMG_SHAPE = (256, 256, 3)
+SAVE_MODEL_PLOT = True
 
 # Settings for training data 
 #------------------------------------------------------------------------------
-num_train_samples = 2000
-num_test_samples = 200
-augmentation = False
+TRAIN_SAMPLES = 2000
+TEST_SAMPLES = 200
+IMG_AUGMENT = False
 
 # General settings 
 #------------------------------------------------------------------------------
-seed = 54
-split_seed = 45
+SEED = 54
+SPLIT_SEED = 45

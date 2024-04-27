@@ -15,7 +15,7 @@ The encoder part of the FEXT autoencoder is composed of convolutional layers tha
 The decoder part of the VGG16 autoencoder is typically composed of layers that perform the opposite operation to the encoder, upsampling the lower-dimensional representation back to the original input size. This part of the network is responsible for reconstructing the input data from its lower-dimensional representation, obtaining on output with shape 256x256x3.
 
 ## 4. Installation
-Use the .bat files located in the scripts `folder` to create a project environment with all necessary dependencies. You may find two files: `create_cpu_environment.bat` will create an environment with tensorflow base (CPU only) resulting in a much lighter environment due to absence of CUDA libraries. If you need to have GPU support for model training, then run  `create_gpu_environment.bat`, which will install the necessary CUDA dependencies.
+To set up the project environment with all required dependencies, utilize the .bat files found in the scripts folder. The file `create_cpu_environment.bat` creates a CPU-only environment by installing the base version of TensorFlow, which is lighter due to the absence of CUDA libraries. If GPU support is needed for model training, use `create_gpu_environment.bat` instead, which includes all necessary CUDA dependencies for GPU utilization
 
 ### 4.1 Additional Package for XLA Acceleration
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
@@ -36,22 +36,21 @@ For customization, you can modify the main script parameters via the `configurat
 
 | Category                | Setting                | Description                                                       |
 |-------------------------|------------------------|-------------------------------------------------------------------|
-| **Advanced settings**   | use_mixed_precision    | use mixed precision for faster training (float16/32)              |
-|                         | use_tensorboard        | Activate/deactivate tensorboard logging                           |
-|                         | XLA_acceleration       | Use linear algebra acceleration for faster training               |
-|                         | training_device        | Select the training device (CPU or GPU)                           |
-|                         | num_processors         | Number of processors (cores) to use; 1 disables multiprocessing   |
-| **Training settings**   | epochs                 | Number of training iterations                                     |
-|                         | learning_rate          | Learning rate of the model                                        |
-|                         | batch_size             | Size of batches for model training                                |
-| **Model settings**      | picture_shape          | Full shape of the images as (height, width, channels)             |
-|                         | kernel_size            | Size of convolutional kernel                                      |
-|                         | generate_model_graph   | Generate/save 2D model graph (as .png file)                       |
-| **Data settings**       | num_train_samples      | Number of images for model training                               |
-|                         | num_test_samples       | Number of samples for validation data                             |
-|                         | augmentation           | Perform data augmentation on images (affects training time)       |
-| **General settings**    | seed                   | Global random seed                                                |
-|                         | split_seed             | Seed for dataset splitting                                        |
+| **Advanced settings**   | MIXED_PRECISION        | use mixed precision for faster training (float16/32)              |
+|                         | USE_TENSORBOARD        | Activate/deactivate tensorboard logging                           |
+|                         | XLA_STATE              | Use linear algebra acceleration for faster training               |
+|                         | ML_DEVICE              | Select the training device (CPU or GPU)                           |
+|                         | NUM_PROCESSORS         | Number of processors (cores) to use; 1 disables multiprocessing   |
+| **Training settings**   | EPOCHS                 | Number of training iterations                                     |
+|                         | LEARNING_RATE          | Learning rate of the model                                        |
+|                         | BATCH_SIZE             | Size of batches for model training                                |
+| **Model settings**      | IMG_SHAPE              | Full shape of the images as (height, width, channels)             |
+|                         | SAVE_MODEL_PLOT        | Generate/save 2D model graph (as .png file)                       |
+| **Data settings**       | TRAIN_SAMPLES          | Number of images for model training                               |
+|                         | TEST_SAMPLES           | Number of samples for validation data                             |
+|                         | IMG_AUGMENT            | Perform data augmentation on images (affects training time)       |
+| **General settings**    | SEED                   | Global random seed                                                |
+|                         | SPLIT_SEED             | Seed for dataset splitting                                        |
                     
  
 ## License

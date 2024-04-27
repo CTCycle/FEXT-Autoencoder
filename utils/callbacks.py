@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 #==============================================================================
-# Callback to check real time model history and visualize it through custom plot
-#==============================================================================
 class RealTimeHistory(keras.callbacks.Callback):    
      
     def __init__(self, plot_path, validation=True):        
