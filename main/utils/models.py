@@ -117,11 +117,11 @@ class FeXTEncoder(layers.Layer):
         self.kernel_size = (2,2)
         self.seed = seed        
         self.picture_shape = picture_shape
-        self.convblock1 = PooledConvBlock(64, self.kernel_size, 2, seed)
-        self.convblock2 = PooledConvBlock(128, self.kernel_size, 2, seed)
-        self.convblock3 = PooledConvBlock(256, self.kernel_size, 3, seed)
-        self.convblock4 = PooledConvBlock(512, self.kernel_size, 3, seed)
-        self.convblock5 = PooledConvBlock(512, self.kernel_size, 3, seed)
+        self.convblock1 = PooledConvBlock(64, 2, seed)
+        self.convblock2 = PooledConvBlock(128, 2, seed)
+        self.convblock3 = PooledConvBlock(256, 3, seed)
+        self.convblock4 = PooledConvBlock(512, 3, seed)
+        self.convblock5 = PooledConvBlock(512, 3, seed)
         self.dense = layers.Dense(512, activation='relu', kernel_initializer='he_uniform')
         
 
@@ -160,11 +160,11 @@ class FeXTDecoder(keras.layers.Layer):
         super(FeXTDecoder, self).__init__(**kwargs)
         self.kernel_size = (2,2)
         self.seed = seed         
-        self.convblock1 = TransposeConvBlock(512, self.kernel_size, 3, seed)    
-        self.convblock2 = TransposeConvBlock(512, self.kernel_size, 3, seed)
-        self.convblock3 = TransposeConvBlock(256, self.kernel_size, 3, seed)
-        self.convblock4 = TransposeConvBlock(128, self.kernel_size, 2, seed)
-        self.convblock5 = TransposeConvBlock(64, self.kernel_size, 2, seed)
+        self.convblock1 = TransposeConvBlock(512, 3, seed)    
+        self.convblock2 = TransposeConvBlock(512, 3, seed)
+        self.convblock3 = TransposeConvBlock(256, 3, seed)
+        self.convblock4 = TransposeConvBlock(128, 2, seed)
+        self.convblock5 = TransposeConvBlock(64, 2, seed)
         self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
@@ -252,8 +252,8 @@ class FeXTAutoEncoder:
         self.seed = seed        
         self.picture_shape = picture_shape         
         self.XLA_state = XLA_state
-        self.encoder = FeXTEncoder(self.kernel_size, picture_shape, seed)
-        self.decoder = FeXTDecoder(self.kernel_size, seed)        
+        self.encoder = FeXTEncoder(picture_shape, seed)
+        self.decoder = FeXTDecoder(seed)        
 
     # build model given the architecture
     #--------------------------------------------------------------------------
