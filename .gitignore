@@ -1,8 +1,8 @@
 __pycache__
-data/images/*
-data/validation/*
-inference/images/*
-inference/extracted_images_features.csv
-training/checkpoints/*
+main/data/images/*
+main/data/validation/*
+main/inference/images/*
+main/inference/extracted_images_features.csv
+main/training/checkpoints/*
 
 !.gitkeep
