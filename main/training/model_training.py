@@ -1,5 +1,6 @@
 import os
 import sys
+from os.path import dirname, abspath
 import tensorflow as tf
 from keras.utils import plot_model
 
@@ -7,17 +8,13 @@ from keras.utils import plot_model
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# [DEFINE PROJECT FOLDER PATH]
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_dir) 
-
 # [IMPORT CUSTOM MODULES]
-from utils.generators import DataGenerator, create_tf_dataset
-from utils.preprocessing import model_savefolder, dataset_from_images
-from utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
-from utils.callbacks import RealTimeHistory
-from utils.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
-import configurations as cnf
+from main.utils.generators import DataGenerator, create_tf_dataset
+from main.utils.preprocessing import model_savefolder, dataset_from_images
+from main.utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
+from main.utils.callbacks import RealTimeHistory
+from main.utils.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
+import main.configurations as cnf
 
 
 # [RUN MAIN]
