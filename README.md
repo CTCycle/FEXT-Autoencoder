@@ -17,8 +17,8 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 ## 4. Installation
 The installation process is designed for simplicity, using .bat scripts to automatically create a virtual environment with all necessary dependencies. Please ensure that Anaconda or Miniconda is installed on your system before proceeding.
 
-- To set up a CPU-only environment, run `create_cpu_environment.bat`. This script installs the base version of TensorFlow, which is lighter and does not include CUDA libraries.
-- For GPU support, which is necessary for model training on a GPU, use `create_gpu_environment.bat`. This script includes all required CUDA dependencies to enable GPU utilization. 
+- To set up a CPU-only environment, run `scripts/create_cpu_environment.bat`. This script installs the base version of TensorFlow, which is lighter and does not include CUDA libraries.
+- For GPU support, which is necessary for model training on a GPU, use `scripts/create_gpu_environment.bat`. This script includes all required CUDA dependencies to enable GPU utilization. 
 
 ### 4.1 Additional Package for XLA Acceleration
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
@@ -26,16 +26,16 @@ XLA is designed to optimize computations for speed and efficiency, particularly 
 To enable XLA acceleration globally across your system, you need to set an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
 
 ## 5. How to use
-The project is organized into subfolders, each dedicated to specific tasks. The `utils/` folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
+The project is organized into subfolders, each dedicated to specific tasks. The `main/utils` folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
 
-**Data:** this folder contains the data utilized for the model training (images are loaded in `data/images`). Run the jupyter notebook `data_validation.ipynb` to conduct an Explorative Data Analysis (EDA) of the image dataset, with the results being saved in `data/validation`. 
+**Data:** this folder contains the data utilized for the model training (images are loaded in `main/data/images`). Run the jupyter notebook `main/data/data_validation.ipynb` to conduct an Explorative Data Analysis (EDA) of the image dataset, with the results being saved in `main/data/validation`. 
 
-**Training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `training/checkpoints`. Run `model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
+**Training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `main/training/checkpoints`. Run `main/training/model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `main/training/model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
 
-**Inference:** run `features_extraction.py` to use pretrained model to extract compressed vectorized features from images located within `inference/images`. The resulting .csv file is then saved within the same directory.
+**Inference:** run `main/inference/features_extraction.py` to use pretrained model to extract compressed vectorized features from images located within `main/inference/images`. The resulting .csv file is then saved within the same directory.
  
 ### 5.1 Configurations
-For customization, you can modify the main script parameters via the `configurations.py` file in the main folder. 
+For customization, you can modify the main script parameters via the `main/configurations.py` file. 
 
 | Category                | Setting                | Description                                                       |
 |-------------------------|------------------------|-------------------------------------------------------------------|
