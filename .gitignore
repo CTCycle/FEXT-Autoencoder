@@ -5,4 +5,6 @@ main/inference/images/*
 main/inference/extracted_images_features.csv
 main/training/checkpoints/*
 
+FEXTAutoEncoder.egg-info/*
+
 !.gitkeep
