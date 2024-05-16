@@ -19,26 +19,14 @@ if errorlevel 1 (
     goto :eof
 )
 
-rem Install CUDA and cuDNN via conda from specific channels
-echo STEP 3: Install conda libraries for CUDA GPU support
-call conda install conda-forge::cudatoolkit nvidia/label/cuda-12.0.0::cuda-nvcc conda-forge::cudnn
-if errorlevel 1 (
-    echo Failed to install CUDA toolkits.
-    goto :eof
-)
-
 rem Install additional tools
-echo STEP 4: Install additional libraries
+echo STEP 3: Install additional libraries
 call conda install graphviz
 call pip install pydot
 if errorlevel 1 (
     echo Failed to install Graphviz or Pydot.
     goto :eof
 )
-
-rem install project in environment
-echo STEP 5: Install project custom dependencies
-call pip install -e .
 
 rem Print the list of dependencies installed in the environment
 echo List of installed dependencies

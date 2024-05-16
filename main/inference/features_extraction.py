@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -8,11 +9,15 @@ from tqdm import tqdm
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
+# [DEFINE PROJECT FOLDER PATH]
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_dir) 
+
 # [IMPORT CUSTOM MODULES]
-from main.utils.preprocessing import dataset_from_images
-from main.utils.models import Inference
-from main.utils.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
-import main.configurations as cnf
+from utils.preprocessing import dataset_from_images
+from utils.models import Inference
+from utils.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
+import configurations as cnf
 
 
 # [RUN MAIN]
