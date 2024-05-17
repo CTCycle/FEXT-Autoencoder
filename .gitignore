@@ -1,8 +1,8 @@
 __pycache__
-FEXT AutoEncoder/data/images/*
-FEXT AutoEncoder/data/validation/*
-FEXT AutoEncoder/inference/images/*
-FEXT AutoEncoder/inference/extracted_images_features.csv
-FEXT AutoEncoder/training/checkpoints/*
+FEXTAutoEncoder/data/images/*
+FEXTAutoEncoder/data/validation/*
+FEXTAutoEncoder/inference/images/*
+FEXTAutoEncoder/inference/extracted_images_features.csv
+FEXTAutoEncoder/training/checkpoints/*
 
 !.gitkeep
