@@ -16,8 +16,8 @@ sys.path.append(project_dir)
 # [IMPORT CUSTOM MODULES]
 from utils.preprocessing import dataset_from_images
 from utils.models import Inference
-from utils.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
-import configurations as cnf
+from config.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
+import config.configurations as cnf
 
 
 # [RUN MAIN]
