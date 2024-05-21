@@ -2,7 +2,7 @@
 rem Use this script to create a new environment called "FEXT"
 
 echo STEP 1: Creation of FEXT environment
-call conda create -n FEXT python=3.10 
+call conda create -n FEXT python=3.10 -y
 if errorlevel 1 (
     echo Failed to create the environment FEXT
     goto :eof
@@ -21,7 +21,7 @@ if errorlevel 1 (
 
 rem Install additional tools
 echo STEP 3: Install additional libraries
-call conda install graphviz
+call conda install graphviz -y
 call pip install pydot
 if errorlevel 1 (
     echo Failed to install Graphviz or Pydot.
