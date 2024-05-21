@@ -5,7 +5,7 @@ from keras.utils import plot_model
 
 # [SETTING WARNINGS]
 import warnings
-warnings.simplefilter(action='ignore', category = Warning)
+warnings.simplefilter(action='ignore', category=Warning)
 
 # [DEFINE PROJECT FOLDER PATH]
 main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
