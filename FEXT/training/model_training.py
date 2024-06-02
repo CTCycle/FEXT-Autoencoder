@@ -7,17 +7,13 @@ from keras.utils import plot_model
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
-# [DEFINE PROJECT FOLDER PATH]
-main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(main_dir) 
-
 # [IMPORT CUSTOM MODULES]
-from utils.generators import DataGenerator, create_tf_dataset
-from utils.preprocessing import model_savefolder, dataset_from_images
-from utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
-from utils.callbacks import RealTimeHistory
-from config.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
-import config.configurations as cnf
+from FEXT.utils.generators import DataGenerator, create_tf_dataset
+from FEXT.utils.preprocessing import model_savefolder, dataset_from_images
+from FEXT.utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
+from FEXT.utils.callbacks import RealTimeHistory
+from FEXT.config.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
+import FEXT.config.configurations as cnf
 
 
 # [RUN MAIN]
@@ -75,7 +71,8 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
             
-    print('FeXT training report\n')    
+    print('FeXT training report\n')
+    print('--------------------------------------------------------------------')    
     print(f'Number of train samples: {train_data.shape[0]}')
     print(f'Number of test samples:  {test_data.shape[0]}')  
     print(f'Picture shape:           {cnf.IMG_SHAPE}')   
