@@ -9,15 +9,11 @@ from tqdm import tqdm
 import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
-# [DEFINE PROJECT FOLDER PATH]
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(project_dir) 
-
 # [IMPORT CUSTOM MODULES]
-from utils.preprocessing import dataset_from_images
-from utils.models import Inference
-from config.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
-import config.configurations as cnf
+from FEXT.utils.preprocessing import dataset_from_images
+from FEXT.utils.models import Inference
+from FEXT.config.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
+import FEXT.config.configurations as cnf
 
 
 # [RUN MAIN]
