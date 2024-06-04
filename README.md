@@ -18,7 +18,9 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 The installation process is designed for simplicity, using .bat scripts to automatically create a virtual environment with all necessary dependencies. Please ensure that Anaconda or Miniconda is installed on your system before proceeding.
 
 - To set up a CPU-only environment, run `setup/create_cpu_environment.bat`. This script installs the base version of TensorFlow, which is lighter and does not include CUDA libraries.
-- For GPU support, which is necessary for model training on a GPU, use `setup/create_gpu_environment.bat`. This script includes all required CUDA dependencies to enable GPU utilization. 
+- For GPU support, which is necessary for model training on a GPU, use `setup/create_gpu_environment.bat`. This script includes all required CUDA dependencies to enable GPU utilization.
+- Once the environment has been created, run `scripts/package_setup.bat` to install the app package locally.
+- **IMPORTANT:** run `scripts/package_setup.bat` if you move the project folder somewhere else after installation, or the app won't work! 
 
 ### 4.1 Additional Package for XLA Acceleration
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
