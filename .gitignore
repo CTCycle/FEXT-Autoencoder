@@ -5,5 +5,5 @@ FEXT/inference/images/*
 FEXT/inference/extracted_images_features.csv
 FEXT/training/checkpoints/*
 
-FEXT.egg-info
+*.egg-info
 !.gitkeep
