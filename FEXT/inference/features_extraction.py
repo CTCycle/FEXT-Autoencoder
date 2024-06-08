@@ -10,10 +10,10 @@ import warnings
 warnings.simplefilter(action='ignore', category = Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.utils.preprocessing import dataset_from_images
-from FEXT.utils.models import Inference
-from FEXT.config.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
-import FEXT.config.configurations as cnf
+from FEXT.commons.utils.preprocessing import dataset_from_images
+from FEXT.commons.utils.models import Inference
+from FEXT.commons.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
+import FEXT.commons.configurations as cnf
 
 
 # [RUN MAIN]
