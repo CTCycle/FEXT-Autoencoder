@@ -28,16 +28,16 @@ XLA is designed to optimize computations for speed and efficiency, particularly 
 To enable XLA acceleration globally across your system, you need to set an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
 
 ## 5. How to use
-The project is organized into subfolders, each dedicated to specific tasks. The `FEXT/utils` folder houses crucial components utilized by various scripts. It's critical to avoid modifying these files, as doing so could compromise the overall integrity and functionality of the program.
+The project is organized into subfolders, each dedicated to specific tasks. 
 
 **Data:** this folder contains the data utilized for the model training (images are loaded in `FEXT/data/images`). Run the jupyter notebook `FEXT/data/data_validation.ipynb` to conduct an Explorative Data Analysis (EDA) of the image dataset, with the results being saved in `FEXT/data/validation`. 
 
-**Training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `FEXT AutoEncoder/training/checkpoints`. Run `FEXT/training/model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `FEXT/training/model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
+**Training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `FEXT/training/checkpoints`. Run `FEXT/training/model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `FEXT/training/model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
 
 **Inference:** run `FEXT/inference/features_extraction.py` to use pretrained model to extract compressed vectorized features from images located within `FEXT/inference/images`. The resulting .csv file is then saved within the same directory.
  
 ### 5.1 Configurations
-For customization, you can modify the main script parameters via the `FEXT/config/configurations.py` file. 
+For customization, you can modify the main script parameters via the `FEXT/commons/configurations.py` file. 
 
 | Category                | Setting                | Description                                                       |
 |-------------------------|------------------------|-------------------------------------------------------------------|

@@ -8,12 +8,12 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.utils.generators import DataGenerator, create_tf_dataset
-from FEXT.utils.preprocessing import model_savefolder, dataset_from_images
-from FEXT.utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
-from FEXT.utils.callbacks import RealTimeHistory
-from FEXT.config.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
-import FEXT.config.configurations as cnf
+from FEXT.commons.utils.generators import DataGenerator, create_tf_dataset
+from FEXT.commons.utils.preprocessing import model_savefolder, dataset_from_images
+from FEXT.commons.utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
+from FEXT.commons.utils.callbacks import RealTimeHistory
+from FEXT.commons.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
+import FEXT.commons.configurations as cnf
 
 
 # [RUN MAIN]
