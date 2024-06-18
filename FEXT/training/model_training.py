@@ -1,5 +1,4 @@
 import os
-import sys
 import tensorflow as tf
 from keras.utils import plot_model
 
@@ -8,10 +7,12 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.generators import DataGenerator, create_tf_dataset
-from FEXT.commons.utils.preprocessing import model_savefolder, dataset_from_images
-from FEXT.commons.utils.models import ModelTraining, FeXTAutoEncoder, save_model_parameters
-from FEXT.commons.utils.callbacks import RealTimeHistory
+from FEXT.commons.utils.dataloader.generators import build_tensor_dataset
+from FEXT.commons.utils.dataloader.serializer import DataSerializer
+from FEXT.commons.utils.preprocessing import get_images_path, DataSplit
+from FEXT.commons.utils.models.training import ModelTraining
+from FEXT.commons.utils.models.autoencoder import FeXTAutoEncoder
+from FEXT.commons.utils.models.callbacks import RealTimeHistory
 from FEXT.commons.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
 import FEXT.commons.configurations as cnf
 
@@ -19,51 +20,35 @@ import FEXT.commons.configurations as cnf
 # [RUN MAIN]
 if __name__ == '__main__':
 
-    # 1. [LOAD AND PREPROCESS DATA]
+    # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
-    # find and assign images path
-    total_samples = cnf.TRAIN_SAMPLES + cnf.TEST_SAMPLES
-    df_images = dataset_from_images(IMG_DATA_PATH)
-
     # select a fraction of data for training
-    df_images = df_images.sample(total_samples, random_state=36).reset_index(drop=True)
+    images_paths = get_images_path(IMG_DATA_PATH, num_images=cnf.NUM_OF_SAMPLES) 
+    splitter = DataSplit(images_dictionary=images_paths)
+    serializer = DataSerializer()     
 
-    # create train and test datasets
-    test_data = df_images.sample(n=cnf.TEST_SAMPLES, random_state=cnf.SPLIT_SEED)
-    train_data = df_images.drop(test_data.index)
+    # split data    
+    train_data, validation_data, test_data = splitter.split_data()   
 
     # create subfolder for preprocessing data    
-    model_folder_path, model_folder_name  = model_savefolder(CHECKPOINT_PATH, 'FeXT')
-    pp_path = os.path.join(model_folder_path, 'preprocessing')
-    os.mkdir(pp_path) if not os.path.exists(pp_path) else None
-
-    # save preprocessed data
-    file_loc = os.path.join(pp_path, 'train_data.csv')  
-    train_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
-    file_loc = os.path.join(pp_path, 'test_data.csv')  
-    test_data.to_csv(file_loc, index=False, sep=';', encoding='utf-8')
+    model_folder_path = serializer.create_checkpoint_folder()
+    serializer.save_preprocessed_data(train_data, validation_data, test_data, output_type='JSON')      
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
-    train_data.drop(columns='name', inplace=True)
-    test_data.drop(columns='name', inplace=True)
-
     # initialize training device 
     # allows changing device prior to initializing the generators    
-    trainer = ModelTraining(seed=cnf.SEED)
-    trainer.set_device(device=cnf.ML_DEVICE, use_mixed_precision=cnf.MIXED_PRECISION)
-
-    # initialize the images generator for the train and test data, and create the 
-    # tf.dataset according to batch shapes    
-    train_generator = DataGenerator(train_data, cnf.BATCH_SIZE, cnf.IMG_SHAPE, 
-                                    augmentation=cnf.IMG_AUGMENT, shuffle=True)
-    test_generator = DataGenerator(test_data, cnf.BATCH_SIZE, cnf.IMG_SHAPE, 
-                                augmentation=cnf.IMG_AUGMENT, shuffle=True)
+    trainer = ModelTraining()
+    trainer.set_device()
 
     # initialize the TensorDataSet class with the generator instances
-    # create the tf.datasets using the previously initialized generators 
-    train_dataset = create_tf_dataset(train_generator)
-    test_dataset = create_tf_dataset(test_generator)
+    # create the tf.datasets using the previously initialized generators    
+    train_dataset = build_tensor_dataset(train_data, cnf.BATCH_SIZE, cnf.IMG_SHAPE, 
+                                         augmentation=cnf.IMG_AUGMENT, shuffle=True)
+    validation_dataset = build_tensor_dataset(validation_data, cnf.BATCH_SIZE, cnf.IMG_SHAPE, 
+                                              augmentation=cnf.IMG_AUGMENT, shuffle=True)
+    test_dataset = build_tensor_dataset(test_data, cnf.BATCH_SIZE, cnf.IMG_SHAPE, 
+                                        augmentation=cnf.IMG_AUGMENT, shuffle=True)   
 
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  
@@ -80,9 +65,9 @@ if __name__ == '__main__':
     print(f'Epochs:                  {cnf.EPOCHS}\n')   
 
     # build the autoencoder model     
-    modelworker = FeXTAutoEncoder(cnf.LEARNING_RATE, cnf.IMG_SHAPE, 
+    autoencoder = FeXTAutoEncoder(cnf.LEARNING_RATE, cnf.IMG_SHAPE, 
                                   cnf.SEED, XLA_state=cnf.XLA_STATE)
-    model = modelworker.get_model(summary=True) 
+    model = autoencoder.get_model(summary=True) 
 
     # generate graphviz plot fo the model layout    
     if cnf.SAVE_MODEL_PLOT:
