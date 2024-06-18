@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -7,7 +6,7 @@ from tqdm import tqdm
 
 # [SETTING WARNINGS]
 import warnings
-warnings.simplefilter(action='ignore', category = Warning)
+warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
 from FEXT.commons.utils.preprocessing import dataset_from_images
