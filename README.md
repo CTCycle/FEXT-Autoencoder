@@ -51,8 +51,9 @@ For customization, you can modify the main script parameters via the `FEXT/commo
 |                         | BATCH_SIZE             | Size of batches for model training                                |
 | **Model settings**      | IMG_SHAPE              | Full shape of the images as (height, width, channels)             |
 |                         | SAVE_MODEL_PLOT        | Generate/save 2D model graph (as .png file)                       |
-| **Data settings**       | TRAIN_SAMPLES          | Number of images for model training                               |
-|                         | TEST_SAMPLES           | Number of samples for validation data                             |
+| **Data settings**       | SAMPLE_SIZE            | Fraction of total samples                                         |
+|                         | TEST_SIZE              | Fraction of images for model training                             |
+|                         | VALIDATION_SIZE        | Fraction of samples for validation data                           |
 |                         | IMG_AUGMENT            | Perform data augmentation on images (affects training time)       |
 | **General settings**    | SEED                   | Global random seed                                                |
 |                         | SPLIT_SEED             | Seed for dataset splitting                                        |
