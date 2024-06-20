@@ -22,9 +22,7 @@ class PooledConvBlock(layers.Layer):
                                            kernel_size=(2,2), 
                                            padding='same', 
                                            activation=None) for _ in range(num_layers)]  
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]
-        self.activation = layers.Activation('relu')       
-                 
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -43,8 +41,7 @@ class PooledConvBlock(layers.Layer):
     def get_config(self):
         config = super(PooledConvBlock, self).get_config()
         config.update({'units': self.units,                       
-                       'num_layers': self.num_layers,
-                       'seed': SEED})
+                       'num_layers': self.num_layers})
         return config
 
     # deserialization method 
@@ -86,8 +83,7 @@ class TransposeConvBlock(layers.Layer):
     def get_config(self):
         config = super(TransposeConvBlock, self).get_config()
         config.update({'units': self.units,                  
-                       'num_layers': self.num_layers,
-                       'seed': SEED})
+                       'num_layers': self.num_layers})
         return config
 
     # deserialization method 

@@ -1,17 +1,31 @@
 import os
 import cv2
 import json
-import pandas as pd
+import random
 from tqdm import tqdm
 from datetime import datetime
 import tensorflow as tf
 from keras.utils import plot_model
 
-from FEXT.commons.configurations import SAVE_MODEL_PLOT
-from FEXT.commons.pathfinder import IMG_DATA_PATH, CHECKPOINT_PATH
+from FEXT.commons.configurations import SAVE_MODEL_PLOT, IMG_SHAPE
+from FEXT.commons.pathfinder import CHECKPOINT_PATH
 
     
+#------------------------------------------------------------------------------
+def get_images_path(path, sample_size=None):
 
+    
+    valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
+    images_path = []
+
+    for root, _, files in os.walk(path):
+        if sample_size is not None:
+            files = files[:int(sample_size*len(files))]           
+        for file in files:
+            if os.path.splitext(file)[1].lower() in valid_extensions:
+                images_path.append(os.path.join(root, file))                
+
+    return images_path
 
 
 #------------------------------------------------------------------------------
@@ -20,23 +34,22 @@ class DataSerializer:
     def __init__(self):
         
         self.model_name = 'FeXT'
-        self.outputs = {'JSON' : self.JSON_serialization}
-
+       
     #------------------------------------------------------------------------------
-    def load_images(paths, image_size, as_tensor=True, normalize=True):
+    def load_images(self, paths, as_tensor=True, normalize=True):
             
         images = []
         for pt in tqdm(paths):
             if as_tensor==False:                
                 image = cv2.imread(pt)             
-                image = cv2.resize(image, image_size)            
+                image = cv2.resize(image, IMG_SHAPE[:-1])            
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
                 if normalize==True:
                     image = image/255.0
             else:
                 image = tf.io.read_file(pt)
                 image = tf.image.decode_image(image, channels=3)
-                image = tf.image.resize(image, image_size)
+                image = tf.image.resize(image, IMG_SHAPE[:-1])
                 image = tf.reverse(image, axis=[-1])
                 if normalize==True:
                     image = image/255.0
@@ -45,9 +58,9 @@ class DataSerializer:
 
         return images
 
-    # function to create a folder where to save model checkpoints
+    # ...
     #--------------------------------------------------------------------------
-    def JSON_serialization(self, train_data, validation_data, test_data, path):
+    def save_preprocessed_data(self, train_data, validation_data, test_data, path):        
 
         combined_data = {'train': train_data, 
                          'validation': validation_data, 
@@ -56,6 +69,24 @@ class DataSerializer:
         with open(os.path.join(path, 'preprocessed_data.json'), 'w') as json_file:
             json.dump(combined_data, json_file)
 
+    # ...
+    #--------------------------------------------------------------------------
+    def load_preprocessed_data(self, path):
+
+        json_file_path = os.path.join(path, 'preprocessed_data.json')    
+        if not os.path.exists(json_file_path):
+            raise FileNotFoundError(f"The file {json_file_path} does not exist.")
+        
+        with open(json_file_path, 'r') as json_file:
+            combined_data = json.load(json_file)
+        
+        train_data = combined_data.get('train')
+        validation_data = combined_data.get('validation')
+        test_data = combined_data.get('test')
+        
+        return {'train': train_data, 
+                'validation': validation_data, 
+                'test': test_data}
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -82,17 +113,9 @@ class DataSerializer:
         
         return checkpoint_folder_path
     
-    # function to create a folder where to save model checkpoints
-    #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data, validation_data, test_data, output_type='JSON'):
+    
 
-        if not self.preprocessing_path or not os.path.exists(self.preprocessing_path):
-            self.create_checkpoint_folder()        
-
-        # Serialize to selected output type
-        self.outputs[output_type](train_data, validation_data, test_data, self.preprocessing_path)
-
-
+# [...]
 #------------------------------------------------------------------------------
 class ModelSerializer:
 
@@ -100,7 +123,7 @@ class ModelSerializer:
         pass
 
     #--------------------------------------------------------------------------
-    def save_model_parameters(self, parameters_dict):
+    def save_model_parameters(self, path, parameters_dict):
 
         '''
         Saves the model parameters to a JSON file. The parameters are provided 
@@ -115,7 +138,7 @@ class ModelSerializer:
             None       
 
         '''
-        path = os.path.join(self.path, 'model_parameters.json')      
+        path = os.path.join(path, 'model_parameters.json')      
         with open(path, 'w') as f:
             json.dump(parameters_dict, f)
 
@@ -129,7 +152,7 @@ class ModelSerializer:
                     expand_nested=True, rankdir='TB', dpi=400)
             
     #-------------------------------------------------------------------------- 
-    def load_pretrained_model(self, path):
+    def load_pretrained_model(self):
 
         '''
         Load pretrained keras model (in folders) from the specified directory. 
@@ -149,9 +172,13 @@ class ModelSerializer:
 
         '''        
         model_folders = []
-        for entry in os.scandir(path):
+        for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
                 model_folders.append(entry.name)
+    
+        if not model_folders:
+            raise FileNotFoundError('No model directories found in the specified path.')
+        
         if len(model_folders) > 1:
             model_folders.sort()
             index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
@@ -164,24 +191,27 @@ class ModelSerializer:
                 try:
                     dir_index = int(input('Type the model index to select it: '))
                     print()
-                except:
+                except ValueError:
                     continue
-                break                         
-            while dir_index not in index_list:
-                try:
-                    dir_index = int(input('Input is not valid! Try again: '))
-                    print()
-                except:
-                    continue
-            self.loaded_model_folder = os.path.join(path, model_folders[dir_index - 1])
+                if dir_index in index_list:
+                    break
+                else:
+                    print('Input is not valid! Try again:')
+                    
+            self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[dir_index - 1])
 
         elif len(model_folders) == 1:
-            self.loaded_model_folder = os.path.join(path, model_folders[0])                 
-        
+            self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[0])                 
+            
         model_path = os.path.join(self.loaded_model_folder, 'model') 
         model = tf.keras.models.load_model(model_path)
-        path = os.path.join(self.loaded_model_folder, 'model_parameters.json')
-        with open(path, 'r') as f:
-            configuration = json.load(f)               
         
+        configuration = None
+        config_path = os.path.join(self.loaded_model_folder, 'model_parameters.json')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                configuration = json.load(f)       
+        else:
+            print('Warning: model_parameters.json file not found. Model parameters were not loaded.')
+            
         return model, configuration

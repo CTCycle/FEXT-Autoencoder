@@ -2,8 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-
-from FEXT.commons.configurations import BATCH_SIZE, NUM_OF_SAMPLES, IMG_SHAPE, IMG_AUGMENT
+from FEXT.commons.configurations import BATCH_SIZE, IMG_SHAPE, IMG_AUGMENT
 
 
 # [CUSTOM DATA GENERATOR FOR TRAINING]
@@ -15,6 +14,7 @@ class DataGenerator(keras.utils.Sequence):
     def __init__(self, data, shuffle=True, normalization=True):         
       
         self.data = data
+        self.num_samples = len(data)
         self.batch_index = 0        
         self.normalization = normalization             
         self.shuffle = shuffle
@@ -23,15 +23,17 @@ class DataGenerator(keras.utils.Sequence):
     # define length of the custom generator      
     #--------------------------------------------------------------------------
     def __len__(self):
-        length = int(np.ceil(NUM_OF_SAMPLES/BATCH_SIZE))
+        length = int(np.ceil(self.num_samples/BATCH_SIZE))
         return length
     
     # define method to get X and Y data through custom functions, and subsequently
     # create a batch of data converted to tensors
     #--------------------------------------------------------------------------
     def __getitem__(self, idx): 
-        path_batch = self.data[idx * BATCH_SIZE:(idx + 1) * BATCH_SIZE]           
-        x1_batch = [self.__images_generation(image_path) for image_path in path_batch]        
+        path_batch = self.data[idx * BATCH_SIZE:(idx + 1) * BATCH_SIZE] 
+        if len(path_batch) < BATCH_SIZE:
+            return self.next()  
+        x1_batch = [self.__images_generation(image_path) for image_path in path_batch]                
         X1_tensor = tf.convert_to_tensor(x1_batch)
         Y_tensor = X1_tensor  
         return X1_tensor, Y_tensor
@@ -39,7 +41,7 @@ class DataGenerator(keras.utils.Sequence):
     # define method to perform data operations on epoch end
     #--------------------------------------------------------------------------
     def on_epoch_end(self):        
-        self.indexes = np.arange(len(self.data))
+        self.indexes = np.arange(self.num_samples)
         if self.shuffle == True:
             np.random.shuffle(self.indexes)
 

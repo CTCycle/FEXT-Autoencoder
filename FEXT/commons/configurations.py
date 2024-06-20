@@ -8,9 +8,9 @@ NUM_PROCESSORS = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-EPOCHS = 1
+EPOCHS = 5
 LEARNING_RATE = 0.0001
-BATCH_SIZE = 40
+BATCH_SIZE = 30
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
@@ -19,9 +19,9 @@ SAVE_MODEL_PLOT = True
 
 # Settings for training data 
 #------------------------------------------------------------------------------
-NUM_OF_SAMPLES = 2500
-VALIDATION_SIZE = 0.1
-TEST_SIZE = 0.2
+SAMPLE_SIZE = None
+VALIDATION_SIZE = 0.2
+TEST_SIZE = 0.1
 IMG_AUGMENT = False
 
 # General settings 

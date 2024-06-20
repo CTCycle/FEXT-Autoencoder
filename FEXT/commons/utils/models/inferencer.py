@@ -4,7 +4,7 @@ from tqdm import tqdm
 import tensorflow as tf
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
-from FEXT.commons.pathfinder import INFERENCE_OUTPUT_PATH
+from FEXT.commons.pathfinder import ENCODED_OUTPUT_PATH
 from FEXT.commons.configurations import SEED
 
 
@@ -33,8 +33,10 @@ class FeatureExtractor:
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array([(image, features[image]) for image in features], dtype=object)
-        file_loc = os.path.join(INFERENCE_OUTPUT_PATH, 'extracted_features.npy')
+        file_loc = os.path.join(ENCODED_OUTPUT_PATH, 'extracted_features.npy')
         np.save(file_loc, structured_data)
+
+        return features
 
 
 
