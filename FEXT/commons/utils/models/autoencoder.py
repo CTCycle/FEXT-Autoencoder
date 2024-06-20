@@ -4,6 +4,7 @@ from keras.models import Model
 
 from FEXT.commons.utils.models.layers import PooledConvBlock, TransposeConvBlock
 from FEXT.commons.configurations import SEED, IMG_SHAPE, LEARNING_RATE, XLA_STATE
+from FEXT.commons.pathfinder import IMG_DATA_PATH
 
   
 
@@ -15,23 +16,25 @@ from FEXT.commons.configurations import SEED, IMG_SHAPE, LEARNING_RATE, XLA_STAT
 class FeXTEncoder(layers.Layer):
     def __init__(self, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)        
-        self.convblock1 = PooledConvBlock(64, 2, SEED)
-        self.convblock2 = PooledConvBlock(128, 2, SEED)
-        self.convblock3 = PooledConvBlock(256, 3, SEED)
-        self.convblock4 = PooledConvBlock(256, 3, SEED)
-        self.convblock5 = PooledConvBlock(512, 3, SEED)
-        self.dense = layers.Dense(512, activation='relu', kernel_initializer='he_uniform')
+        self.convblock1 = PooledConvBlock(64, 2) 
+        self.convblock2 = PooledConvBlock(128, 2)
+        self.convblock3 = PooledConvBlock(256, 2)
+        self.convblock4 = PooledConvBlock(256, 2)
+        self.convblock5 = PooledConvBlock(512, 3)
+        self.convblock6 = PooledConvBlock(512, 3)        
+        self.dense = layers.Dense(512, activation='relu', 
+                                  kernel_initializer='he_uniform')
         
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training=True):
-        layer = inputs
-        layer = self.convblock1(layer)
-        layer = self.convblock2(layer)
-        layer = self.convblock3(layer)
-        layer = self.convblock4(layer)
-        layer = self.convblock5(layer) 
+    def call(self, inputs, training=None):        
+        layer = self.convblock1(inputs, training=training) # output shape: (128, 128, 64)
+        layer = self.convblock2(layer, training=training)
+        layer = self.convblock3(layer, training=training)
+        layer = self.convblock4(layer, training=training)
+        layer = self.convblock5(layer, training=training)
+        layer = self.convblock6(layer, training=training)
         output = self.dense(layer)       
 
         return output
@@ -55,23 +58,24 @@ class FeXTEncoder(layers.Layer):
 @keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
     def __init__(self, **kwargs):
-        super(FeXTDecoder, self).__init__(**kwargs)                
-        self.convblock1 = TransposeConvBlock(512, 3, SEED)    
-        self.convblock2 = TransposeConvBlock(256, 3, SEED)
-        self.convblock3 = TransposeConvBlock(256, 3, SEED)
-        self.convblock4 = TransposeConvBlock(128, 2, SEED)
-        self.convblock5 = TransposeConvBlock(64, 2, SEED)
+        super(FeXTDecoder, self).__init__(**kwargs)
+        self.convblock1 = TransposeConvBlock(512, 3)                
+        self.convblock1 = TransposeConvBlock(512, 3)    
+        self.convblock2 = TransposeConvBlock(256, 2)
+        self.convblock3 = TransposeConvBlock(256, 2)
+        self.convblock4 = TransposeConvBlock(128, 2)
+        self.convblock5 = TransposeConvBlock(64, 2)
         self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
-    def call(self, inputs, training=True):        
+    def call(self, inputs, training=None):        
         
-        layer = self.convblock1(inputs)
-        layer = self.convblock2(layer)
-        layer = self.convblock3(layer)
-        layer = self.convblock4(layer)
-        layer = self.convblock5(layer)
+        layer = self.convblock1(inputs, training=training)
+        layer = self.convblock2(layer, training=training)
+        layer = self.convblock3(layer, training=training)
+        layer = self.convblock4(layer, training=training)
+        layer = self.convblock5(layer, training=training)
         output = self.dense(layer)
 
         return output
@@ -98,8 +102,8 @@ class FeXTDecoder(keras.layers.Layer):
 class FeXTAutoEncoder: 
 
     def __init__(self):         
-        self.encoder = FeXTEncoder(IMG_SHAPE, SEED)
-        self.decoder = FeXTDecoder(SEED)        
+        self.encoder = FeXTEncoder()
+        self.decoder = FeXTDecoder()        
 
     # build model given the architecture
     #--------------------------------------------------------------------------

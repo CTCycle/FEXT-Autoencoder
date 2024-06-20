@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 
-from FEXT.commons.configurations import BATCH_SIZE, NUM_OF_SAMPLES, IMG_SHAPE
+from FEXT.commons.configurations import BATCH_SIZE, NUM_OF_SAMPLES, IMG_SHAPE, IMG_AUGMENT
 
 
 # [CUSTOM DATA GENERATOR FOR TRAINING]
@@ -12,13 +12,10 @@ from FEXT.commons.configurations import BATCH_SIZE, NUM_OF_SAMPLES, IMG_SHAPE
 # tf.dataset with prefetching
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, data, shuffle=True,
-                  augmentation=True, normalization=True):     
-        
+    def __init__(self, data, shuffle=True, normalization=True):         
       
         self.data = data
-        self.batch_index = 0 
-        self.augmentation = augmentation
+        self.batch_index = 0        
         self.normalization = normalization             
         self.shuffle = shuffle
         self.on_epoch_end()       
@@ -60,7 +57,7 @@ class DataGenerator(keras.utils.Sequence):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
         rgb_image = tf.image.resize(rgb_image, IMG_SHAPE[:-1])        
-        if self.augmentation==True:
+        if IMG_AUGMENT:
             rgb_image = self.__images_augmentation(rgb_image)
         if self.normalization==True:
             rgb_image = rgb_image/255.0
@@ -78,12 +75,10 @@ class DataGenerator(keras.utils.Sequence):
         
 # [CUSTOM DATA GENERATOR FOR TRAINING]
 #------------------------------------------------------------------------------
-def build_tensor_dataset(dataframe, batch_size, picture_shape=(244, 244, 3), shuffle=True,
-                         augmentation=True, normalization=True, buffer_size=tf.data.AUTOTUNE):
+def build_tensor_dataset(dataframe, buffer_size=tf.data.AUTOTUNE):
 
 
-    generator = DataGenerator(dataframe, batch_size, shuffle,
-                              augmentation, normalization)
+    generator = DataGenerator(dataframe, shuffle=True, normalization=True)                              
         
     x_batch, y_batch = generator.__getitem__(0)        
     output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 

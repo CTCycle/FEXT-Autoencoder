@@ -9,9 +9,10 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.preprocessing import dataset_from_images
-from FEXT.commons.utils.models import Inference
-from FEXT.commons.pathfinder import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH, CHECKPOINT_PATH
+from FEXT.commons.utils.preprocessing import get_images_path
+from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
+from FEXT.commons.utils.models.inferencer import FeatureExtractor
+from FEXT.commons.pathfinder import CHECKPOINT_PATH
 import FEXT.commons.configurations as cnf
 
 
@@ -20,14 +21,16 @@ if __name__ == '__main__':
 
     # 1. [EXTRACT FEATURES FROM IMAGES]
     #--------------------------------------------------------------------------
-    inference = Inference(cnf.SEED) 
+    extractor = FeatureExtractor(cnf.SEED)
+    dataserializer = DataSerializer()   
+    modelserializer = ModelSerializer() 
+    
+    
+    # select a fraction of data for training
+    images_paths = get_images_path()
 
-    # find and assign images path    
-    df_images = dataset_from_images(INFERENCE_INPUT_PATH)
-
-    # selected and load the pretrained model, then print the summary    
-    inference = Inference(cnf.SEED) 
-    model, parameters = inference.load_pretrained_model(CHECKPOINT_PATH)
+    # selected and load the pretrained model, then print the summary        
+    model, parameters = modelserializer.load_pretrained_model(CHECKPOINT_PATH)
     model.summary(expand_nested=True)
 
     # isolate the encoder from the autoencoder model, and use it for inference     
@@ -36,19 +39,4 @@ if __name__ == '__main__':
     encoder_model = keras.Model(inputs=encoder_input.input, outputs=encoder_output.output)
 
     # extract features from images using the encoder output    
-    features = {}
-    for pt in tqdm(df_images['path'].to_list()):
-        try:
-            image = inference.images_loader(pt, parameters['picture_shape'])
-            image = tf.expand_dims(image, axis=0)
-            extracted_features = encoder_model.predict(image, verbose=0)
-            features.update({pt : extracted_features})
-        except: 
-            features.update({pt : 'Could not extract features'})
-
-    # combine extracted features with images name and save them in numpy arrays    
-    structured_data = np.array([(image, features[image]) for image in features], dtype=object)
-    file_loc = os.path.join(INFERENCE_OUTPUT_PATH, 'extracted_features.npy')
-    np.save(file_loc, structured_data)
-
-
+    extractor.extract_from_encoder(images_paths, encoder_model)
