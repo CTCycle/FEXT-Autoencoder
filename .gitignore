@@ -6,4 +6,6 @@ FEXT/inference/extracted_images_features.csv
 FEXT/training/checkpoints/*
 
 *.egg-info
+*.npy
+*.json
 !.gitkeep

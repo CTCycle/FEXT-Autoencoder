@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # [VALIDATION OF DATA]
-#==============================================================================
+#------------------------------------------------------------------------------
 class DataValidation:
 
     def __init__(self):
@@ -12,25 +12,26 @@ class DataValidation:
         self.file_type = 'jpeg'
 
     #--------------------------------------------------------------------------
-    def pixel_intensity_histograms(self, image_set_1, image_set_2, path, 
-                                   names=['First set', 'Second set']):
+    def pixel_intensity_histograms(self, image_dict, path):
+
+        figure_path = os.path.join(path, 'pixel_intensity_histograms.jpeg')
+        plt.figure(figsize=(16, 14))        
+        for name, image_set in image_dict.items():
+            pixel_intensities = np.concatenate([image.flatten() for image in image_set])
+            plt.hist(pixel_intensities, bins='auto', alpha=0.5, label=name)
         
-        pixel_intensities_1 = np.concatenate([image.flatten() for image in image_set_1])
-        pixel_intensities_2 = np.concatenate([image.flatten() for image in image_set_2])        
-        plt.hist(pixel_intensities_1, bins='auto', alpha=0.5, color='blue', label=names[0])
-        plt.hist(pixel_intensities_2, bins='auto', alpha=0.5, color='red', label=names[1])
         plt.title('Pixel Intensity Histograms', fontsize=16)
         plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency',  fontsize=12)
-        plt.legend()            
+        plt.ylabel('Frequency', fontsize=12)
+        plt.legend()
         plt.tight_layout()        
-        plt.savefig(path, bbox_inches='tight', format=self.file_type, dpi=self.DPI)   
-        plt.show()         
+        plt.savefig(figure_path, bbox_inches='tight', format=self.file_type, dpi=self.DPI)
+        plt.show()
         plt.close()
         
 
 # [VALIDATION OF PRETRAINED MODELS]
-#==============================================================================
+#------------------------------------------------------------------------------
 class ModelValidation:
 
     def __init__(self, model):        

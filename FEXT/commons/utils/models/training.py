@@ -69,9 +69,7 @@ class ModelTraining:
 
         # save model parameters in json files    
         serializer = ModelSerializer()
-        parameters = {'train_samples': len(train_data),
-                      'test_samples': len(validation_data),
-                      'picture_shape' : IMG_SHAPE,                           
+        parameters = {'picture_shape' : IMG_SHAPE,                           
                       'augmentation' : IMG_AUGMENT,              
                       'batch_size' : BATCH_SIZE,
                       'learning_rate' : LEARNING_RATE,
@@ -79,7 +77,7 @@ class ModelTraining:
                       'seed' : SEED,
                       'tensorboard' : USE_TENSORBOARD}
 
-        serializer.save_model_parameters(parameters, current_checkpoint_path)
+        serializer.save_model_parameters(current_checkpoint_path, parameters)
 
         
 

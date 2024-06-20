@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 #------------------------------------------------------------------------------
 class RealTimeHistory(keras.callbacks.Callback):
-
+    
     '''
     Custom Keras callback to visualize training and validation metrics in real-time.
 
@@ -43,54 +43,45 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.plot_frequency = plot_frequency
         self.validation = validation 
         
-        # Initialize lists to store history
-        self.epochs = []
-        self.loss_hist = []
-        self.metric_hist = []
-        self.loss_val_hist = []
-        self.metric_val_hist = []
+        # Initialize dictionaries to store history
+        self.history = {}
+        self.val_history = {}
         
         # Ensure plot directory exists
         os.makedirs(self.plot_path, exist_ok=True)
     
     def on_epoch_end(self, epoch, logs={}):
-
         # Log metrics and losses
-        self.epochs.append(epoch)
-        self.loss_hist.append(logs.get('loss'))
-        self.metric_hist.append(logs.get('cosine_similarity'))
-        
-        if self.validation:
-            self.loss_val_hist.append(logs.get('val_loss'))
-            self.metric_val_hist.append(logs.get('val_cosine_similarity'))
+        for key, value in logs.items():
+            if key.startswith('val_'):
+                if self.validation:
+                    if key not in self.val_history:
+                        self.val_history[key] = []
+                    self.val_history[key].append(value)
+            else:
+                if key not in self.history:
+                    self.history[key] = []
+                self.history[key].append(value)
         
         # Update plots if necessary
         if epoch % self.plot_frequency == 0:
             self.plot_training_history()
 
     def plot_training_history(self):
-        fig_path = os.path.join(self.plot_path, f'training_history_epoch_{self.epochs[-1]}.jpeg')
+        fig_path = os.path.join(self.plot_path, 'training_history.jpeg')
         plt.figure(figsize=(10, 8))
-
-        # Plot loss
-        plt.subplot(2, 1, 1)
-        plt.plot(self.epochs, self.loss_hist, label='training loss')
-        if self.validation:
-            plt.plot(self.epochs, self.loss_val_hist, label='validation loss')
-            plt.legend(loc='best', fontsize=8)
-        plt.title('Loss Plot')
-        plt.ylabel('Mean Square Error')
-        plt.xlabel('Epoch')
-
-        # Plot metrics
-        plt.subplot(2, 1, 2)
-        plt.plot(self.epochs, self.metric_hist, label='train metrics')
-        if self.validation:
-            plt.plot(self.epochs, self.metric_val_hist, label='validation metrics')
-            plt.legend(loc='best', fontsize=8)
-        plt.title('Metrics Plot')
-        plt.ylabel('Cosine Similarity')
-        plt.xlabel('Epoch')
+        
+        # Plot each metric
+        for i, (metric, values) in enumerate(self.history.items()):
+            plt.subplot(len(self.history), 1, i + 1)
+            plt.plot(range(len(values)), values, label=f'train {metric}')
+            if self.validation and f'val_{metric}' in self.val_history:
+                plt.plot(range(len(self.val_history[f'val_{metric}'])), self.val_history[f'val_{metric}'], label=f'val {metric}')
+                plt.legend(loc='best', fontsize=8)
+            plt.title(f'{metric} Plot')
+            plt.ylabel(metric)
+            plt.xlabel('Epoch')
+        
         plt.tight_layout()
         plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=300)
         plt.close()
