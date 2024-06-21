@@ -104,12 +104,10 @@ class DataSerializer:
         '''        
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')
         checkpoint_folder_name = f'{self.model_name}_{today_datetime}'
-        checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_folder_name)        
-        # Create the directory if it does not exist
+        checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_folder_name)         
         os.makedirs(checkpoint_folder_path, exist_ok=True)
-
-        self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
-        os.makedirs(self.preprocessing_path, exist_ok=True)
+        # self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
+        # os.makedirs(self.preprocessing_path, exist_ok=True)
         
         return checkpoint_folder_path
     
