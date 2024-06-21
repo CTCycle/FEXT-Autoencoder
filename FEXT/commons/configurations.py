@@ -1,6 +1,6 @@
 # Advanced settings for training 
 #------------------------------------------------------------------------------
-MIXED_PRECISION = True
+MIXED_PRECISION = False
 USE_TENSORBOARD = False
 XLA_STATE = False
 ML_DEVICE = 'GPU'
@@ -8,9 +8,9 @@ NUM_PROCESSORS = 6
 
 # Settings for training routine
 #------------------------------------------------------------------------------
-EPOCHS = 5
+EPOCHS = 30
 LEARNING_RATE = 0.0001
-BATCH_SIZE = 30
+BATCH_SIZE = 20
 
 # Autoencoder settings
 #------------------------------------------------------------------------------
