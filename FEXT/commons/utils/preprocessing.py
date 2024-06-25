@@ -1,12 +1,14 @@
-
+from typing import List
 from FEXT.commons.configurations import TEST_SIZE, VALIDATION_SIZE
 
 
-# [VALIDATION OF DATA]
+# [DATA SPLITTING]
 #------------------------------------------------------------------------------
 class DataSplit:
 
-    def __init__(self, images_path):
+    def __init__(self, images_path: List[str]):
+        if not isinstance(images_path, list):
+            raise TypeError('images_path must be a list')
         
         # get num of samples in train, validation and test datasets
         self.train_size = int(len(images_path) * (1.0 - TEST_SIZE - VALIDATION_SIZE))
