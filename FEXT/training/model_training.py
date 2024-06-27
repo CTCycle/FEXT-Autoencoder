@@ -9,7 +9,7 @@ from FEXT.commons.utils.preprocessing import DataSplit
 from FEXT.commons.utils.models.training import ModelTraining
 from FEXT.commons.utils.models.autoencoder import FeXTAutoEncoder
 from FEXT.commons.configurations import IMG_SHAPE, BATCH_SIZE, EPOCHS, SAMPLE_SIZE
-from FEXT.commons.pathfinder import VAL_PATH, IMG_DATA_PATH
+from FEXT.commons.pathfinder import IMG_DATA_PATH
 
 
 # [RUN MAIN]
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     dataserializer = DataSerializer()
     model_folder_path = dataserializer.create_checkpoint_folder()
     dataserializer.save_preprocessed_data(train_data, validation_data, 
-                                          test_data, model_folder_path)      
+                                          model_folder_path)      
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
@@ -44,8 +44,7 @@ if __name__ == '__main__':
     # create the tf.datasets using the previously initialized generators    
     train_dataset = build_tensor_dataset(train_data)
     validation_dataset = build_tensor_dataset(validation_data)
-    test_dataset = build_tensor_dataset(test_data)   
-
+    
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  
     # Setting callbacks and training routine for the features extraction model 

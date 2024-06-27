@@ -60,11 +60,10 @@ class DataSerializer:
 
     # ...
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data, validation_data, test_data, path):        
+    def save_preprocessed_data(self, train_data, validation_data, path):        
 
         combined_data = {'train': train_data, 
-                         'validation': validation_data, 
-                         'test': test_data}
+                         'validation': validation_data}
 
         with open(os.path.join(path, 'preprocessed_data.json'), 'w') as json_file:
             json.dump(combined_data, json_file)
@@ -81,12 +80,10 @@ class DataSerializer:
             combined_data = json.load(json_file)
         
         train_data = combined_data.get('train')
-        validation_data = combined_data.get('validation')
-        test_data = combined_data.get('test')
+        validation_data = combined_data.get('validation')        
         
         return {'train': train_data, 
-                'validation': validation_data, 
-                'test': test_data}
+                'validation': validation_data}
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -106,8 +103,8 @@ class DataSerializer:
         checkpoint_folder_name = f'{self.model_name}_{today_datetime}'
         checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_folder_name)         
         os.makedirs(checkpoint_folder_path, exist_ok=True)
-        # self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
-        # os.makedirs(self.preprocessing_path, exist_ok=True)
+        self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
+        os.makedirs(self.preprocessing_path, exist_ok=True)
         
         return checkpoint_folder_path
     
