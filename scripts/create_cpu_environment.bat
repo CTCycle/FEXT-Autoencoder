@@ -20,7 +20,7 @@ if errorlevel 1 (
 )
 
 rem Install additional tools
-echo STEP 3: Install additional libraries
+echo STEP 3: Install additional libraries for model visualization
 call conda install graphviz -y
 call pip install pydot
 if errorlevel 1 (

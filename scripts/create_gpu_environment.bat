@@ -23,12 +23,12 @@ rem Install CUDA and cuDNN via conda from specific channels
 echo STEP 3: Install conda libraries for CUDA GPU support
 call conda install conda-forge::cudatoolkit nvidia/label/cuda-12.0.0::cuda-nvcc conda-forge::cudnn -y
 if errorlevel 1 (
-    echo Failed to install CUDA toolkits.
+    echo Failed to install CUDA toolkit
     goto :eof
 )
 
 rem Install additional tools
-echo STEP 4: Install additional libraries
+echo STEP 4: Install additional libraries for model visualization
 call conda install graphviz -y
 call pip install pydot
 if errorlevel 1 (
