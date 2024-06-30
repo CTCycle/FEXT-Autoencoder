@@ -1,9 +1,8 @@
 __pycache__
-FEXT/data/images/*
-FEXT/data/validation/*
-FEXT/inference/images/*
-FEXT/inference/extracted_images_features.csv
-FEXT/training/checkpoints/*
+FEXT/resources/dataset/*
+FEXT/resources/results/*
+FEXT/resources/predictions/input_images/*
+FEXT/resources/checkpoints/*
 
 *.egg-info
 *.npy
