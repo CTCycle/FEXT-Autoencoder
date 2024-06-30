@@ -36,6 +36,7 @@ class ModelTraining:
                 if MIXED_PRECISION:
                     policy = keras.mixed_precision.Policy('mixed_float16')
                     keras.mixed_precision.set_global_policy(policy) 
+                    print('\nMixed precision policy is active during training\n')
                 tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
                 os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
                 print('\nGPU is set as active device\n')
@@ -57,18 +58,16 @@ class ModelTraining:
             callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, 
                                                                  histogram_freq=1))
 
-        # training loop and save model at end of training    
+        # training loop and save model at end of training
+        serializer = ModelSerializer()    
         multiprocessing = NUM_PROCESSORS > 1
         training = model.fit(train_data, epochs=EPOCHS, validation_data=validation_data, 
                             callbacks=callbacks_list, workers=NUM_PROCESSORS, 
                             use_multiprocessing=multiprocessing)
 
-        model_files_path = os.path.join(current_checkpoint_path, 'model')
-        model.save(model_files_path, save_format='tf')
-        print(f'\nTraining session is over. Model has been saved in folder {current_checkpoint_path}')
+        serializer.save_pretrained_model(model, current_checkpoint_path)
 
-        # save model parameters in json files    
-        serializer = ModelSerializer()
+        # save model parameters in json files         
         parameters = {'picture_shape' : IMG_SHAPE,                           
                       'augmentation' : IMG_AUGMENT,              
                       'batch_size' : BATCH_SIZE,

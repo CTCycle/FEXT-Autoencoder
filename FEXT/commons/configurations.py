@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 MIXED_PRECISION = False
 USE_TENSORBOARD = False
-XLA_STATE = False
+XLA_STATE = False # not compatible with current model architecture (default to False)
 ML_DEVICE = 'GPU'
 NUM_PROCESSORS = 6
 
