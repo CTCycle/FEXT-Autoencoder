@@ -118,6 +118,13 @@ class ModelSerializer:
         pass
 
     #--------------------------------------------------------------------------
+    def save_pretrained_model(self, model, path):
+
+        model_files_path = os.path.join(path, 'model')
+        model.save(model_files_path, save_format='tf')
+        print(f'\nTraining session is over. Model has been saved in folder {path}')
+
+    #--------------------------------------------------------------------------
     def save_model_parameters(self, path, parameters_dict):
 
         '''
