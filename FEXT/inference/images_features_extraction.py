@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerializer
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.models.inferencer import FeatureExtractor
-from FEXT.commons.pathfinder import ENCODED_INPUT_PATH
+from FEXT.commons.constants import CONFIG, ENCODED_INPUT_PATH
 
 # [RUN MAIN]
 if __name__ == '__main__':

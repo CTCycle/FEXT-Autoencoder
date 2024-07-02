@@ -1,12 +1,8 @@
-import os
-import numpy as np
-import json
-import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 from keras.activations import relu
 
-from FEXT.commons.configurations import SEED, IMG_SHAPE, LEARNING_RATE, XLA_STATE
+from FEXT.commons.constants import CONFIG
 
 
 # [POOLING CONVOLUTIONAL BLOCKS]

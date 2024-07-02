@@ -4,8 +4,8 @@ from tqdm import tqdm
 import tensorflow as tf
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
-from FEXT.commons.pathfinder import ENCODED_OUTPUT_PATH
-from FEXT.commons.configurations import SEED
+from FEXT.commons.constants import CONFIG, ENCODED_OUTPUT_PATH
+
 
 
 # [INFERENCE]
@@ -14,15 +14,15 @@ class FeatureExtractor:
     
     def __init__(self, model):
         
-        np.random.seed(SEED)
-        tf.random.set_seed(SEED)
+        np.random.seed(CONFIG["SEED"])
+        tf.random.set_seed(CONFIG["SEED"])
         self.dataserializer = DataSerializer()
         self.model = model
 
     def extract_from_encoder(self, images_paths, parameters):
         
         features = {}
-        for pt in tqdm(images_paths):
+        for pt in images_paths:
             try:
                 image = self.dataserializer.load_images(pt, parameters['picture_shape'])
                 image = tf.expand_dims(image, axis=0)

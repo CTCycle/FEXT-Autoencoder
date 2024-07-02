@@ -1,14 +1,12 @@
 import os
 import cv2
 import json
-import random
 from tqdm import tqdm
 from datetime import datetime
 import tensorflow as tf
 from keras.utils import plot_model
 
-from FEXT.commons.configurations import SAVE_MODEL_PLOT, IMG_SHAPE
-from FEXT.commons.pathfinder import CHECKPOINT_PATH
+from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 
     
 #------------------------------------------------------------------------------
@@ -36,22 +34,23 @@ class DataSerializer:
         self.model_name = 'FeXT'
        
     #------------------------------------------------------------------------------
-    def load_images(self, paths, as_tensor=True, normalize=True):
-            
+    def load_images(self, paths, as_tensor=True):
+
+        img_shape = CONFIG["model"]["IMG_SHAPE"]           
         images = []
         for pt in tqdm(paths):
             if as_tensor==False:                
                 image = cv2.imread(pt)             
-                image = cv2.resize(image, IMG_SHAPE[:-1])            
+                image = cv2.resize(image, img_shape[:-1])            
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
-                if normalize==True:
+                if CONFIG["dataset"]["IMG_NORMALIZE"]:
                     image = image/255.0
             else:
                 image = tf.io.read_file(pt)
                 image = tf.image.decode_image(image, channels=3)
-                image = tf.image.resize(image, IMG_SHAPE[:-1])
+                image = tf.image.resize(image, img_shape[:-1])
                 image = tf.reverse(image, axis=[-1])
-                if normalize==True:
+                if CONFIG["dataset"]["IMG_NORMALIZE"]:
                     image = image/255.0
             
             images.append(image) 
@@ -106,8 +105,7 @@ class DataSerializer:
         self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
         os.makedirs(self.preprocessing_path, exist_ok=True)
         
-        return checkpoint_folder_path
-    
+        return checkpoint_folder_path    
     
 
 # [...]
@@ -147,11 +145,11 @@ class ModelSerializer:
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
 
-        if SAVE_MODEL_PLOT:
+        if CONFIG["model"]["SAVE_MODEL_PLOT"]:
             plot_path = os.path.join(path, 'model_layout.png')       
             plot_model(model, to_file=plot_path, show_shapes=True, 
-                    show_layer_names=True, show_layer_activations=True, 
-                    expand_nested=True, rankdir='TB', dpi=400)
+                       show_layer_names=True, show_layer_activations=True, 
+                       expand_nested=True, rankdir='TB', dpi=400)
             
     #-------------------------------------------------------------------------- 
     def load_pretrained_model(self):
@@ -184,14 +182,14 @@ class ModelSerializer:
         if len(model_folders) > 1:
             model_folders.sort()
             index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-            print('Please select a pretrained model:') 
+            print('Currently available pretrained models:') 
             print()
             for i, directory in enumerate(model_folders):
                 print(f'{i + 1} - {directory}')        
             print()               
             while True:
                 try:
-                    dir_index = int(input('Type the model index to select it: '))
+                    dir_index = int(input('Select the pretrained model: '))
                     print()
                 except ValueError:
                     continue

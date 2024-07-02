@@ -1,5 +1,5 @@
 from typing import List
-from FEXT.commons.configurations import TEST_SIZE, VALIDATION_SIZE
+from FEXT.commons.constants import CONFIG
 
 
 # [DATA SPLITTING]
@@ -10,10 +10,13 @@ class DataSplit:
         if not isinstance(images_path, list):
             raise TypeError('images_path must be a list')
         
+        validation_size = CONFIG["dataset"]["VALIDATION_SIZE"]
+        test_size = CONFIG["dataset"]["TEST_SIZE"]
+        
         # get num of samples in train, validation and test datasets
-        self.train_size = int(len(images_path) * (1.0 - TEST_SIZE - VALIDATION_SIZE))
-        self.val_size = int(len(images_path) * VALIDATION_SIZE)
-        self.test_size = int(len(images_path) * TEST_SIZE)
+        self.train_size = int(len(images_path) * (1.0 - test_size - validation_size))
+        self.val_size = int(len(images_path) * validation_size)
+        self.test_size = int(len(images_path) * test_size)
         self.images_path = images_path
 
     def split_data(self):          

@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from FEXT.commons.configurations import BATCH_SIZE, IMG_SHAPE, IMG_AUGMENT
+from FEXT.commons.constants import CONFIG
 
 
 # [CUSTOM DATA GENERATOR FOR TRAINING]
@@ -11,27 +11,28 @@ from FEXT.commons.configurations import BATCH_SIZE, IMG_SHAPE, IMG_AUGMENT
 # tf.dataset with prefetching
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self, data, shuffle=True, normalization=True):         
+    def __init__(self, data, shuffle=True):         
       
         self.data = data
         self.num_samples = len(data)
-        self.batch_index = 0        
-        self.normalization = normalization             
+        self.batch_size = CONFIG["training"]["BATCH_SIZE"]
+        self.img_shape = CONFIG["model"]["IMG_SHAPE"]        
+        self.batch_index = 0                     
         self.shuffle = shuffle
         self.on_epoch_end()       
 
     # define length of the custom generator      
     #--------------------------------------------------------------------------
     def __len__(self):
-        length = int(np.ceil(self.num_samples/BATCH_SIZE))
+        length = int(np.ceil(self.num_samples/self.batch_size))
         return length
     
     # define method to get X and Y data through custom functions, and subsequently
     # create a batch of data converted to tensors
     #--------------------------------------------------------------------------
     def __getitem__(self, idx): 
-        path_batch = self.data[idx * BATCH_SIZE:(idx + 1) * BATCH_SIZE] 
-        if len(path_batch) < BATCH_SIZE:
+        path_batch = self.data[idx * self.batch_size:(idx + 1) * self.batch_size] 
+        if len(path_batch) < self.batch_size:
             return self.next()  
         x1_batch = [self.__images_generation(image_path) for image_path in path_batch]                
         X1_tensor = tf.convert_to_tensor(x1_batch)
@@ -42,7 +43,7 @@ class DataGenerator(keras.utils.Sequence):
     #--------------------------------------------------------------------------
     def on_epoch_end(self):        
         self.indexes = np.arange(self.num_samples)
-        if self.shuffle == True:
+        if self.shuffle:
             np.random.shuffle(self.indexes)
 
     # define method perform data augmentation    
@@ -58,10 +59,10 @@ class DataGenerator(keras.utils.Sequence):
     def __images_generation(self, path):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
-        rgb_image = tf.image.resize(rgb_image, IMG_SHAPE[:-1])        
-        if IMG_AUGMENT:
+        rgb_image = tf.image.resize(rgb_image, self.img_shape[:-1])        
+        if CONFIG["dataset"]["IMG_AUGMENT"]:
             rgb_image = self.__images_augmentation(rgb_image)
-        if self.normalization==True:
+        if CONFIG["dataset"]["IMG_NORMALIZE"]:
             rgb_image = rgb_image/255.0
         return rgb_image    
     
@@ -70,8 +71,7 @@ class DataGenerator(keras.utils.Sequence):
     def next(self):
         next_index = (self.batch_index + 1) % self.__len__()
         self.batch_index = next_index
-        return self.__getitem__(next_index)
-        
+        return self.__getitem__(next_index)      
 
               
         
@@ -79,9 +79,7 @@ class DataGenerator(keras.utils.Sequence):
 #------------------------------------------------------------------------------
 def build_tensor_dataset(dataframe, buffer_size=tf.data.AUTOTUNE):
 
-
-    generator = DataGenerator(dataframe, shuffle=True, normalization=True)                              
-        
+    generator = DataGenerator(dataframe, shuffle=True)      
     x_batch, y_batch = generator.__getitem__(0)        
     output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
                         tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))

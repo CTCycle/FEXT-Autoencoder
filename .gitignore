@@ -6,5 +6,4 @@ FEXT/resources/checkpoints/*
 
 *.egg-info
 *.npy
-*.json
 !.gitkeep

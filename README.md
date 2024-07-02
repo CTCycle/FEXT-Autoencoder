@@ -39,26 +39,44 @@ The project is organized into subfolders, each dedicated to specific tasks.
 **inference:** run `features_extraction.py` to use the pretrained encoder from a model checkpoitn to extract abstract representation of image features in the form of lower-dimension embeddings, using images from `resources/inference/input_images` and saving their corresponding encodings in `resources/inference/encoder_output`. 
  
 ### 5.1 Configurations
-For customization, you can modify the main script parameters via the `FEXT/commons/configurations.py` file. 
+For customization, you can modify the main configuration parameters using `configurations.json` in the root project folder. 
 
-| Category                | Setting                | Description                                                       |
-|-------------------------|------------------------|-------------------------------------------------------------------|
-| **Advanced settings**   | MIXED_PRECISION        | use mixed precision for faster training (float16/32)              |
-|                         | USE_TENSORBOARD        | Activate/deactivate tensorboard logging                           |
-|                         | XLA_STATE              | Use linear algebra acceleration for faster training               |
-|                         | ML_DEVICE              | Select the training device (CPU or GPU)                           |
-|                         | NUM_PROCESSORS         | Number of processors (cores) to use; 1 disables multiprocessing   |
-| **Training settings**   | EPOCHS                 | Number of training iterations                                     |
-|                         | LEARNING_RATE          | Learning rate of the model                                        |
-|                         | BATCH_SIZE             | Size of batches for model training                                |
-| **Model settings**      | IMG_SHAPE              | Full shape of the images as (height, width, channels)             |
-|                         | SAVE_MODEL_PLOT        | Generate/save 2D model graph (as .png file)                       |
-| **Data settings**       | SAMPLE_SIZE            | Fraction of total samples                                         |
-|                         | TEST_SIZE              | Fraction of images for model training                             |
-|                         | VALIDATION_SIZE        | Fraction of samples for validation data                           |
-|                         | IMG_AUGMENT            | Perform data augmentation on images (affects training time)       |
-| **General settings**    | SEED                   | Global random seed                                                |
-|                         | SPLIT_SEED             | Seed for dataset splitting                                        |
+#### Dataset Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| SAMPLE_SIZE        | Number of samples to use from the dataset                |
+| VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
+| TEST_SIZE          | Proportion of the dataset to use for testing             |
+| IMG_NORMALIZE      | Whether to normalize image data                          |
+| IMG_AUGMENT        | Whether to apply data augmentation to images             |
+| SPLIT_SEED         | Seed for random splitting of the dataset                 |
+
+#### Model Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| IMG_SHAPE          | Shape of the input images (height, width, channels)      |
+| SAVE_MODEL_PLOT    | Whether to save a plot of the model architecture         |
+
+#### Training Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| EPOCHS             | Number of epochs to train the model                      |
+| LEARNING_RATE      | Learning rate for the optimizer                          |
+| BATCH_SIZE         | Number of samples per batch                              |
+| MIXED_PRECISION    | Whether to use mixed precision training                  |
+| USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
+| XLA_STATE          | Whether to enable XLA (Accelerated Linear Algebra)       |
+| ML_DEVICE          | Device to use for training (e.g., GPU)                   |
+| NUM_PROCESSORS     | Number of processors to use for data loading             |
+
+#### Evaluation Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| BATCH_SIZE         | Number of samples per batch during evaluation            |    
                     
  
 ## License
