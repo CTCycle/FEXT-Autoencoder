@@ -70,7 +70,7 @@ if __name__ == '__main__':
     modelserializer.save_model_plot(model, model_folder_path)              
 
     # perform training and save model at the end
-    trainer.training_session(model, train_dataset, validation_dataset, model_folder_path)
+    trainer.train_model(model, train_dataset, validation_dataset, model_folder_path)
 
 
 
