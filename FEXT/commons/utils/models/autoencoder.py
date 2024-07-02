@@ -3,7 +3,7 @@ from keras import layers
 from keras.models import Model
 
 from FEXT.commons.utils.models.layers import PooledConvBlock, TransposeConvBlock
-from FEXT.commons.configurations import SEED, IMG_SHAPE, LEARNING_RATE, XLA_STATE
+from FEXT.commons.constants import CONFIG
 
        
 # [ENCODER MODEL]
@@ -39,7 +39,7 @@ class FeXTEncoder(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTEncoder, self).get_config()
-        config.update({'seed': SEED})
+        config.update({'seed': CONFIG["SEED"]})
         return config
 
     # deserialization method 
@@ -81,7 +81,7 @@ class FeXTDecoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTDecoder, self).get_config()
-        config.update({'seed': SEED})
+        config.update({'seed': CONFIG["SEED"]})
         return config
 
     # deserialization method 
@@ -98,7 +98,11 @@ class FeXTDecoder(keras.layers.Layer):
 # to build and compile the model (print summary as optional)
 class FeXTAutoEncoder: 
 
-    def __init__(self):         
+    def __init__(self): 
+        self.img_shape = CONFIG["model"]["IMG_SHAPE"] 
+        self.learning_rate = CONFIG["training"]["LEARNING_RATE"] 
+        self.xla_state = CONFIG["training"]["XLA_STATE"]  
+             
         self.encoder = FeXTEncoder()
         self.decoder = FeXTDecoder()        
 
@@ -106,15 +110,16 @@ class FeXTAutoEncoder:
     #--------------------------------------------------------------------------
     def get_model(self, summary=True):       
        
-        inputs = layers.Input(shape=IMG_SHAPE)           
+        inputs = layers.Input(shape=self.img_shape)           
         encoder_block = self.encoder(inputs)        
         decoder_block = self.decoder(encoder_block)        
         model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
-        opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
-        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=XLA_STATE)         
-        if summary==True:
+        model.compile(loss=loss, optimizer=opt, metrics=metric, 
+                      jit_compile=self.xla_state)         
+        if summary:
             model.summary(expand_nested=True)
 
         return model

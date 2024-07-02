@@ -8,8 +8,7 @@ from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerial
 from FEXT.commons.utils.preprocessing import DataSplit
 from FEXT.commons.utils.models.training import ModelTraining
 from FEXT.commons.utils.models.autoencoder import FeXTAutoEncoder
-from FEXT.commons.configurations import IMG_SHAPE, BATCH_SIZE, EPOCHS, SAMPLE_SIZE
-from FEXT.commons.pathfinder import IMG_DATA_PATH
+from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
 
 
 # [RUN MAIN]
@@ -17,8 +16,9 @@ if __name__ == '__main__':
 
     # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
-    # select a fraction of data for training    
-    images_paths = get_images_path(IMG_DATA_PATH, sample_size=SAMPLE_SIZE)    
+    # select a fraction of data for training 
+    sample_size = CONFIG["dataset"]["SAMPLE_SIZE"]   
+    images_paths = get_images_path(IMG_DATA_PATH, sample_size=sample_size)    
 
     # split data
     print('\nPreparing dataset of images based on splitting sizes')  
@@ -56,9 +56,9 @@ if __name__ == '__main__':
     print(f'Number of train samples:       {len(train_data)}')
     print(f'Number of validation samples:  {len(validation_data)}')
     print(f'Number of test samples:        {len(test_data)}')  
-    print(f'Picture shape:                 {IMG_SHAPE}')   
-    print(f'Batch size:                    {BATCH_SIZE}')
-    print(f'Epochs:                        {EPOCHS}\n')  
+    print(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
+    print(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
+    print(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
     print('--------------------------------------------------------------------')  
 
     # build the autoencoder model     
