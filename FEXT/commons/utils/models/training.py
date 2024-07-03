@@ -43,7 +43,8 @@ class ModelTraining:
             print('\nCPU is set as active device\n')    
 
     #--------------------------------------------------------------------------
-    def train_model(self, model, train_data, validation_data, current_checkpoint_path):
+    def train_model(self, model : tf.keras.Model, train_data, 
+                    validation_data, current_checkpoint_path):
 
         # initialize the real time history callback    
         RTH_callback = RealTimeHistory(current_checkpoint_path, validation=True)
