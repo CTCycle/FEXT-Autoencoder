@@ -116,7 +116,7 @@ class ModelSerializer:
         pass
 
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model, path):
+    def save_pretrained_model(self, model : tf.keras.Model, path):
 
         model_files_path = os.path.join(path, 'model')
         model.save(model_files_path, save_format='tf')
