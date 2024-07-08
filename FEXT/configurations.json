@@ -1,8 +1,7 @@
 {   
     "SEED" : 54,   
     "dataset" : {"SAMPLE_SIZE" : 0.5,
-                 "VALIDATION_SIZE" : 0.2,
-                 "TEST_SIZE" : 0.1,
+                 "VALIDATION_SIZE" : 0.2,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
                  "SPLIT_SEED" : 45},
