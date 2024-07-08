@@ -7,18 +7,21 @@ from FEXT.commons.constants import CONFIG
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 #------------------------------------------------------------------------------
-@keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConvBlock')
-class PooledConvBlock(layers.Layer):
+@keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConv')
+class PooledConv(layers.Layer):
     def __init__(self, units, num_layers=2, **kwargs):
-        super(PooledConvBlock, self).__init__(**kwargs)
+        super(PooledConv, self).__init__(**kwargs)
         self.units = units        
         self.num_layers = num_layers        
         self.pooling = layers.AveragePooling2D(padding='same')       
-        self.convolutions = [layers.Conv2D(units, 
-                                           kernel_size=(2,2), 
-                                           padding='same', 
+        self.convolutions = [layers.Conv2D(units, kernel_size=(2,2), padding='same', 
                                            activation=None) for _ in range(num_layers)]  
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)] 
+
+    # build method for the custom layer 
+    #--------------------------------------------------------------------------
+    def build(self, input_shape):        
+        super(PooledConv, self).build(input_shape)               
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -35,7 +38,7 @@ class PooledConvBlock(layers.Layer):
     # serialize layer for saving  
     #--------------------------------------------------------------------------
     def get_config(self):
-        config = super(PooledConvBlock, self).get_config()
+        config = super(PooledConv, self).get_config()
         config.update({'units': self.units,                       
                        'num_layers': self.num_layers})
         return config
@@ -49,10 +52,10 @@ class PooledConvBlock(layers.Layer):
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 #------------------------------------------------------------------------------
-@keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConvBlock')
-class TransposeConvBlock(layers.Layer):
+@keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConv')
+class TransposeConv(layers.Layer):
     def __init__(self, units, num_layers=3, **kwargs):
-        super(TransposeConvBlock, self).__init__(**kwargs)
+        super(TransposeConv, self).__init__(**kwargs)
         self.units = units        
         self.num_layers = num_layers              
         self.upsamp = layers.UpSampling2D()
@@ -60,7 +63,12 @@ class TransposeConvBlock(layers.Layer):
                                                     kernel_size=(2,2), 
                                                     padding='same', 
                                                     activation=None) for _ in range(num_layers)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]  
+
+    # build method for the custom layer 
+    #--------------------------------------------------------------------------
+    def build(self, input_shape):        
+        super(TransposeConv, self).build(input_shape)                
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -77,7 +85,7 @@ class TransposeConvBlock(layers.Layer):
     # serialize layer for saving  
     #--------------------------------------------------------------------------
     def get_config(self):
-        config = super(TransposeConvBlock, self).get_config()
+        config = super(TransposeConv, self).get_config()
         config.update({'units': self.units,                  
                        'num_layers': self.num_layers})
         return config

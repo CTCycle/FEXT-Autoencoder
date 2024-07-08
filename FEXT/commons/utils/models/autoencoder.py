@@ -2,7 +2,7 @@ from tensorflow import keras
 from keras import layers
 from keras.models import Model
 
-from FEXT.commons.utils.models.layers import PooledConvBlock, TransposeConvBlock
+from FEXT.commons.utils.models.convolutionals import PooledConv, TransposeConv
 from FEXT.commons.constants import CONFIG
 
        
@@ -12,14 +12,19 @@ from FEXT.commons.constants import CONFIG
 class FeXTEncoder(layers.Layer):
     def __init__(self, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)        
-        self.convblock1 = PooledConvBlock(64, 2) 
-        self.convblock2 = PooledConvBlock(128, 2)
-        self.convblock3 = PooledConvBlock(128, 2)
-        self.convblock4 = PooledConvBlock(256, 2)
-        self.convblock5 = PooledConvBlock(256, 3)
-        self.convblock6 = PooledConvBlock(512, 3)        
+        self.convblock1 = PooledConv(64, 2) 
+        self.convblock2 = PooledConv(128, 2)
+        self.convblock3 = PooledConv(128, 2)
+        self.convblock4 = PooledConv(256, 2)
+        self.convblock5 = PooledConv(256, 3)
+        self.convblock6 = PooledConv(512, 3)        
         self.dense = layers.Dense(512, activation='relu', 
                                   kernel_initializer='he_uniform')
+        
+    # build method for the custom layer 
+    #--------------------------------------------------------------------------
+    def build(self, input_shape):        
+        super(FeXTEncoder, self).build(input_shape)
         
 
     # implement transformer encoder through call method  
@@ -55,12 +60,12 @@ class FeXTEncoder(layers.Layer):
 class FeXTDecoder(keras.layers.Layer):
     def __init__(self, **kwargs):
         super(FeXTDecoder, self).__init__(**kwargs)
-        self.convblock1 = TransposeConvBlock(512, 3)                
-        self.convblock2 = TransposeConvBlock(256, 3)    
-        self.convblock3 = TransposeConvBlock(256, 2)
-        self.convblock4 = TransposeConvBlock(128, 2)
-        self.convblock5 = TransposeConvBlock(128, 2)
-        self.convblock6 = TransposeConvBlock(64, 2)
+        self.convblock1 = TransposeConv(512, 3)                
+        self.convblock2 = TransposeConv(256, 3)    
+        self.convblock3 = TransposeConv(256, 2)
+        self.convblock4 = TransposeConv(128, 2)
+        self.convblock5 = TransposeConv(128, 2)
+        self.convblock6 = TransposeConv(64, 2)
         self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
@@ -76,6 +81,11 @@ class FeXTDecoder(keras.layers.Layer):
         output = self.dense(layer)
 
         return output
+    
+    # build method for the custom layer 
+    #--------------------------------------------------------------------------
+    def build(self, input_shape):        
+        super(FeXTDecoder, self).build(input_shape)
 
     # serialize layer for saving  
     #--------------------------------------------------------------------------
@@ -104,7 +114,7 @@ class FeXTAutoEncoder:
         self.xla_state = CONFIG["training"]["XLA_STATE"]  
              
         self.encoder = FeXTEncoder()
-        self.decoder = FeXTDecoder()        
+        self.decoder = FeXTDecoder()       
 
     # build model given the architecture
     #--------------------------------------------------------------------------

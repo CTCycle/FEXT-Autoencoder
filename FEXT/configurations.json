@@ -1,6 +1,6 @@
 {   
     "SEED" : 54,   
-    "dataset" : {"SAMPLE_SIZE" : null,
+    "dataset" : {"SAMPLE_SIZE" : 0.5,
                  "VALIDATION_SIZE" : 0.2,
                  "TEST_SIZE" : 0.1,
                  "IMG_NORMALIZE" : true,
@@ -10,7 +10,7 @@
     "model" : {"IMG_SHAPE" : [256, 256, 3],
                "SAVE_MODEL_PLOT" : true},
 
-    "training" : {"EPOCHS" : 2,
+    "training" : {"EPOCHS" : 1,
                   "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 20,
                   "MIXED_PRECISION" : false,
