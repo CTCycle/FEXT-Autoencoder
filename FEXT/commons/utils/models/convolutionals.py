@@ -16,12 +16,7 @@ class PooledConv(layers.Layer):
         self.pooling = layers.AveragePooling2D(padding='same')       
         self.convolutions = [layers.Conv2D(units, kernel_size=(2,2), padding='same', 
                                            activation=None) for _ in range(num_layers)]  
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)] 
-
-    # build method for the custom layer 
-    #--------------------------------------------------------------------------
-    def build(self, input_shape):        
-        super(PooledConv, self).build(input_shape)               
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                 
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -63,12 +58,7 @@ class TransposeConv(layers.Layer):
                                                     kernel_size=(2,2), 
                                                     padding='same', 
                                                     activation=None) for _ in range(num_layers)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]  
-
-    # build method for the custom layer 
-    #--------------------------------------------------------------------------
-    def build(self, input_shape):        
-        super(TransposeConv, self).build(input_shape)                
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]             
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
