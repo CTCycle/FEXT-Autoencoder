@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # split data
     print('\nPreparing dataset of images based on splitting sizes')  
     splitter = DataSplit(images_paths)     
-    train_data, validation_data, test_data = splitter.split_data()   
+    train_data, validation_data = splitter.split_data()   
 
     # create subfolder for preprocessing data    
     print('Saving images path references') 
@@ -54,8 +54,7 @@ if __name__ == '__main__':
     print('\nFeXT training report')
     print('--------------------------------------------------------------------')    
     print(f'Number of train samples:       {len(train_data)}')
-    print(f'Number of validation samples:  {len(validation_data)}')
-    print(f'Number of test samples:        {len(test_data)}')  
+    print(f'Number of validation samples:  {len(validation_data)}')      
     print(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
     print(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
     print(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
