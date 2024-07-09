@@ -13,7 +13,7 @@ from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 def get_images_path(path, sample_size=None):
 
     
-    valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
+    valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif')
     images_path = []
 
     for root, _, files in os.walk(path):

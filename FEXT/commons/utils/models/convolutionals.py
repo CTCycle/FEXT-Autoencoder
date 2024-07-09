@@ -54,9 +54,7 @@ class TransposeConv(layers.Layer):
         self.units = units        
         self.num_layers = num_layers              
         self.upsamp = layers.UpSampling2D()
-        self.convolutions = [layers.Conv2DTranspose(units, 
-                                                    kernel_size=(2,2), 
-                                                    padding='same', 
+        self.convolutions = [layers.Conv2DTranspose(units, kernel_size=(2,2), padding='same', 
                                                     activation=None) for _ in range(num_layers)]
         self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]             
         
