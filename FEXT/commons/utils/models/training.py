@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from FEXT.commons.utils.models.callbacks import RealTimeHistory
+from FEXT.commons.utils.models.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
 from FEXT.commons.constants import CONFIG
 
@@ -48,7 +48,8 @@ class ModelTraining:
 
         # initialize the real time history callback    
         RTH_callback = RealTimeHistory(current_checkpoint_path, validation=True)
-        callbacks_list = [RTH_callback]
+        logger_callback = LoggingCallback()
+        callbacks_list = [RTH_callback, logger_callback]
 
         # initialize tensorboard if requested    
         if CONFIG["training"]["USE_TENSORBOARD"]:

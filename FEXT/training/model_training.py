@@ -9,6 +9,7 @@ from FEXT.commons.utils.preprocessing import DataSplit
 from FEXT.commons.utils.models.training import ModelTraining
 from FEXT.commons.utils.models.autoencoder import FeXTAutoEncoder
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
+from FEXT.commons.logger import logger
 
 
 # [RUN MAIN]
@@ -21,12 +22,12 @@ if __name__ == '__main__':
     images_paths = get_images_path(IMG_DATA_PATH, sample_size=sample_size)    
 
     # split data
-    print('\nPreparing dataset of images based on splitting sizes')  
+    logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = DataSplit(images_paths)     
     train_data, validation_data = splitter.split_data()   
 
     # create subfolder for preprocessing data    
-    print('Saving images path references') 
+    logger.info('Saving images path references') 
     dataserializer = DataSerializer()
     model_folder_path = dataserializer.create_checkpoint_folder()
     dataserializer.save_preprocessed_data(train_data, validation_data, 
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # initialize training device 
     # allows changing device prior to initializing the generators
-    print('Building autoencoder model and data loaders\n')     
+    logger.info('Building autoencoder model and data loaders')     
     trainer = ModelTraining()
     trainer.set_device()
 
@@ -51,14 +52,14 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
             
-    print('\nFeXT training report')
-    print('--------------------------------------------------------------------')    
-    print(f'Number of train samples:       {len(train_data)}')
-    print(f'Number of validation samples:  {len(validation_data)}')      
-    print(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
-    print(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
-    print(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
-    print('--------------------------------------------------------------------')  
+    logger.info('\nFeXT training report')
+    logger.info('--------------------------------------------------------------')    
+    logger.info(f'Number of train samples:       {len(train_data)}')
+    logger.info(f'Number of validation samples:  {len(validation_data)}')      
+    logger.info(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
+    logger.info(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
+    logger.info(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
+    logger.info('--------------------------------------------------------------\n')  
 
     # build the autoencoder model     
     autoencoder = FeXTAutoEncoder()

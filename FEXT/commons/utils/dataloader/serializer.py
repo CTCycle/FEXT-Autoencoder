@@ -7,15 +7,15 @@ import tensorflow as tf
 from keras.utils import plot_model
 
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
+from FEXT.commons.logger import logger
 
     
 #------------------------------------------------------------------------------
 def get_images_path(path, sample_size=None):
-
     
     valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif')
+    logger.debug(f'Valid extensions are: {valid_extensions}')
     images_path = []
-
     for root, _, files in os.walk(path):
         if sample_size is not None:
             files = files[:int(sample_size*len(files))]           
@@ -29,8 +29,7 @@ def get_images_path(path, sample_size=None):
 #------------------------------------------------------------------------------
 class DataSerializer:
 
-    def __init__(self):
-        
+    def __init__(self):        
         self.model_name = 'FeXT'
        
     #------------------------------------------------------------------------------
@@ -61,28 +60,28 @@ class DataSerializer:
     #--------------------------------------------------------------------------
     def save_preprocessed_data(self, train_data, validation_data, path):        
 
-        combined_data = {'train': train_data, 
-                         'validation': validation_data}
-
-        with open(os.path.join(path, 'preprocessed_data.json'), 'w') as json_file:
+        combined_data = {'train': train_data, 'validation': validation_data}
+        json_path = os.path.join(path, 'preprocessed_data.json')
+        with open(json_path, 'w') as json_file:
             json.dump(combined_data, json_file)
+            logger.debug(f'Preprocessed data has been saved at {json_path}')
 
     # ...
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
 
-        json_file_path = os.path.join(path, 'preprocessed_data.json')    
-        if not os.path.exists(json_file_path):
-            raise FileNotFoundError(f"The file {json_file_path} does not exist.")
-        
-        with open(json_file_path, 'r') as json_file:
+        json_path = os.path.join(path, 'preprocessed_data.json')    
+        if not os.path.exists(json_path):
+            logger.error(f'The file {json_path} does not exist.')
+            
+        with open(json_path, 'r') as json_file:
             combined_data = json.load(json_file)
+            logger.debug(f'Preprocessed data has been loaded from {json_path}')
         
         train_data = combined_data.get('train')
         validation_data = combined_data.get('validation')        
         
-        return {'train': train_data, 
-                'validation': validation_data}
+        return {'train': train_data, 'validation': validation_data}
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -104,6 +103,8 @@ class DataSerializer:
         os.makedirs(checkpoint_folder_path, exist_ok=True)
         self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
         os.makedirs(self.preprocessing_path, exist_ok=True)
+
+        logger.debug(f'Created model folder with name {checkpoint_folder_name}')
         
         return checkpoint_folder_path    
     
@@ -120,7 +121,7 @@ class ModelSerializer:
 
         model_files_path = os.path.join(path, 'model')
         model.save(model_files_path, save_format='tf')
-        print(f'\nTraining session is over. Model has been saved in folder {path}')
+        logger.info(f'\nTraining session is over. Model has been saved in folder {path}')
 
     #--------------------------------------------------------------------------
     def save_model_parameters(self, path, parameters_dict):
@@ -138,14 +139,16 @@ class ModelSerializer:
             None       
 
         '''
-        path = os.path.join(path, 'model_parameters.json')      
-        with open(path, 'w') as f:
+        param_path = os.path.join(path, 'model_parameters.json')      
+        with open(param_path, 'w') as f:
             json.dump(parameters_dict, f)
+            logger.debug(f'Model parameters have been saved at {path}')
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
 
         if CONFIG["model"]["SAVE_MODEL_PLOT"]:
+            logger.debug('Generating model architecture graph')
             plot_path = os.path.join(path, 'model_layout.png')       
             plot_model(model, to_file=plot_path, show_shapes=True, 
                        show_layer_names=True, show_layer_activations=True, 
@@ -177,30 +180,30 @@ class ModelSerializer:
                 model_folders.append(entry.name)
     
         if not model_folders:
-            raise FileNotFoundError('No model directories found in the specified path.')
+            logger.error('No pretrained model found in the specified path')
         
         if len(model_folders) > 1:
             model_folders.sort()
             index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-            print('Currently available pretrained models:') 
-            print()
+            logger.info('Currently available pretrained models:\n')             
             for i, directory in enumerate(model_folders):
-                print(f'{i + 1} - {directory}')        
-            print()               
+                logger.info(f'{i + 1} - {directory}')                         
             while True:
                 try:
-                    dir_index = int(input('Select the pretrained model: '))
+                    dir_index = int(input('\nSelect the pretrained model: '))
                     print()
                 except ValueError:
+                    logger.error('Invalid choice for the pretrained model, asking again')
                     continue
                 if dir_index in index_list:
                     break
                 else:
-                    print('Input is not valid! Try again:')
+                    logger.info('Input is not valid! Try again:')
                     
             self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[dir_index - 1])
 
         elif len(model_folders) == 1:
+            logger.info('Loading pretrained model directly as only one is available')
             self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[0])                 
             
         model_path = os.path.join(self.loaded_model_folder, 'model') 
@@ -212,6 +215,6 @@ class ModelSerializer:
             with open(config_path, 'r') as f:
                 configuration = json.load(f)       
         else:
-            print('Warning: model_parameters.json file not found. Model parameters were not loaded.')
+            logger.warning('model_parameters.json file not found. Model parameters were not loaded.')
             
         return model, configuration
