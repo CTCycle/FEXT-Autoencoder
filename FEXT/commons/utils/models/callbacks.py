@@ -1,7 +1,5 @@
 import os
-import tensorflow as tf
 from tensorflow import keras
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -76,7 +74,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         for i, (metric, values) in enumerate(self.history.items()):
             plt.subplot(len(self.history), 1, i + 1)
             plt.plot(range(len(values)), values, label=f'train {metric}')
-            if self.validation and f'val_{metric}' in self.val_history:
+            if f'val_{metric}' in self.val_history:
                 plt.plot(range(len(self.val_history[f'val_{metric}'])), self.val_history[f'val_{metric}'], label=f'val {metric}')
                 plt.legend(loc='best', fontsize=8)
             plt.title(f'{metric} Plot')

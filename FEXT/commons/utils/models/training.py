@@ -6,6 +6,7 @@ from tensorflow import keras
 from FEXT.commons.utils.models.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
 from FEXT.commons.constants import CONFIG
+from FEXT.commons.logger import logger
 
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
@@ -16,9 +17,9 @@ class ModelTraining:
         np.random.seed(CONFIG["SEED"])
         tf.random.set_seed(CONFIG["SEED"])         
         self.available_devices = tf.config.list_physical_devices()               
-        print('The current devices are available:\n')        
+        logger.info('The current devices are available:')        
         for dev in self.available_devices:            
-            print(dev)
+            logger.info(dev)
 
     # set device
     #--------------------------------------------------------------------------
@@ -27,32 +28,33 @@ class ModelTraining:
         if CONFIG["training"]["ML_DEVICE"] == 'GPU':
             self.physical_devices = tf.config.list_physical_devices('GPU')
             if not self.physical_devices:
-                print('\nNo GPU found. Falling back to CPU\n')
+                logger.info('No GPU found. Falling back to CPU')
                 tf.config.set_visible_devices([], 'GPU')
             else:
                 if CONFIG["training"]["MIXED_PRECISION"]:
                     policy = keras.mixed_precision.Policy('mixed_float16')
                     keras.mixed_precision.set_global_policy(policy) 
-                    print('\nMixed precision policy is active during training\n')
+                    logger.info('Mixed precision policy is active during training')
                 tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
                 os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                print('\nGPU is set as active device\n')
+                logger.info('\nGPU is set as active device\n')
                    
         elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
             tf.config.set_visible_devices([], 'GPU')
-            print('\nCPU is set as active device\n')    
+            logger.info('CPU is set as active device')    
 
     #--------------------------------------------------------------------------
     def train_model(self, model : tf.keras.Model, train_data, 
                     validation_data, current_checkpoint_path):
 
         # initialize the real time history callback    
-        RTH_callback = RealTimeHistory(current_checkpoint_path, validation=True)
+        RTH_callback = RealTimeHistory(current_checkpoint_path)
         logger_callback = LoggingCallback()
         callbacks_list = [RTH_callback, logger_callback]
 
         # initialize tensorboard if requested    
         if CONFIG["training"]["USE_TENSORBOARD"]:
+            logger.debug('Using tensorboard during training')
             log_path = os.path.join(current_checkpoint_path, 'tensorboard')
             callbacks_list.append(tf.keras.callbacks.TensorBoard(log_dir=log_path, 
                                                                  histogram_freq=1))
