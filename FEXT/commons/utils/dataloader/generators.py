@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from FEXT.commons.constants import CONFIG
+from FEXT.commons.logger import logger
 
 
 # [CUSTOM DATA GENERATOR FOR TRAINING]
@@ -19,7 +20,8 @@ class DataGenerator(keras.utils.Sequence):
         self.img_shape = CONFIG["model"]["IMG_SHAPE"]        
         self.batch_index = 0                     
         self.shuffle = shuffle
-        self.on_epoch_end()       
+        self.on_epoch_end()   
+        logger.debug(f'Generator shuffle is set as {shuffle}')    
 
     # define length of the custom generator      
     #--------------------------------------------------------------------------
@@ -80,11 +82,15 @@ class DataGenerator(keras.utils.Sequence):
 def build_tensor_dataset(dataframe, buffer_size=tf.data.AUTOTUNE):
 
     generator = DataGenerator(dataframe, shuffle=True)      
-    x_batch, y_batch = generator.__getitem__(0)        
+    x_batch, y_batch = generator.__getitem__(0)           
     output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
                         tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
     dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature=output_signature)
-    dataset = dataset.prefetch(buffer_size=buffer_size) 
+    dataset = dataset.prefetch(buffer_size=buffer_size)
+
+    # logging debug info about batch shapes
+    logger.debug(f'X batch shape is: {x_batch.shape}')  
+    logger.debug(f'Y batch shape is: {y_batch.shape}') 
 
     return dataset    
             

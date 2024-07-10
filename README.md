@@ -70,6 +70,7 @@ For customization, you can modify the main configuration parameters using `confi
 | XLA_STATE          | Whether to enable XLA (Accelerated Linear Algebra)       |
 | ML_DEVICE          | Device to use for training (e.g., GPU)                   |
 | NUM_PROCESSORS     | Number of processors to use for data loading             |
+| PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
 
 #### Evaluation Configuration
 

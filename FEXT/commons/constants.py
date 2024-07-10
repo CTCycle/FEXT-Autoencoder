@@ -8,6 +8,7 @@ RESULTS_PATH = join(RSC_PATH, 'results')
 CHECKPOINT_PATH = join(RSC_PATH, 'checkpoints')
 ENCODED_INPUT_PATH = join(RSC_PATH, 'predictions', 'input_images')
 ENCODED_OUTPUT_PATH = join(RSC_PATH, 'predictions', 'encoder_output')
+LOGS_PATH = join(PROJECT_DIR, 'resources', 'logs')
 
 CONFIG_PATH = join(PROJECT_DIR, 'configurations.json')
 with open(CONFIG_PATH, 'r') as file:

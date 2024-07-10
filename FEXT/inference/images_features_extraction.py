@@ -9,6 +9,7 @@ from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerial
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.models.inferencer import FeatureExtractor
 from FEXT.commons.constants import ENCODED_INPUT_PATH
+from FEXT.commons.logger import logger
 
 # [RUN MAIN]
 if __name__ == '__main__':
@@ -22,7 +23,7 @@ if __name__ == '__main__':
     images_paths = get_images_path(ENCODED_INPUT_PATH)
 
     # selected and load the pretrained model, then print the summary     
-    print('\nLoading specific checkpoint from pretrained models\n')   
+    logger.info('\nLoading specific checkpoint from pretrained models\n')   
     model, parameters = modelserializer.load_pretrained_model()
     model.summary(expand_nested=True)
 

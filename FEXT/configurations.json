@@ -16,8 +16,9 @@
                   "USE_TENSORBOARD" : false,
                   "XLA_STATE" : false,
                   "ML_DEVICE" : "GPU",
-                  "NUM_PROCESSORS": 6},
-
+                  "NUM_PROCESSORS": 6,
+                  "PLOT_EPOCH_GAP": 5},                  
+                  
     "evaluation" : {"BATCH_SIZE" : 20}     
       
 }
