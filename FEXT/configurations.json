@@ -9,7 +9,7 @@
     "model" : {"IMG_SHAPE" : [256, 256, 3],
                "SAVE_MODEL_PLOT" : true},
 
-    "training" : {"EPOCHS" : 1,
+    "training" : {"EPOCHS" : 10,
                   "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 20,
                   "MIXED_PRECISION" : false,

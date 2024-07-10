@@ -23,7 +23,7 @@ if __name__ == '__main__':
     images_paths = get_images_path(ENCODED_INPUT_PATH)
 
     # selected and load the pretrained model, then print the summary     
-    logger.info('\nLoading specific checkpoint from pretrained models\n')   
+    logger.info('Loading specific checkpoint from pretrained models')   
     model, parameters = modelserializer.load_pretrained_model()
     model.summary(expand_nested=True)
 

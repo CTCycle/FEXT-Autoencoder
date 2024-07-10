@@ -32,11 +32,11 @@ To enable XLA acceleration globally across your system, you need to set an envir
 ## 5. How to use
 The project is organized into subfolders, each dedicated to specific tasks. 
 
-**resources:** includes various subfolders for organizing data and results for data validation and model training and evaluation. The `resources/dataset/` folder contains images used to train the autoencoder model. `resources/predictions/` holds both input images for inference and their corresponding encodings from the pretrained encoder model. The `resources/results/` folder is used to save the results of data validation, while `resources/checkpoints/` contains the pretrained model checkpoints. 
+**resources:** includes various subfolders for organizing data and results for data validation and model training and evaluation. The `resources/dataset/` folder contains images used to train the autoencoder model. `resources/encoding/` holds both input images for inference and their corresponding encodings from the pretrained encoder model. The `resources/results/` folder is used to save the results of data validation, while `resources/checkpoints/` contains the pretrained model checkpoints. 
 
 **training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `resources/checkpoints/`. Run `model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
 
-**inference:** run `features_extraction.py` to use the pretrained encoder from a model checkpoitn to extract abstract representation of image features in the form of lower-dimension embeddings, using images from `resources/inference/input_images` and saving their corresponding encodings in `resources/inference/encoder_output`. 
+**inference:** run `kmages_features_extraction.py` to use the pretrained encoder from a model checkpoint to extract abstract representation of image features in the form of lower-dimension embeddings. This will load images from `resources/encoding/input_images` and save their corresponding encodings in `resources/encoding/encoder_output` as .npy files. 
  
 ### 5.1 Configurations
 For customization, you can modify the main configuration parameters using `configurations.json` in the root project folder. 

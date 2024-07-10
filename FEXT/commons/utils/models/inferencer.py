@@ -1,10 +1,10 @@
 import os
 import numpy as np
-from tqdm import tqdm
 import tensorflow as tf
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
 from FEXT.commons.constants import CONFIG, ENCODED_OUTPUT_PATH
+from FEXT.commons.logger import logger
 
 
 
@@ -19,6 +19,7 @@ class FeatureExtractor:
         self.dataserializer = DataSerializer()
         self.model = model
 
+    #--------------------------------------------------------------------------
     def extract_from_encoder(self, images_paths, parameters):
         
         features = {}
@@ -30,11 +31,14 @@ class FeatureExtractor:
                 features.update({pt : extracted_features})
             except: 
                 features.update({pt : 'Could not extract features'})
+                logger.warning(f'Could not extract features from image at {pt}')
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array([(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(ENCODED_OUTPUT_PATH, 'extracted_features.npy')
         np.save(file_loc, structured_data)
+
+        logger.debug(f'Extracted img features saved as numpy array at {file_loc}')
 
         return features
 

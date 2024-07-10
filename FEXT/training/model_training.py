@@ -52,14 +52,14 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
             
-    logger.info('\nFeXT training report')
+    logger.info('FeXT training report')
     logger.info('--------------------------------------------------------------')    
     logger.info(f'Number of train samples:       {len(train_data)}')
     logger.info(f'Number of validation samples:  {len(validation_data)}')      
     logger.info(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
     logger.info(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
     logger.info(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
-    logger.info('--------------------------------------------------------------\n')  
+    logger.info('--------------------------------------------------------------')  
 
     # build the autoencoder model     
     autoencoder = FeXTAutoEncoder()
