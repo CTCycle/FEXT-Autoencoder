@@ -7,7 +7,7 @@ from FEXT.commons.constants import LOGS_PATH
 
 # Generate timestamp for the log filename
 current_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-log_filename = os.path.join(LOGS_PATH, f'BGR_{current_timestamp}.log')
+log_filename = os.path.join(LOGS_PATH, f'FEXT_{current_timestamp}.log')
 
 # Define custom filter class for logging behavior
 class InfoOnlyFilter(logging.Filter):
