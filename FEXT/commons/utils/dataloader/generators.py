@@ -21,7 +21,8 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_index = 0                     
         self.shuffle = shuffle
         self.on_epoch_end()   
-        logger.debug(f'Generator shuffle is set as {shuffle}')    
+        logger.debug(f'Generator shuffle is set as {shuffle}')
+        logger.debug(f'Number of samples given to generator is {self.num_samples}')    
 
     # define length of the custom generator      
     #--------------------------------------------------------------------------
@@ -34,8 +35,6 @@ class DataGenerator(keras.utils.Sequence):
     #--------------------------------------------------------------------------
     def __getitem__(self, idx): 
         path_batch = self.data[idx * self.batch_size:(idx + 1) * self.batch_size] 
-        if len(path_batch) < self.batch_size:
-            return self.next()  
         x1_batch = [self.__images_generation(image_path) for image_path in path_batch]                
         X1_tensor = tf.convert_to_tensor(x1_batch)
         Y_tensor = X1_tensor  
@@ -73,8 +72,7 @@ class DataGenerator(keras.utils.Sequence):
     def next(self):
         next_index = (self.batch_index + 1) % self.__len__()
         self.batch_index = next_index
-        return self.__getitem__(next_index)      
-
+        return self.__getitem__(next_index)
               
         
 # [CUSTOM DATA GENERATOR FOR TRAINING]

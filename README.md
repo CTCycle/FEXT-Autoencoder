@@ -36,7 +36,7 @@ The project is organized into subfolders, each dedicated to specific tasks.
 
 **training:** contained within this folder are the necessary files for conducting model training and evaluation. The training model checkpoints are saved in `resources/checkpoints/`. Run `model_training.py` to initiate the training process for the autoencoder, or launch the jupyter notebook `model_evaluation.py` to evaluate the performance of pretrained model checkpoints using different metrics.
 
-**inference:** run `kmages_features_extraction.py` to use the pretrained encoder from a model checkpoint to extract abstract representation of image features in the form of lower-dimension embeddings. This will load images from `resources/encoding/input_images` and save their corresponding encodings in `resources/encoding/encoder_output` as .npy files. 
+**inference:** run `images_encoding.py` to use the pretrained encoder from a model checkpoint to extract abstract representation of image features in the form of lower-dimension embeddings. This will load images from `resources/encoding/input_images` and save their corresponding encodings in `resources/encoding/encoder_output` as .npy files. 
  
 ### 5.1 Configurations
 For customization, you can modify the main configuration parameters using `configurations.json` in the root project folder. 
