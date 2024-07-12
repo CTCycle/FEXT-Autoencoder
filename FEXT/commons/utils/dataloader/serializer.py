@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import json
 from tqdm import tqdm
@@ -84,8 +85,7 @@ class DataSerializer:
         validation_data = combined_data.get('validation')        
         
         return {'train': train_data, 'validation': validation_data}
-        
-    
+           
     
 
 # [...]
@@ -182,8 +182,9 @@ class ModelSerializer:
             if entry.is_dir():
                 model_folders.append(entry.name)
     
-        if not model_folders:
-            logger.error('No pretrained model found in the specified path')
+        if len(model_folders) == 0:
+            logger.error('No pretrained model checkpoints in resources')
+            sys.exit()
         
         if len(model_folders) > 1:
             model_folders.sort()
