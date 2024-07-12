@@ -21,7 +21,7 @@ if __name__ == '__main__':
     sample_size = CONFIG["dataset"]["SAMPLE_SIZE"]   
     images_paths = get_images_path(IMG_DATA_PATH, sample_size=sample_size)    
 
-    # split data
+    # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = DataSplit(images_paths)     
     train_data, validation_data = splitter.split_data()   
@@ -29,7 +29,8 @@ if __name__ == '__main__':
     # create subfolder for preprocessing data    
     logger.info('Saving images path references') 
     dataserializer = DataSerializer()
-    model_folder_path = dataserializer.create_checkpoint_folder()
+    modelserializer = ModelSerializer()
+    model_folder_path = modelserializer.create_checkpoint_folder()
     dataserializer.save_preprocessed_data(train_data, validation_data, 
                                           model_folder_path)      
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     # Setting callbacks and training routine for the features extraction model 
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
-            
+    logger.info('')    
     logger.info('FeXT training report')
     logger.info('--------------------------------------------------------------')    
     logger.info(f'Number of train samples:       {len(train_data)}')
@@ -59,14 +60,13 @@ if __name__ == '__main__':
     logger.info(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
     logger.info(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
     logger.info(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
-    logger.info('--------------------------------------------------------------')  
+    logger.info('--------------------------------------------------------------\n')  
 
     # build the autoencoder model     
     autoencoder = FeXTAutoEncoder()
     model = autoencoder.get_model(summary=True) 
 
-    # generate graphviz plot fo the model layout 
-    modelserializer = ModelSerializer()     
+    # generate graphviz plot fo the model layout         
     modelserializer.save_model_plot(model, model_folder_path)              
 
     # perform training and save model at the end

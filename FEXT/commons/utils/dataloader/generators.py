@@ -14,7 +14,7 @@ class DataGenerator(keras.utils.Sequence):
 
     def __init__(self, data, shuffle=True):         
       
-        self.data = data
+        self.data = np.array(data)
         self.num_samples = len(data)
         self.batch_size = CONFIG["training"]["BATCH_SIZE"]
         self.img_shape = CONFIG["model"]["IMG_SHAPE"]        
@@ -80,9 +80,12 @@ class DataGenerator(keras.utils.Sequence):
 def build_tensor_dataset(dataframe, buffer_size=tf.data.AUTOTUNE):
 
     generator = DataGenerator(dataframe, shuffle=True)      
-    x_batch, y_batch = generator.__getitem__(0)           
-    output_signature = (tf.TensorSpec(shape=x_batch.shape, dtype=tf.float32), 
-                        tf.TensorSpec(shape=y_batch.shape, dtype=tf.float32))
+    x_batch, y_batch = generator.__getitem__(0)
+    # ensure to replace first dimension with None for flexible batch size 
+    x_batch_shape = (None,) + x_batch.shape[1:]
+    y_batch_shape = (None,) + y_batch.shape[1:]        
+    output_signature = (tf.TensorSpec(shape=x_batch_shape, dtype=tf.float32), 
+                        tf.TensorSpec(shape=y_batch_shape, dtype=tf.float32))
     dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature=output_signature)
     dataset = dataset.prefetch(buffer_size=buffer_size)
 
