@@ -212,12 +212,13 @@ class ModelSerializer:
         model_path = os.path.join(self.loaded_model_folder, 'model') 
         model = tf.keras.models.load_model(model_path)
         
-        configuration = None
+        # load configuration data from .json file in checkpoint folder
         config_path = os.path.join(self.loaded_model_folder, 'model_parameters.json')
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
-                configuration = json.load(f)       
+                configuration = json.load(f)                   
         else:
             logger.warning('model_parameters.json file not found. Model parameters were not loaded.')
+            configuration = None    
             
         return model, configuration
