@@ -188,9 +188,9 @@ class ModelSerializer:
         if len(model_folders) > 1:
             model_folders.sort()
             index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-            logger.info('Currently available pretrained models:')             
+            print('Currently available pretrained models:')             
             for i, directory in enumerate(model_folders):
-                logger.info(f'{i + 1} - {directory}')                         
+                print(f'{i + 1} - {directory}')                         
             while True:
                 try:
                     dir_index = int(input('\nSelect the pretrained model: '))
@@ -201,7 +201,7 @@ class ModelSerializer:
                 if dir_index in index_list:
                     break
                 else:
-                    logger.info('Input is not valid! Try again:')
+                    logger.warning('Model does not exist, please select a valid index:')
                     
             self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[dir_index - 1])
 
