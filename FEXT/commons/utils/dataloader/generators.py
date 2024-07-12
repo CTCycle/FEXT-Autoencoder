@@ -15,9 +15,11 @@ class DataGenerator(keras.utils.Sequence):
     def __init__(self, data, shuffle=True):         
       
         self.data = np.array(data)
-        self.num_samples = len(data)
+        self.num_samples = len(data)        
         self.batch_size = CONFIG["training"]["BATCH_SIZE"]
-        self.img_shape = CONFIG["model"]["IMG_SHAPE"]        
+        self.img_shape = CONFIG["model"]["IMG_SHAPE"]       
+        self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]
+        self.augmentation = CONFIG["dataset"]["IMG_AUGMENT"]        
         self.batch_index = 0                     
         self.shuffle = shuffle
         self.on_epoch_end()   
@@ -61,9 +63,9 @@ class DataGenerator(keras.utils.Sequence):
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3)
         rgb_image = tf.image.resize(rgb_image, self.img_shape[:-1])        
-        if CONFIG["dataset"]["IMG_AUGMENT"]:
+        if self.augmentation:
             rgb_image = self.__images_augmentation(rgb_image)
-        if CONFIG["dataset"]["IMG_NORMALIZE"]:
+        if self.normalization:
             rgb_image = rgb_image/255.0
         return rgb_image    
     

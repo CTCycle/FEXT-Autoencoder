@@ -29,13 +29,11 @@ def get_images_path(path, sample_size=None):
 #------------------------------------------------------------------------------
 class DataSerializer:
 
-    def __init__(self):
-        self.max_pixel_value = 255.0 
+    def __init__(self):        
         self.color_encoding = cv2.COLOR_BGR2RGB
         self.img_shape = CONFIG["model"]["IMG_SHAPE"]
         self.resized_img_shape = self.img_shape[:-1]
         self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]       
-        
        
     #------------------------------------------------------------------------------
     def load_images(self, paths, as_tensor=True):
@@ -48,14 +46,14 @@ class DataSerializer:
                 image = cv2.resize(image, self.resized_img_shape)            
                 image = cv2.cvtColor(image, self.color_encoding) 
                 if self.normalization:
-                    image = image/self.max_pixel_value
+                    image = image/255.0
             else:
                 image = tf.io.read_file(pt)
                 image = tf.image.decode_image(image, channels=3)
                 image = tf.image.resize(image, self.resized_img_shape)
                 image = tf.reverse(image, axis=[-1])
                 if self.normalization:
-                    image = image/self.max_pixel_value
+                    image = image/255.0
             
             images.append(image) 
 
