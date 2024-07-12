@@ -29,8 +29,13 @@ def get_images_path(path, sample_size=None):
 #------------------------------------------------------------------------------
 class DataSerializer:
 
-    def __init__(self):        
-        self.model_name = 'FeXT'
+    def __init__(self):
+        self.max_pixel_value = 255.0 
+        self.color_encoding = cv2.COLOR_BGR2RGB
+        self.img_shape = CONFIG["model"]["IMG_SHAPE"]
+        self.resized_img_shape = self.img_shape[:-1]
+        self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]       
+        
        
     #------------------------------------------------------------------------------
     def load_images(self, paths, as_tensor=True):
@@ -40,17 +45,17 @@ class DataSerializer:
         for pt in tqdm(paths):
             if as_tensor==False:                
                 image = cv2.imread(pt)             
-                image = cv2.resize(image, img_shape[:-1])            
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 
-                if CONFIG["dataset"]["IMG_NORMALIZE"]:
-                    image = image/255.0
+                image = cv2.resize(image, self.resized_img_shape)            
+                image = cv2.cvtColor(image, self.color_encoding) 
+                if self.normalization:
+                    image = image/self.max_pixel_value
             else:
                 image = tf.io.read_file(pt)
                 image = tf.image.decode_image(image, channels=3)
-                image = tf.image.resize(image, img_shape[:-1])
+                image = tf.image.resize(image, self.resized_img_shape)
                 image = tf.reverse(image, axis=[-1])
-                if CONFIG["dataset"]["IMG_NORMALIZE"]:
-                    image = image/255.0
+                if self.normalization:
+                    image = image/self.max_pixel_value
             
             images.append(image) 
 
@@ -83,6 +88,16 @@ class DataSerializer:
         
         return {'train': train_data, 'validation': validation_data}
         
+    
+    
+
+# [...]
+#------------------------------------------------------------------------------
+class ModelSerializer:
+
+    def __init__(self):
+        self.model_name = 'FeXT'
+
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
     def create_checkpoint_folder(self):
@@ -103,25 +118,16 @@ class DataSerializer:
         os.makedirs(checkpoint_folder_path, exist_ok=True)
         self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
         os.makedirs(self.preprocessing_path, exist_ok=True)
-
         logger.debug(f'Created model folder with name {checkpoint_folder_name}')
         
         return checkpoint_folder_path    
-    
-
-# [...]
-#------------------------------------------------------------------------------
-class ModelSerializer:
-
-    def __init__(self):
-        pass
 
     #--------------------------------------------------------------------------
     def save_pretrained_model(self, model : tf.keras.Model, path):
 
         model_files_path = os.path.join(path, 'model')
         model.save(model_files_path, save_format='tf')
-        logger.info(f'\nTraining session is over. Model has been saved in folder {path}')
+        logger.info(f'Training session is over. Model has been saved in folder {path}')
 
     #--------------------------------------------------------------------------
     def save_model_parameters(self, path, parameters_dict):
@@ -185,7 +191,7 @@ class ModelSerializer:
         if len(model_folders) > 1:
             model_folders.sort()
             index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-            logger.info('Currently available pretrained models:\n')             
+            logger.info('Currently available pretrained models:')             
             for i, directory in enumerate(model_folders):
                 logger.info(f'{i + 1} - {directory}')                         
             while True:

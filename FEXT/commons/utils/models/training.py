@@ -37,7 +37,7 @@ class ModelTraining:
                     logger.info('Mixed precision policy is active during training')
                 tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
                 os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                logger.info('\nGPU is set as active device\n')
+                logger.info('GPU is set as active device')
                    
         elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
             tf.config.set_visible_devices([], 'GPU')
