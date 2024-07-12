@@ -37,8 +37,7 @@ class DataSerializer:
        
     #------------------------------------------------------------------------------
     def load_images(self, paths, as_tensor=True):
-
-        img_shape = CONFIG["model"]["IMG_SHAPE"]           
+               
         images = []
         for pt in tqdm(paths):
             if as_tensor==False:                
