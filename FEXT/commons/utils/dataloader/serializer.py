@@ -201,7 +201,7 @@ class ModelSerializer:
                 if dir_index in index_list:
                     break
                 else:
-                    logger.warning('Model does not exist, please select a valid index:')
+                    logger.warning('Model does not exist, please select a valid index')
                     
             self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[dir_index - 1])
 
