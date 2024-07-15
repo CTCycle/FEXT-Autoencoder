@@ -7,19 +7,18 @@ from FEXT.commons.logger import logger
         
 # [CUSTOM DATA GENERATOR FOR TRAINING]
 #------------------------------------------------------------------------------
-# Generate batches of inputs and outputs using a custom generator function and 
-# tf.dataset with prefetching
+# Generate and preprocess input and output for the machine learning model and build
+# a tensor dataset with prefetching and batching
 class DataGenerator():
 
-    def __init__(self, data):       
-              
-        self.data = tf.convert_to_tensor(data)
+    def __init__(self):              
+        
         self.img_shape = CONFIG["model"]["IMG_SHAPE"]       
         self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]
-        self.augmentation = CONFIG["dataset"]["IMG_AUGMENT"]    
+        self.augmentation = CONFIG["dataset"]["IMG_AUGMENT"]  
+        self.batch_size = CONFIG["training"]["BATCH_SIZE"]  
     
-    # define method to get X and Y data through custom functions, and subsequently
-    # create a batch of data converted to tensors
+    # load and preprocess a single image
     #--------------------------------------------------------------------------
     def load_image(self, path):
         image = tf.io.read_file(path)
@@ -32,8 +31,7 @@ class DataGenerator():
 
         return rgb_image 
     
-    # define method to get X and Y data through custom functions, and subsequently
-    # create a batch of data converted to tensors
+    # ...
     #--------------------------------------------------------------------------
     def process_data(self, path):
 
@@ -50,28 +48,37 @@ class DataGenerator():
 
         return pp_image 
               
+    # effectively build the tf.dataset and apply preprocessing, batching and prefetching
+    #------------------------------------------------------------------------------
+    def build_tensor_dataset(self, data, buffer_size=tf.data.AUTOTUNE):
+
+        num_samples = len(data) 
+        data = tf.convert_to_tensor(data)
+        dataset = tf.data.Dataset.from_tensor_slices(data)
+        dataset = dataset.shuffle(buffer_size=num_samples)  
+        # map preprocessing function
+        dataset = dataset.map(self.process_data, num_parallel_calls=buffer_size)   
+        # batch and prefetch dataset
+        dataset = dataset.batch(self.batch_size)
+        dataset = dataset.prefetch(buffer_size=buffer_size)
+
+        return dataset
         
-# [CUSTOM DATA GENERATOR FOR TRAINING]
+
 #------------------------------------------------------------------------------
-def build_tensor_dataset(data, buffer_size=tf.data.AUTOTUNE):    
-    
-    num_samples = len(data)  
-    batch_size = CONFIG["training"]["BATCH_SIZE"] 
+def data_pipeline(train_data, validation_data):    
+        
+        generator = DataGenerator()
 
-    # initialize data generator tools
-    datagen = DataGenerator(data)                    
-    # create dataset from the list of images path, apply shuffling and map processing
-    dataset = tf.data.Dataset.from_tensor_slices(data)    
-    dataset = dataset.shuffle(buffer_size=num_samples)  
-    dataset = dataset.map(datagen.process_data, num_parallel_calls=buffer_size)   
-    # batch and prefetch dataset
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=buffer_size)
-    # logging debug info about batch shapes
-    for x, y in dataset.take(1):
-        logger.debug(f'X batch shape is: {x.shape}')  
-        logger.debug(f'Y batch shape is: {y.shape}') 
+        train_dataset = generator.build_tensor_dataset(train_data)
+        validation_dataset = generator.build_tensor_dataset(validation_data)
+        # logging debug info about batch shapes
+        for x, y in train_dataset.take(1):
+            logger.debug(f'X batch shape is: {x.shape}')  
+            logger.debug(f'Y batch shape is: {y.shape}') 
 
-    return dataset    
-                
+        return train_dataset, validation_dataset
+
+
+
             
