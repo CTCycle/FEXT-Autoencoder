@@ -39,11 +39,19 @@ LOG_CONFIG =  {
             'mode': 'a'  
         },
     },
+    'loggers': {
+        'matplotlib': {
+            'level': 'WARNING',
+            'handlers': ['console', 'file'],
+            'propagate': False
+        },
+    },
     'root': {
         'level': 'DEBUG',
         'handlers': ['console', 'file'],
-    },
+    },    
 }
+
 
 # override logger configuration and load the latter
 #------------------------------------------------------------------------------
