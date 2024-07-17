@@ -6,9 +6,10 @@ from FEXT.commons.logger import logger
              
         
 # [CUSTOM DATA GENERATOR FOR TRAINING]
-#------------------------------------------------------------------------------
+###############################################################################
 # Generate and preprocess input and output for the machine learning model and build
 # a tensor dataset with prefetching and batching
+###############################################################################
 class DataGenerator():
 
     def __init__(self):              
@@ -21,6 +22,17 @@ class DataGenerator():
     # load and preprocess a single image
     #--------------------------------------------------------------------------
     def load_image(self, path):
+
+        '''
+        Loads and preprocesses a single image.
+
+        Keyword arguments:
+            path (str): The path to the image file.
+
+        Returns:
+            rgb_image (tf.Tensor): The preprocessed RGB image tensor.
+
+        '''
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape[:-1])
@@ -34,7 +46,7 @@ class DataGenerator():
     # ...
     #--------------------------------------------------------------------------
     def process_data(self, path):
-
+        
         rgb_image = self.load_image(path)        
 
         return rgb_image, rgb_image      
@@ -52,6 +64,17 @@ class DataGenerator():
     #------------------------------------------------------------------------------
     def build_tensor_dataset(self, data, buffer_size=tf.data.AUTOTUNE):
 
+        '''
+        Builds a TensorFlow dataset and applies preprocessing, batching, and prefetching.
+
+        Keyword arguments:
+            data (list): A list of image file paths.
+            buffer_size (int): The buffer size for shuffling and prefetching (default is tf.data.AUTOTUNE).
+
+        Returns:
+            dataset (tf.data.Dataset): The prepared TensorFlow dataset.
+
+        '''
         num_samples = len(data) 
         data = tf.convert_to_tensor(data)
         dataset = tf.data.Dataset.from_tensor_slices(data)
@@ -63,9 +86,10 @@ class DataGenerator():
         dataset = dataset.prefetch(buffer_size=buffer_size)
 
         return dataset
-        
 
-#------------------------------------------------------------------------------
+    
+# wrapper function to run the data pipeline from raw inputs to tensor dataset
+###############################################################################
 def data_pipeline(train_data, validation_data):    
         
         generator = DataGenerator()

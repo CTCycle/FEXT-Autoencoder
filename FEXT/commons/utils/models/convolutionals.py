@@ -6,9 +6,10 @@ from FEXT.commons.constants import CONFIG
 
 
 # [POOLING CONVOLUTIONAL BLOCKS]
-#------------------------------------------------------------------------------
+###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='PooledConv')
 class PooledConv(layers.Layer):
+    
     def __init__(self, units, num_layers=2, **kwargs):
         super(PooledConv, self).__init__(**kwargs)
         self.units = units        
@@ -46,9 +47,10 @@ class PooledConv(layers.Layer):
     
 
 # [POOLING CONVOLUTIONAL BLOCKS]
-#------------------------------------------------------------------------------
+###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='TransposeConv')
 class TransposeConv(layers.Layer):
+
     def __init__(self, units, num_layers=3, **kwargs):
         super(TransposeConv, self).__init__(**kwargs)
         self.units = units        

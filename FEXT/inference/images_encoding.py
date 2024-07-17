@@ -9,7 +9,9 @@ from FEXT.commons.utils.models.inferencer import FeatureExtractor
 from FEXT.commons.constants import ENCODED_INPUT_PATH
 from FEXT.commons.logger import logger
 
+
 # [RUN MAIN]
+###############################################################################
 if __name__ == '__main__':
 
     # 1. [EXTRACT FEATURES FROM IMAGES]

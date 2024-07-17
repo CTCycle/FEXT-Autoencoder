@@ -10,7 +10,7 @@ from FEXT.commons.logger import logger
 
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
-#------------------------------------------------------------------------------
+###############################################################################
 class ModelTraining:    
        
     def __init__(self):                            
