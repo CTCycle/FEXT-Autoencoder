@@ -3,7 +3,7 @@ from FEXT.commons.constants import CONFIG
 
 
 # [DATA SPLITTING]
-#------------------------------------------------------------------------------
+###############################################################################
 class DataSplit:
 
     def __init__(self, images_path : list):        

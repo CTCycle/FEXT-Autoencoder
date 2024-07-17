@@ -10,7 +10,7 @@ from FEXT.commons.logger import logger
 
 
 # [INFERENCE]
-#------------------------------------------------------------------------------
+###############################################################################
 class FeatureExtractor:
     
     def __init__(self, model):
@@ -21,8 +21,8 @@ class FeatureExtractor:
         # isolate the encoder from the autoencoder model, and use it for inference     
         encoder_input = model.get_layer('input_1')  
         encoder_output = model.get_layer('fe_xt_encoder')  
-        self.encoder_model = keras.Model(inputs=encoder_input.input, outputs=encoder_output.output)
-        
+        self.encoder_model = keras.Model(inputs=encoder_input.input, 
+                                         outputs=encoder_output.output)        
 
     #--------------------------------------------------------------------------
     def extract_from_encoder(self, images_paths, parameters):

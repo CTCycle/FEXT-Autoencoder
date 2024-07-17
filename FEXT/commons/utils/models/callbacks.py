@@ -9,7 +9,7 @@ from FEXT.commons.logger import logger
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
-#------------------------------------------------------------------------------
+###############################################################################
 class RealTimeHistory(keras.callbacks.Callback):
     
     '''
@@ -22,12 +22,10 @@ class RealTimeHistory(keras.callbacks.Callback):
     Parameters:    
         plot_path : str
             Directory path where the plots will be saved.
-        update_frequency : int, optional (default=2)
+        update_epoch_gap : int, optional (default=2)
             Frequency (in epochs) at which to update the logging of metrics.
-        plot_frequency : int, optional (default=5)
+        plot_epoch_gap : int, optional
             Frequency (in epochs) at which to generate and save plots.
-        validation : bool, optional (default=True)
-            Whether to log and plot validation metrics.
 
     Methods:    
         on_epoch_end(epoch, logs)
@@ -50,6 +48,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         # Ensure plot directory exists
         os.makedirs(self.plot_path, exist_ok=True)
     
+    #--------------------------------------------------------------------------
     def on_epoch_end(self, epoch, logs={}):
         # Log metrics and losses
         for key, value in logs.items():
@@ -66,6 +65,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         if epoch % self.plot_epoch_gap == 0:
             self.plot_training_history()
 
+    #--------------------------------------------------------------------------
     def plot_training_history(self):
         fig_path = os.path.join(self.plot_path, 'training_history.jpeg')
         plt.figure(figsize=(10, 8))
@@ -87,8 +87,7 @@ class RealTimeHistory(keras.callbacks.Callback):
 
 
 # [LOGGING]
-#------------------------------------------------------------------------------
-# Define custom Keras callback for logging
+###############################################################################
 class LoggingCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         if logs is not None:

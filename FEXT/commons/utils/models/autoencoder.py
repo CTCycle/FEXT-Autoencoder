@@ -7,7 +7,7 @@ from FEXT.commons.constants import CONFIG
 
        
 # [ENCODER MODEL]
-#------------------------------------------------------------------------------
+###############################################################################
 @keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
 class FeXTEncoder(layers.Layer):
     def __init__(self, **kwargs):
@@ -55,7 +55,7 @@ class FeXTEncoder(layers.Layer):
     
 
 # [DECODER MODEL]
-#------------------------------------------------------------------------------
+###############################################################################
 @keras.utils.register_keras_serializable(package='SubModels', name='Decoder')
 class FeXTDecoder(keras.layers.Layer):
     def __init__(self, **kwargs):
@@ -98,14 +98,15 @@ class FeXTDecoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
-        return cls(**config)    
-
+        return cls(**config) 
     
 
 # [AUTOENCODER MODEL]
-#------------------------------------------------------------------------------
+###############################################################################
 # autoencoder model built using the functional keras API. use get_model() method
 # to build and compile the model (print summary as optional)
+###############################################################################
+
 class FeXTAutoEncoder: 
 
     def __init__(self): 
