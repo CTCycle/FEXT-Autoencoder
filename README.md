@@ -20,8 +20,10 @@ The decoder part of the VGG16 autoencoder is typically composed of layers that p
 The installation process is designed for simplicity, using .bat scripts to automatically create a virtual environment with all necessary dependencies. Please ensure that Anaconda or Miniconda is installed on your system before proceeding.
 
 - To set up a CPU-only environment, run `scripts/cpu_environment_setup.bat`. This script installs the base version of TensorFlow, which is lighter and does not include CUDA libraries.
-- For GPU support, which is necessary for model training on a GPU, use `scripts/gpu_environment_setup.bat`. This script includes all required CUDA dependencies to enable GPU utilization.
+- For GPU support during training, use `scripts/gpu_environment_setup.bat`. This script includes all required CUDA dependencies to enable GPU utilization.
+
 - **IMPORTANT:** run `scripts/package_setup.bat` if the path to the project folder is changed for any reason after installation, or the app won't work!
+- **ADDITIONAL CUDA INFO:** If you encounter issues with TensorFlow not finding certain .dll files, you may need to manually move them from the `pkgs` folder in your conda installation directory to the `Library/bin` folder within your environment directory. Furthermore, be sure that the global path is correctly set to point to the appropriate directories!
 
 ### 4.1 Additional Package for XLA Acceleration
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. By incorporating XLA acceleration, you can achieve significant performance improvements in numerical computations, especially for large-scale machine learning models. XLA integration is directly available in TensorFlow but may require enabling specific settings or flags. 
@@ -63,7 +65,6 @@ Data validation and pretrained model evaluations are performed using the scripts
 - Launch the jupyter notebook `data_validation.ipynb` to validate the available data with different metrics.
 
 
- 
 ### 5.1 Configurations
 For customization, you can modify the main configuration parameters using `configurations.json` in the root project folder. 
 

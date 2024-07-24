@@ -44,7 +44,7 @@ class FeXTEncoder(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTEncoder, self).get_config()
-        config.update({'seed': CONFIG["SEED"]})
+        config.update({})
         return config
 
     # deserialization method 
@@ -91,7 +91,7 @@ class FeXTDecoder(keras.layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(FeXTDecoder, self).get_config()
-        config.update({'seed': CONFIG["SEED"]})
+        config.update({})
         return config
 
     # deserialization method 

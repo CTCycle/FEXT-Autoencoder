@@ -59,8 +59,9 @@ class ModelValidation:
     #-------------------------------------------------------------------------- 
     def visualize_reconstructed_images(self, real_images, predicted_images, name, path):          
 
+        eval_path = os.path.join(path, 'evaluation')
         num_pics = len(real_images)
-        fig_path = os.path.join(path, f'{name}.jpeg')
+        fig_path = os.path.join(eval_path, f'{name}.jpeg')
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, (real, pred) in enumerate(zip(real_images, predicted_images)):                                                          
             axs[i, 0].imshow(real)

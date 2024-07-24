@@ -2,8 +2,9 @@
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
+
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.generators import data_pipeline
+from FEXT.commons.utils.dataloader.generators import training_data_pipeline
 from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerializer, ModelSerializer
 from FEXT.commons.utils.preprocessing import DataSplit
 from FEXT.commons.utils.models.training import ModelTraining
@@ -31,9 +32,11 @@ if __name__ == '__main__':
     logger.info('Saving images path references') 
     dataserializer = DataSerializer()
     modelserializer = ModelSerializer()
-    model_folder_path = modelserializer.create_checkpoint_folder()
+    model_folder_path = modelserializer.create_checkpoint_folder() 
+
+    # save preprocessed data references
     dataserializer.save_preprocessed_data(train_data, validation_data, 
-                                          model_folder_path)      
+                                          model_folder_path)    
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
@@ -45,7 +48,7 @@ if __name__ == '__main__':
 
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators    
-    train_dataset, validation_dataset = data_pipeline(train_data, validation_data)
+    train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data)         
     
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
-    logger.info('')    
+    logger.info('--------------------------------------------------------------')
     logger.info('FeXT training report')
     logger.info('--------------------------------------------------------------')    
     logger.info(f'Number of train samples:       {len(train_data)}')

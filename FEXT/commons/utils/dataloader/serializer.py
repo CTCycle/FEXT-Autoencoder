@@ -7,7 +7,7 @@ from datetime import datetime
 import tensorflow as tf
 from keras.utils import plot_model
 
-from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
+from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -63,10 +63,10 @@ class DataSerializer:
 
     # ...
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data, validation_data, path):        
-
+    def save_preprocessed_data(self, train_data, validation_data, path):  
+         
         combined_data = {'train': train_data, 'validation': validation_data}
-        json_path = os.path.join(path, 'preprocessed_data.json')
+        json_path = os.path.join(path, 'data', 'input_data.json')
         with open(json_path, 'w') as json_file:
             json.dump(combined_data, json_file)
             logger.debug(f'Preprocessed data has been saved at {json_path}')
@@ -75,7 +75,7 @@ class DataSerializer:
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
 
-        json_path = os.path.join(path, 'preprocessed_data.json')    
+        json_path = os.path.join(path, 'data', 'input_data.json')    
         if not os.path.exists(json_path):
             logger.error(f'The file {json_path} does not exist.')
             
@@ -84,9 +84,15 @@ class DataSerializer:
             logger.debug(f'Preprocessed data has been loaded from {json_path}')
         
         train_data = combined_data.get('train')
-        validation_data = combined_data.get('validation')        
+        validation_data = combined_data.get('validation')  
+
+        # reconstruct images path        
+        train_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
+                      for x in train_data if os.path.basename(x) in os.listdir(IMG_DATA_PATH)]   
+        validation_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
+                          for x in validation_data if os.path.basename(x) in os.listdir(IMG_DATA_PATH)]     
         
-        return {'train': train_data, 'validation': validation_data}           
+        return train_data, validation_data         
     
 
 # [MODEL SERIALIZATION]
@@ -110,13 +116,11 @@ class ModelSerializer:
             str: A string containing the path of the folder where the model will be saved.
         
         '''        
-        today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')
-        checkpoint_folder_name = f'{self.model_name}_{today_datetime}'
-        checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_folder_name)         
-        os.makedirs(checkpoint_folder_path, exist_ok=True)
-        self.preprocessing_path = os.path.join(checkpoint_folder_path, 'preprocessing')
-        os.makedirs(self.preprocessing_path, exist_ok=True)
-        logger.debug(f'Created model folder with name {checkpoint_folder_name}')
+        today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
+        checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
+        os.makedirs(checkpoint_folder_path, exist_ok=True)        
+        os.makedirs(os.path.join(checkpoint_folder_path, 'data'), exist_ok=True)
+        logger.debug(f'Created checkpoint folder at {checkpoint_folder_path}')
         
         return checkpoint_folder_path    
 

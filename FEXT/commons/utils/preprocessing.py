@@ -9,7 +9,10 @@ class DataSplit:
     def __init__(self, images_path : list):        
         
         self.images_path = images_path
-        validation_size = CONFIG["dataset"]["VALIDATION_SIZE"]    
+        validation_size = CONFIG["dataset"]["VALIDATION_SIZE"]
+
+        # shuffle the paths list to perform randomic sampling
+        np.random.seed(CONFIG["dataset"]["SPLIT_SEED"])    
         np.random.shuffle(images_path)    
         
         # get num of samples in train and validation dataset
