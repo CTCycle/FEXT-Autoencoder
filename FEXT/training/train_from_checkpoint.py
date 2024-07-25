@@ -17,7 +17,11 @@ if __name__ == '__main__':
     # 1. [LOAD PRETRAINED MODEL]
     #--------------------------------------------------------------------------    
     dataserializer = DataSerializer()   
-    modelserializer = ModelSerializer()     
+    modelserializer = ModelSerializer() 
+
+    # setting device for training    
+    trainer = ModelTraining()
+    trainer.set_device()    
     
     # selected and load the pretrained model, then print the summary     
     logger.info('Loading specific checkpoint from pretrained models')   
@@ -29,10 +33,8 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
-    logger.info('Building autoencoder model and data loaders')     
-    trainer = ModelTraining()
-    trainer.set_device()
-
+    logger.info('Building data loaders') 
+    
     # load saved tf.datasets from the proper folders in the checkpoint directory     
     train_data, validation_data = dataserializer.load_preprocessed_data(model_folder)
 
