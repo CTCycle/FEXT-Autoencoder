@@ -1,6 +1,5 @@
 import keras
-from keras import layers
-from keras.models import Model
+from keras import Model, layers
 
 from FEXT.commons.utils.models.convolutionals import PooledConv, TransposeConv
 from FEXT.commons.constants import CONFIG
@@ -106,7 +105,6 @@ class FeXTDecoder(keras.layers.Layer):
 # autoencoder model built using the functional keras API. use get_model() method
 # to build and compile the model (print summary as optional)
 ###############################################################################
-
 class FeXTAutoEncoder: 
 
     def __init__(self): 
