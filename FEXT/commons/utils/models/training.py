@@ -14,35 +14,15 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ModelTraining:    
        
-    def __init__(self):                            
+    def __init__(self):
         np.random.seed(CONFIG["SEED"])
-        tf.random.set_seed(CONFIG["SEED"])         
-        self.available_devices = tf.config.list_physical_devices()               
-        logger.info('The current devices are available:')        
-        for dev in self.available_devices:            
-            logger.info(dev)
-
-    # set device
-    #--------------------------------------------------------------------------
-    def set_device_TF(self):
+        self.device = torch.device('cpu')
+        self.set_device()
+        if self.device.type=='cuda' and CONFIG["training"]["MIXED_PRECISION"]:
+            self.scaler = torch.amp.GradScaler('cuda')
+        else:
+            self.scaler = None  
        
-        if CONFIG["training"]["ML_DEVICE"] == 'GPU':
-            self.physical_devices = tf.config.list_physical_devices('GPU')
-            if not self.physical_devices:
-                logger.info('No GPU found. Falling back to CPU')
-                tf.config.set_visible_devices([], 'GPU')
-            else:
-                if CONFIG["training"]["MIXED_PRECISION"]:
-                    policy = keras.mixed_precision.Policy('mixed_float16')
-                    keras.mixed_precision.set_global_policy(policy) 
-                    logger.info('Mixed precision policy is active during training')
-                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
-                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                logger.info('GPU is set as active device')
-                   
-        elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
-            tf.config.set_visible_devices([], 'GPU')
-            logger.info('CPU is set as active device')   
 
     # set device
     #--------------------------------------------------------------------------
@@ -55,17 +35,15 @@ class ModelTraining:
             else:
                 self.device = torch.device('cuda:0')
                 if CONFIG["training"]["MIXED_PRECISION"]:
-                    # PyTorch uses autocast for mixed precision training
                     logger.info('Mixed precision policy is active during training')
                 torch.cuda.set_device(self.device)
                 logger.info('GPU is set as active device')
-                    
         elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
             self.device = torch.device('cpu')
             logger.info('CPU is set as active device')
         else:
-            logger.error(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}')
-            raise ValueError(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}') 
+            logger.error(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}')            
+            self.device = torch.device('cpu')
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, 
