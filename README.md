@@ -31,13 +31,12 @@ XLA is designed to optimize computations for speed and efficiency, particularly 
 To enable XLA acceleration globally across your system, you need to set an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
 
 ## 5. How to use
-The project is organized into subfolders, each dedicated to specific tasks. 
+Within the main project folder (FEXT) you will find other folders, each designated to specific tasks. 
 
 ### Resources
-
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
 
-- **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here.
+- **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images are saved as either [...].
 
 - **encoding:**
     - `input_images:` This subfolder is where you place images intended for inference using the pretrained encoder.
@@ -48,18 +47,15 @@ This folder is used to organize data and results for various stages of the proje
 - **checkpoints:**  pretrained model checkpoints are stored here, and can be used either for resuming training or performing inference with an already trained model.
 
 ### Inference
-
 Here you can find the necessary files to run pretrained models in inference mode and use them to extract major features from images
 
 - Run `images_encoding.py` to use the pretrained encoder from a model checkpoint to extract abstract representation of image features in the form of lower-dimension embeddings. 
 
 ### Training
-
 This folder contains the necessary files for conducting model training and evaluation: 
 - Run `model_training.py` to initiate the training process for the autoencoder
 
 ### Validation
-
 Data validation and pretrained model evaluations are performed using the scripts within this folder.
 - Launch the jupyter notebook `model_evaluation.ipynb` to evaluate the performance of pretrained model checkpoints using different metrics.
 - Launch the jupyter notebook `data_validation.ipynb` to validate the available data with different metrics.
