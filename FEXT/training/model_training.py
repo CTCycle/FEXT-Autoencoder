@@ -1,3 +1,6 @@
+import os 
+os.environ["KERAS_BACKEND"] = "torch"
+
 # [SETTING WARNINGS]
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
@@ -68,7 +71,8 @@ if __name__ == '__main__':
 
     # build the autoencoder model     
     autoencoder = FeXTAutoEncoder()
-    model = autoencoder.get_model(summary=True) 
+    model = autoencoder.get_model(summary=True)
+    #model.to(trainer.device) 
 
     # generate graphviz plot fo the model layout         
     modelserializer.save_model_plot(model, model_folder_path)              
