@@ -1,4 +1,4 @@
-from tensorflow import keras
+import keras
 from keras import layers
 from keras.activations import relu
 
@@ -14,8 +14,8 @@ class PooledConv(layers.Layer):
         super(PooledConv, self).__init__(**kwargs)
         self.units = units        
         self.num_layers = num_layers        
-        self.pooling = layers.AveragePooling2D(padding='same')       
-        self.convolutions = [layers.Conv2D(units, kernel_size=(2,2), padding='same', 
+        self.pooling = layers.AveragePooling2D(pool_size=(2,2), padding='same')       
+        self.convolutions = [layers.Conv2D(units, kernel_size=(3,3), strides=(1,1), padding='same', 
                                            activation=None) for _ in range(num_layers)]  
         self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                 
         
@@ -55,8 +55,8 @@ class TransposeConv(layers.Layer):
         super(TransposeConv, self).__init__(**kwargs)
         self.units = units        
         self.num_layers = num_layers              
-        self.upsamp = layers.UpSampling2D()
-        self.convolutions = [layers.Conv2DTranspose(units, kernel_size=(2,2), padding='same', 
+        self.upsamp = layers.UpSampling2D(size=(2,2))
+        self.convolutions = [layers.Conv2DTranspose(units, kernel_size=(3,3), strides=(1,1), padding='same',  
                                                     activation=None) for _ in range(num_layers)]
         self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]             
         
@@ -71,6 +71,13 @@ class TransposeConv(layers.Layer):
         output = self.upsamp(layer)           
         
         return output
+    
+    #--------------------------------------------------------------------------
+    def compute_output_shape(self, input_shape):
+        shape = input_shape
+        for _ in range(self.num_layers):
+            shape = (shape[0], shape[1] * 2, shape[2] * 2, self.units)  
+        return shape
     
     # serialize layer for saving  
     #--------------------------------------------------------------------------

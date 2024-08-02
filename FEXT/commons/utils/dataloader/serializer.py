@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import json
+import keras
 from tqdm import tqdm
 from datetime import datetime
 import tensorflow as tf
@@ -125,7 +126,7 @@ class ModelSerializer:
         return checkpoint_folder_path    
 
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model : tf.keras.Model, path):
+    def save_pretrained_model(self, model : keras.Model, path):
 
         model_files_path = os.path.join(path, 'model')
         model.save(model_files_path, save_format='tf')
@@ -222,7 +223,7 @@ class ModelSerializer:
             
         # effectively load the model using keras builtin method
         model_path = os.path.join(self.loaded_model_folder, 'model') 
-        model = tf.keras.models.load_model(model_path)
+        model = keras.models.load_model(model_path)
         
         # load configuration data from .json file in checkpoint folder
         config_path = os.path.join(self.loaded_model_folder, 'model_parameters.json')

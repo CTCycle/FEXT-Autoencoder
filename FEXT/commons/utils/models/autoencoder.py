@@ -1,4 +1,4 @@
-from tensorflow import keras
+import keras
 from keras import layers
 from keras.models import Model
 
@@ -128,7 +128,7 @@ class FeXTAutoEncoder:
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
-        model.compile(loss=loss, optimizer=opt, metrics=metric, 
+        model.compile(loss=loss, optimizer=opt, metrics=[metric], 
                       jit_compile=self.xla_state)         
         if summary:
             model.summary(expand_nested=True)
