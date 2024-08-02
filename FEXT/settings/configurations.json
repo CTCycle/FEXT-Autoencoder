@@ -11,7 +11,7 @@
 
     "training" : {"EPOCHS" : 10,
                   "LEARNING_RATE" : 0.0002,
-                  "BATCH_SIZE" : 15,
+                  "BATCH_SIZE" : 20,
                   "MIXED_PRECISION" : false,
                   "USE_TENSORBOARD" : false,
                   "XLA_STATE" : false,
