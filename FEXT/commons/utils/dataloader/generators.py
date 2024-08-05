@@ -69,8 +69,7 @@ class DataGenerator():
             dataset (tf.data.Dataset): The prepared TensorFlow dataset.
 
         '''
-        num_samples = len(data) 
-        data = tf.convert_to_tensor(data)
+        num_samples = len(data)         
         dataset = tf.data.Dataset.from_tensor_slices(data)
         dataset = dataset.shuffle(buffer_size=num_samples)  
         # map preprocessing function

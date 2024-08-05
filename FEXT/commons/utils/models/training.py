@@ -1,8 +1,8 @@
 import os
-import torch
 import numpy as np
-import tensorflow as tf
 import keras
+import torch
+from torch.amp import GradScaler
 
 from FEXT.commons.utils.models.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
@@ -17,55 +17,30 @@ class ModelTraining:
     def __init__(self):
         np.random.seed(CONFIG["SEED"])
         self.device = torch.device('cpu')
+        self.scaler = GradScaler() if CONFIG["training"]["MIXED_PRECISION"] else None
         self.set_device()
-        if self.device.type=='cuda' and CONFIG["training"]["MIXED_PRECISION"]:
-            self.scaler = torch.amp.GradScaler('cuda')
-        else:
-            self.scaler = None  
-       
+        
 
     # set device
     #--------------------------------------------------------------------------
     def set_device(self):
-
         if CONFIG["training"]["ML_DEVICE"] == 'GPU':
             if not torch.cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
                 self.device = torch.device('cpu')
             else:
-                self.device = torch.device('cuda:0')
+                self.device = torch.device('cuda:0')                
                 if CONFIG["training"]["MIXED_PRECISION"]:
+                    keras.mixed_precision.set_global_policy("mixed_float16")
                     logger.info('Mixed precision policy is active during training')
                 torch.cuda.set_device(self.device)
                 logger.info('GPU is set as active device')
         elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
             self.device = torch.device('cpu')
-            logger.info('CPU is set as active device')
+            logger.info('CPU is set as active device')             
         else:
-            logger.error(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}')            
-            self.device = torch.device('cpu')
-
-    # set device
-    #--------------------------------------------------------------------------
-    def set_device_(self):
-       
-        if CONFIG["training"]["ML_DEVICE"] == 'GPU':
-            self.physical_devices = tf.config.list_physical_devices('GPU')
-            if not self.physical_devices:
-                logger.info('No GPU found. Falling back to CPU')
-                tf.config.set_visible_devices([], 'GPU')
-            else:
-                if CONFIG["training"]["MIXED_PRECISION"]:
-                    policy = keras.mixed_precision.Policy('mixed_float16')
-                    keras.mixed_precision.set_global_policy(policy) 
-                    logger.info('Mixed precision policy is active during training')
-                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
-                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
-                logger.info('GPU is set as active device')
-                   
-        elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
-            tf.config.set_visible_devices([], 'GPU')
-            logger.info('CPU is set as active device')    
+            logger.error(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}')
+            self.device = torch.device('cpu')    
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, 
@@ -81,18 +56,17 @@ class ModelTraining:
         if CONFIG["training"]["USE_TENSORBOARD"]:
             logger.debug('Using tensorboard during training')
             log_path = os.path.join(current_checkpoint_path, 'tensorboard')
-            callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, 
-                                                                 histogram_freq=1))
+            callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))
 
         # training loop and save model at end of training
         serializer = ModelSerializer()         
 
         # calculate number of epochs taking into account possible training resumption
         additional_epochs = from_epoch if session_index > 0 else 0
-        epochs = CONFIG["training"]["EPOCHS"] + additional_epochs 
+        epochs = CONFIG["training"]["EPOCHS"] + additional_epochs        
         
         training = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
-                            callbacks=callbacks_list, initial_epoch=from_epoch)
+                             callbacks=callbacks_list, initial_epoch=from_epoch)
 
         serializer.save_pretrained_model(model, current_checkpoint_path)
 

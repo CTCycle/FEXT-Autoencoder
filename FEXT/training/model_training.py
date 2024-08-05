@@ -1,10 +1,10 @@
+# [SET ML BACKEND]
 import os 
 os.environ["KERAS_BACKEND"] = "torch"
 
 # [SETTING WARNINGS]
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)
-
 
 # [IMPORT CUSTOM MODULES]
 from FEXT.commons.utils.dataloader.generators import training_data_pipeline
@@ -46,8 +46,7 @@ if __name__ == '__main__':
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
     logger.info('Building autoencoder model and data loaders')     
-    trainer = ModelTraining()
-    trainer.set_device()
+    trainer = ModelTraining()    
 
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators    
