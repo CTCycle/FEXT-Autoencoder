@@ -45,6 +45,28 @@ class ModelTraining:
             logger.error(f'Unknown ML_DEVICE value: {CONFIG["training"]["ML_DEVICE"]}')            
             self.device = torch.device('cpu')
 
+    # set device
+    #--------------------------------------------------------------------------
+    def set_device_(self):
+       
+        if CONFIG["training"]["ML_DEVICE"] == 'GPU':
+            self.physical_devices = tf.config.list_physical_devices('GPU')
+            if not self.physical_devices:
+                logger.info('No GPU found. Falling back to CPU')
+                tf.config.set_visible_devices([], 'GPU')
+            else:
+                if CONFIG["training"]["MIXED_PRECISION"]:
+                    policy = keras.mixed_precision.Policy('mixed_float16')
+                    keras.mixed_precision.set_global_policy(policy) 
+                    logger.info('Mixed precision policy is active during training')
+                tf.config.set_visible_devices(self.physical_devices[0], 'GPU')
+                os.environ['TF_GPU_ALLOCATOR']='cuda_malloc_async'                 
+                logger.info('GPU is set as active device')
+                   
+        elif CONFIG["training"]["ML_DEVICE"] == 'CPU':
+            tf.config.set_visible_devices([], 'GPU')
+            logger.info('CPU is set as active device')    
+
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, 
                     validation_data, current_checkpoint_path, from_epoch=0,
