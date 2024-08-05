@@ -1,5 +1,5 @@
 import keras
-from keras import Model, layers
+import torch
 
 from FEXT.commons.utils.models.convolutionals import PooledConv, TransposeConv
 from FEXT.commons.constants import CONFIG
@@ -8,7 +8,7 @@ from FEXT.commons.constants import CONFIG
 # [ENCODER MODEL]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='SubModels', name='Encoder')
-class FeXTEncoder(layers.Layer):
+class FeXTEncoder(keras.layers.Layer):
     def __init__(self, **kwargs):
         super(FeXTEncoder, self).__init__(**kwargs)        
         self.convblock1 = PooledConv(64, 2) 
@@ -17,8 +17,8 @@ class FeXTEncoder(layers.Layer):
         self.convblock4 = PooledConv(256, 2)
         self.convblock5 = PooledConv(256, 3)
         self.convblock6 = PooledConv(512, 3)        
-        self.dense = layers.Dense(512, activation='relu', 
-                                  kernel_initializer='he_uniform')
+        self.dense = keras.layers.Dense(512, activation='relu', 
+                                        kernel_initializer='he_uniform')
         
     # build method for the custom layer 
     #--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ class FeXTDecoder(keras.layers.Layer):
         self.convblock4 = TransposeConv(128, 2)
         self.convblock5 = TransposeConv(128, 2)
         self.convblock6 = TransposeConv(64, 2)
-        self.dense = layers.Dense(3, activation='sigmoid', dtype='float32')
+        self.dense = keras.layers.Dense(3, activation='sigmoid', dtype='float32')
 
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
@@ -110,7 +110,7 @@ class FeXTAutoEncoder:
     def __init__(self): 
         self.img_shape = CONFIG["model"]["IMG_SHAPE"] 
         self.learning_rate = CONFIG["training"]["LEARNING_RATE"] 
-        self.xla_state = CONFIG["training"]["XLA_STATE"]  
+        self.xla_state = CONFIG["training"]["XLA_STATE"]         
              
         self.encoder = FeXTEncoder()
         self.decoder = FeXTDecoder()       
@@ -119,17 +119,17 @@ class FeXTAutoEncoder:
     #--------------------------------------------------------------------------
     def get_model(self, summary=True):       
        
-        inputs = layers.Input(shape=self.img_shape)           
+        inputs = keras.layers.Input(shape=self.img_shape)           
         encoder_block = self.encoder(inputs)        
         decoder_block = self.decoder(encoder_block)        
-        model = Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
+        model = keras.Model(inputs=inputs, outputs=decoder_block, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
         model.compile(loss=loss, optimizer=opt, metrics=[metric], 
                       jit_compile=self.xla_state)         
         if summary:
-            model.summary(expand_nested=True)
+            model.summary(expand_nested=True)        
 
         return model
        

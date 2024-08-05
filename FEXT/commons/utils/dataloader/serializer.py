@@ -128,8 +128,8 @@ class ModelSerializer:
     #--------------------------------------------------------------------------
     def save_pretrained_model(self, model : keras.Model, path):
 
-        model_files_path = os.path.join(path, 'model')
-        model.save(model_files_path, save_format='tf')
+        model_files_path = os.path.join(path, 'saved_model')
+        model.export(model_files_path)
         logger.info(f'Training session is over. Model has been saved in folder {path}')
 
     #--------------------------------------------------------------------------
