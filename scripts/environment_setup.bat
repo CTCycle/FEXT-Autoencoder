@@ -2,7 +2,7 @@
 rem Use this script to create a new environment called "FEXT"
 
 echo STEP 1: Creation of FEXT environment
-call conda create -n FEXT python=3.10 -y
+call conda create -n FEXT python=3.11 -y
 if errorlevel 1 (
     echo Failed to create the environment FEXT
     goto :eof
@@ -13,9 +13,13 @@ call conda activate FEXT
 
 rem Install additional packages with pip
 echo STEP 2: Install python libraries and packages
-call pip install numpy==1.26.4 pandas==2.1.4 openpyxl==3.1.5 tqdm==4.66.4
-call pip install scikit-learn==1.2.2 matplotlib==3.9.1 python-opencv==4.10.0.84
-call pip install tensorflow==2.10 
+call --extra-index-url https://download.pytorch.org/whl/cu121
+call pip install torch==2.4.0+cu121
+call pip install torchvision==0.19.0+cu121
+call pip install tensorflow-cpu==2.17.0 keras==3.4.1
+call pip install numpy==1.26.4 pandas==2.2.2 openpyxl==3.1.5 tqdm==4.66.4 
+call pip install scikit-learn==1.2.2 matplotlib==3.9.0 opencv-python==4.10.0.84
+
 if errorlevel 1 (
     echo Failed to install Python libraries.
     goto :eof
@@ -33,7 +37,7 @@ if errorlevel 1 (
 @echo off
 rem install packages in editable mode
 echo STEP 4: Install utils packages in editable mode
-call cd .. && pip install -e .
+call cd .. && pip install --use-pep517 -e .
 if errorlevel 1 (
     echo Failed to install the package in editable mode
     goto :eof

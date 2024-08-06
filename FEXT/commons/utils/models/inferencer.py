@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 import tensorflow as tf
 import keras
 
@@ -13,16 +14,15 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class FeatureExtractor:
     
-    def __init__(self, model):
-        
+    def __init__(self, model : keras.Model):
+       
         np.random.seed(CONFIG["SEED"])
-        tf.random.set_seed(CONFIG["SEED"])
+        torch.manual_seed(CONFIG["SEED"])
         self.dataserializer = DataSerializer()        
         # isolate the encoder from the autoencoder model, and use it for inference     
-        encoder_input = model.get_layer('input_1')  
-        encoder_output = model.get_layer('fe_xt_encoder')  
-        self.encoder_model = keras.Model(inputs=encoder_input.input, 
-                                         outputs=encoder_output.output)        
+        encoder_input = model.get_layer('input_layer').output
+        encoder_output = model.get_layer('fe_xt_encoder').output 
+        self.encoder_model = keras.Model(inputs=encoder_input, outputs=encoder_output)        
 
     #--------------------------------------------------------------------------
     def extract_from_encoder(self, images_paths, parameters):
@@ -30,7 +30,7 @@ class FeatureExtractor:
         features = {}
         for pt in images_paths:
             try:
-                image = self.dataserializer.load_images(pt, parameters['picture_shape'])
+                image = self.dataserializer.load_image(pt, parameters['picture_shape'])
                 image = tf.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features.update({pt : extracted_features})

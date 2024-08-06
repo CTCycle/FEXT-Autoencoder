@@ -1,4 +1,4 @@
-# [SET ML BACKEND]
+# [SET KERAS BACKEND]
 import os 
 os.environ["KERAS_BACKEND"] = "torch"
 
