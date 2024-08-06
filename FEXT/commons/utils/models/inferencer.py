@@ -18,6 +18,7 @@ class FeatureExtractor:
        
         np.random.seed(CONFIG["SEED"])
         torch.manual_seed(CONFIG["SEED"])
+        tf.random.set_seed(CONFIG["SEED"])
         self.dataserializer = DataSerializer()        
         # isolate the encoder from the autoencoder model, and use it for inference     
         encoder_input = model.get_layer('input_layer').output

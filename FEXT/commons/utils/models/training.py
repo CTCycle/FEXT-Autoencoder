@@ -3,6 +3,7 @@ import numpy as np
 import keras
 import torch
 from torch.amp import GradScaler
+import tensorflow as tf
 
 from FEXT.commons.utils.models.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
@@ -17,10 +18,10 @@ class ModelTraining:
     def __init__(self):
         np.random.seed(CONFIG["SEED"])
         torch.manual_seed(CONFIG["SEED"])
+        tf.random.set_seed(CONFIG["SEED"])
         self.device = torch.device('cpu')
         self.scaler = GradScaler() if CONFIG["training"]["MIXED_PRECISION"] else None
-        self.set_device()
-        
+        self.set_device()        
 
     # set device
     #--------------------------------------------------------------------------
