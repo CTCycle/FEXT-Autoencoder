@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import keras
 
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
@@ -41,20 +42,13 @@ class DataGenerator():
         if self.normalization:
             rgb_image = rgb_image/255.0 
 
-        return rgb_image 
+        return rgb_image, rgb_image     
     
-    # ...
-    #--------------------------------------------------------------------------
-    def process_data(self, path):
-        
-        rgb_image = self.load_image(path)        
-
-        return rgb_image, rgb_image      
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------
     def image_augmentation(self, image):
-        pp_image = tf.keras.preprocessing.image.random_shift(image, 0.2, 0.3)
+        pp_image = keras.preprocessing.image.random_shift(image, 0.2, 0.3)
         pp_image = tf.image.random_flip_left_right(pp_image)
         pp_image = tf.image.random_flip_up_down(pp_image)
 
@@ -75,12 +69,11 @@ class DataGenerator():
             dataset (tf.data.Dataset): The prepared TensorFlow dataset.
 
         '''
-        num_samples = len(data) 
-        data = tf.convert_to_tensor(data)
+        num_samples = len(data)         
         dataset = tf.data.Dataset.from_tensor_slices(data)
         dataset = dataset.shuffle(buffer_size=num_samples)  
         # map preprocessing function
-        dataset = dataset.map(self.process_data, num_parallel_calls=buffer_size)   
+        dataset = dataset.map(self.load_image, num_parallel_calls=buffer_size)   
         # batch and prefetch dataset
         dataset = dataset.batch(self.batch_size)
         dataset = dataset.prefetch(buffer_size=buffer_size)
