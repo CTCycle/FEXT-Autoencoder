@@ -1,5 +1,5 @@
 @echo off
-rem Use this script to create a new environment called "FEXT"
+rem Install packages as developer mode
 
 call conda activate FEXT && cd .. && pip install -e .
 if errorlevel 1 (

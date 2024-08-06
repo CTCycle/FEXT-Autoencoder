@@ -2,10 +2,9 @@ import os
 import sys
 import cv2
 import json
-from tqdm import tqdm
+import keras
 from datetime import datetime
 import tensorflow as tf
-from keras.utils import plot_model
 
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
@@ -39,27 +38,25 @@ class DataSerializer:
         self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]       
        
     #--------------------------------------------------------------------------
-    def load_images(self, paths, as_tensor=True):
+    def load_image(self, path, as_tensor=True):
                
-        images = []
-        for pt in tqdm(paths):
-            if as_tensor==False:                
-                image = cv2.imread(pt)             
-                image = cv2.resize(image, self.resized_img_shape)            
-                image = cv2.cvtColor(image, self.color_encoding) 
-                if self.normalization:
-                    image = image/255.0
-            else:
-                image = tf.io.read_file(pt)
-                image = tf.image.decode_image(image, channels=3)
-                image = tf.image.resize(image, self.resized_img_shape)
-                image = tf.reverse(image, axis=[-1])
-                if self.normalization:
-                    image = image/255.0
-            
-            images.append(image) 
+        
+        if as_tensor:
+            image = tf.io.read_file(path)
+            image = tf.image.decode_image(image, channels=3)
+            image = tf.image.resize(image, self.resized_img_shape)
+            image = tf.reverse(image, axis=[-1])
+            if self.normalization:
+                image = image/255.0              
+        else:
+            image = cv2.imread(path)             
+            image = cv2.resize(image, self.resized_img_shape)            
+            image = cv2.cvtColor(image, self.color_encoding) 
+            if self.normalization:
+                image = image/255.0         
+           
 
-        return images
+        return image
 
     # ...
     #--------------------------------------------------------------------------
@@ -125,10 +122,10 @@ class ModelSerializer:
         return checkpoint_folder_path    
 
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model : tf.keras.Model, path):
+    def save_pretrained_model(self, model : keras.Model, path):
 
-        model_files_path = os.path.join(path, 'model')
-        model.save(model_files_path, save_format='tf')
+        model_files_path = os.path.join(path, 'saved_model.keras')
+        model.save(model_files_path)
         logger.info(f'Training session is over. Model has been saved in folder {path}')
 
     #--------------------------------------------------------------------------
@@ -158,7 +155,7 @@ class ModelSerializer:
         if CONFIG["model"]["SAVE_MODEL_PLOT"]:
             logger.debug('Generating model architecture graph')
             plot_path = os.path.join(path, 'model_layout.png')       
-            plot_model(model, to_file=plot_path, show_shapes=True, 
+            keras.utils.plot_model(model, to_file=plot_path, show_shapes=True, 
                        show_layer_names=True, show_layer_activations=True, 
                        expand_nested=True, rankdir='TB', dpi=400)
             
@@ -221,8 +218,8 @@ class ModelSerializer:
             self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[0])                 
             
         # effectively load the model using keras builtin method
-        model_path = os.path.join(self.loaded_model_folder, 'model') 
-        model = tf.keras.models.load_model(model_path)
+        model_path = os.path.join(self.loaded_model_folder, 'saved_model.keras') 
+        model = keras.models.load_model(model_path)
         
         # load configuration data from .json file in checkpoint folder
         config_path = os.path.join(self.loaded_model_folder, 'model_parameters.json')
