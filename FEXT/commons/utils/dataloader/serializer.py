@@ -3,11 +3,8 @@ import sys
 import cv2
 import json
 import keras
-from tqdm import tqdm
 from datetime import datetime
 import tensorflow as tf
-import torch
-from keras.utils import plot_model
 
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
@@ -158,7 +155,7 @@ class ModelSerializer:
         if CONFIG["model"]["SAVE_MODEL_PLOT"]:
             logger.debug('Generating model architecture graph')
             plot_path = os.path.join(path, 'model_layout.png')       
-            plot_model(model, to_file=plot_path, show_shapes=True, 
+            keras.utils.plot_model(model, to_file=plot_path, show_shapes=True, 
                        show_layer_names=True, show_layer_activations=True, 
                        expand_nested=True, rankdir='TB', dpi=400)
             
