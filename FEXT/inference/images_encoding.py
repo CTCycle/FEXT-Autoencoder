@@ -1,3 +1,7 @@
+# [SET ML BACKEND]
+import os 
+os.environ["KERAS_BACKEND"] = "torch"
+
 # [SETTING WARNINGS]
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)

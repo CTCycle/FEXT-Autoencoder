@@ -16,6 +16,7 @@ class ModelTraining:
        
     def __init__(self):
         np.random.seed(CONFIG["SEED"])
+        torch.manual_seed(CONFIG["SEED"])
         self.device = torch.device('cpu')
         self.scaler = GradScaler() if CONFIG["training"]["MIXED_PRECISION"] else None
         self.set_device()
