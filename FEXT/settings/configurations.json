@@ -1,22 +1,22 @@
 {   
     "SEED" : 54,   
-    "dataset" : {"SAMPLE_SIZE" : 0.1,
+    "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
                  "SPLIT_SEED" : 45},
 
-    "model" : {"IMG_SHAPE" : [256, 256, 3],
+    "model" : {"IMG_SHAPE" : [192, 192, 3],
                "SAVE_MODEL_PLOT" : true},
 
-    "training" : {"EPOCHS" : 1,
-                  "LEARNING_RATE" : 0.0002,
-                  "BATCH_SIZE" : 10,
+    "training" : {"EPOCHS" : 10,
+                  "LEARNING_RATE" : 0.001,
+                  "BATCH_SIZE" : 15,
                   "MIXED_PRECISION" : false,
                   "USE_TENSORBOARD" : false,
                   "XLA_STATE" : false,
                   "ML_DEVICE" : "GPU",                 
-                  "NUM_PROCESSORS": 6,
+                  "NUM_PROCESSORS": 4,
                   "PLOT_EPOCH_GAP": 5},                  
                   
     "evaluation" : {"BATCH_SIZE" : 20}     

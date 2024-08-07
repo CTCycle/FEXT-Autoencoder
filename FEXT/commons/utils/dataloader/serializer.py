@@ -38,8 +38,7 @@ class DataSerializer:
         self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]       
        
     #--------------------------------------------------------------------------
-    def load_image(self, path, as_tensor=True):
-               
+    def load_image(self, path, as_tensor=True):               
         
         if as_tensor:
             image = tf.io.read_file(path)
@@ -80,8 +79,8 @@ class DataSerializer:
             combined_data = json.load(json_file)
             logger.debug(f'Preprocessed data has been loaded from {json_path}')
         
-        train_data = combined_data.get('train')
-        validation_data = combined_data.get('validation')  
+        train_data = combined_data.get('train', None)
+        validation_data = combined_data.get('validation', None)
 
         # reconstruct images path        
         train_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
