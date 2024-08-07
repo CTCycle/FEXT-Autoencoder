@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import tensorflow as tf
 import keras
+from tqdm import tqdm
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
 from FEXT.commons.constants import CONFIG, ENCODED_OUTPUT_PATH
@@ -29,7 +30,7 @@ class FeatureExtractor:
     def extract_from_encoder(self, images_paths, parameters):
         
         features = {}
-        for pt in images_paths:
+        for pt in tqdm(images_paths):
             try:
                 image = self.dataserializer.load_image(pt, parameters['picture_shape'])
                 image = tf.expand_dims(image, axis=0)
