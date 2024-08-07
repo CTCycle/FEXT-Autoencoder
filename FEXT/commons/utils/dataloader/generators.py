@@ -47,12 +47,12 @@ class DataGenerator():
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------
-    def image_augmentation(self, image):
-        pp_image = keras.preprocessing.image.random_shift(image, 0.2, 0.3)
-        pp_image = tf.image.random_flip_left_right(pp_image)
-        pp_image = tf.image.random_flip_up_down(pp_image)
+    def image_augmentation(self, image):    
+           
+        image = tf.image.random_flip_left_right(image)
+        image = tf.image.random_flip_up_down(image) 
 
-        return pp_image 
+        return image
               
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #------------------------------------------------------------------------------
@@ -71,10 +71,8 @@ class DataGenerator():
         '''
         num_samples = len(data)         
         dataset = tf.data.Dataset.from_tensor_slices(data)
-        dataset = dataset.shuffle(buffer_size=num_samples)  
-        # map preprocessing function
-        dataset = dataset.map(self.load_image, num_parallel_calls=buffer_size)   
-        # batch and prefetch dataset
+        dataset = dataset.shuffle(buffer_size=num_samples)          
+        dataset = dataset.map(self.load_image, num_parallel_calls=buffer_size)        
         dataset = dataset.batch(self.batch_size)
         dataset = dataset.prefetch(buffer_size=buffer_size)
 
@@ -88,8 +86,7 @@ def training_data_pipeline(train_data, validation_data):
         generator = DataGenerator()
 
         train_dataset = generator.build_tensor_dataset(train_data)
-        validation_dataset = generator.build_tensor_dataset(validation_data)
-        # logging debug info about batch shapes
+        validation_dataset = generator.build_tensor_dataset(validation_data)        
         for x, y in train_dataset.take(1):
             logger.debug(f'X batch shape is: {x.shape}')  
             logger.debug(f'Y batch shape is: {y.shape}') 

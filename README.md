@@ -33,15 +33,15 @@ Within the main project folder (FEXT) you will find other folders, each designat
 ### Resources
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
 
-- **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images are saved as either [...].
+**dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images are saved as either [...].
 
-- **encoding:**
-    - `input_images:` This subfolder is where you place images intended for inference using the pretrained encoder.
-    - `encoder_output:` After running the inference script, the resulting lower-dimension embeddings of the input images are saved here as .npy files.
+**encoding:**
+- `input_images:` This subfolder is where you place images intended for inference using the pretrained encoder.
+- `encoder_output:` After running the inference script, the resulting lower-dimension embeddings of the input images are saved here as .npy files.
 
-- **results:** Used to save the results of data validation processes. This helps in keeping track of validation metrics and logs.
+**results:** Used to save the results of data validation processes. This helps in keeping track of validation metrics and logs.
 
-- **checkpoints:**  pretrained model checkpoints are stored here, and can be used either for resuming training or performing inference with an already trained model.
+**checkpoints:**  pretrained model checkpoints are stored here, and can be used either for resuming training or performing inference with an already trained model.
 
 ### Inference
 Here you can find the necessary files to run pretrained models in inference mode and use them to extract major features from images
@@ -59,7 +59,7 @@ Data validation and pretrained model evaluations are performed using the scripts
 
 
 ### 5.1 Configurations
-For customization, you can modify the main configuration parameters using `configurations.json` in the root project folder. 
+For customization, you can modify the main configuration parameters using `settings/configurations.json` 
 
 #### Dataset Configuration
 
