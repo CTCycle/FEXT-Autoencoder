@@ -1,6 +1,5 @@
 import keras
-from keras import layers
-from keras.activations import relu
+from keras import activations, layers
 
 from FEXT.commons.constants import CONFIG
 
@@ -26,7 +25,7 @@ class PooledConv(layers.Layer):
         for conv, bn in zip(self.convolutions, self.batch_norm_layers):
             layer = conv(layer)
             layer = bn(layer, training=training)
-            layer = relu(layer) 
+            layer = activations.relu(layer) 
         output = self.pooling(layer)           
         
         return output
@@ -67,17 +66,11 @@ class TransposeConv(layers.Layer):
         for conv, bn in zip(self.convolutions, self.batch_norm_layers):
             layer = conv(layer) 
             layer = bn(layer, training=training)
-            layer = relu(layer)
+            layer = activations.relu(layer)
         output = self.upsamp(layer)           
         
-        return output
+        return output  
     
-    #--------------------------------------------------------------------------
-    def compute_output_shape(self, input_shape):
-        shape = input_shape
-        for _ in range(self.num_layers):
-            shape = (shape[0], shape[1] * 2, shape[2] * 2, self.units)  
-        return shape
     
     # serialize layer for saving  
     #--------------------------------------------------------------------------

@@ -36,14 +36,13 @@ if __name__ == '__main__':
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
     # initialize training device, allows changing device prior to initializing the generators
-    #--------------------------------------------------------------------------
-    logger.info('Building data loaders') 
-    
+    #--------------------------------------------------------------------------   
     # load saved tf.datasets from the proper folders in the checkpoint directory     
     train_data, validation_data = dataserializer.load_preprocessed_data(model_folder)
 
     # initialize the TensorDataSet class with the generator instances
-    # create the tf.datasets using the previously initialized generators    
+    # create the tf.datasets using the previously initialized generators   
+    logger.info('Building data loaders') 
     train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data)
     
     # 3. [TRAINING MODEL]  
