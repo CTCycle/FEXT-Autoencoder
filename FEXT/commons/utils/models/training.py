@@ -65,7 +65,7 @@ class ModelTraining:
 
         # calculate number of epochs taking into account possible training resumption
         additional_epochs = from_epoch if session_index > 0 else 0
-        epochs = CONFIG["training"]["EPOCHS"] + additional_epochs        
+        epochs = CONFIG["training"]["EPOCHS"] + additional_epochs     
         
         training = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
                              callbacks=callbacks_list, initial_epoch=from_epoch)
