@@ -88,9 +88,9 @@ class DataSerializer:
         validation_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
                           for x in validation_data if os.path.basename(x) in os.listdir(IMG_DATA_PATH)]     
         
-        return train_data, validation_data         
-    
+        return train_data, validation_data  
 
+    
 # [MODEL SERIALIZATION]
 ###############################################################################
 class ModelSerializer:

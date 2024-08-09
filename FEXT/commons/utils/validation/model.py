@@ -1,40 +1,35 @@
 import os
 import numpy as np
+import keras
 import matplotlib.pyplot as plt
 
+from FEXT.commons.utils.dataloader.serializer import DataSerializer
+from FEXT.commons.constants import CONFIG, RESULTS_PATH
+from FEXT.commons.logger import logger
 
-# [VALIDATION OF DATA]
-###############################################################################
-class DataValidation:
-
-    def __init__(self):
-        self.DPI = 400
-        self.file_type = 'jpeg'
-
-    #--------------------------------------------------------------------------
-    def pixel_intensity_histograms(self, image_dict, path):
-
-        figure_path = os.path.join(path, 'pixel_intensity_histograms.jpeg')
-        plt.figure(figsize=(16, 14))        
-        for name, image_set in image_dict.items():
-            pixel_intensities = np.concatenate([image.flatten() for image in image_set])
-            plt.hist(pixel_intensities, bins='auto', alpha=0.5, label=name)        
-        plt.title('Pixel Intensity Histograms', fontsize=16)
-        plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency', fontsize=12)
-        plt.legend()
-        plt.tight_layout()        
-        plt.savefig(figure_path, bbox_inches='tight', format=self.file_type, dpi=self.DPI)
-        plt.show()
-        plt.close()
-        
 
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ModelValidation:
 
-    def __init__(self, model):        
+    def __init__(self, model : keras.Model):
+        self.DPI = 400
+        self.file_type = 'jpeg'        
         self.model = model
+
+    #-------------------------------------------------------------------------- 
+    def evaluation_report(self, train_dataset, validation_dataset):
+
+        eval_batch_size = CONFIG["evaluation"]["BATCH_SIZE"]
+        train_eval = self.model.evaluate(train_dataset, batch_size=eval_batch_size, verbose=1)
+        validation_eval = self.model.evaluate(validation_dataset, batch_size=eval_batch_size, verbose=1)
+
+        logger.info('Train dataset:')
+        logger.info(f'Loss: {train_eval[0]}')    
+        logger.info(f'Metric: {train_eval[1]}')  
+        logger.info('Test dataset:')
+        logger.info(f'Loss: {validation_eval[0]}')    
+        logger.info(f'Metric: {validation_eval[1]}') 
 
     #-------------------------------------------------------------------------- 
     def visualize_features_vector(self, real_image, features, predicted_image, name, path):
