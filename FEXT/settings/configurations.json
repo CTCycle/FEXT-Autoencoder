@@ -18,7 +18,7 @@
                   "XLA_STATE" : false,
                   "ML_DEVICE" : "GPU",                 
                   "NUM_PROCESSORS": 4,
-                  "PLOT_EPOCH_GAP": 5},                     
+                  "PLOT_EPOCH_GAP": 1},                     
                   
     "evaluation" : {"BATCH_SIZE" : 20}     
       

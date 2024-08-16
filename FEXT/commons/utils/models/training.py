@@ -61,7 +61,7 @@ class ModelTraining:
             from_epoch = 0
         else:
             _, history = serializer.load_session_configuration(current_checkpoint_path)                     
-            epochs = self.configuration["training"]["ADDITIONAL_EPOCHS"] 
+            epochs = history['epochs_history'] + CONFIG["training"]["ADDITIONAL_EPOCHS"] 
             from_epoch = history['epochs_history']
         
         # add logger callback for the training session
@@ -83,7 +83,7 @@ class ModelTraining:
         # save model parameters in json files
         history = {'history' : RTH_callback.history, 
                    'val_history' : RTH_callback.val_history,
-                   'epochs_history' : from_epoch + epochs}
+                   'epochs_history' : epochs}
         
         serializer.save_pretrained_model(model, current_checkpoint_path)       
         serializer.save_session_configuration(current_checkpoint_path, 
