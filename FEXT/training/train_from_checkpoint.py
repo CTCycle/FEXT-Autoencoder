@@ -62,7 +62,7 @@ if __name__ == '__main__':
     logger.info(f'Number of validation samples:  {len(validation_data)}')      
     logger.info(f'Picture shape:                 {configuration["model"]["IMG_SHAPE"]}')   
     logger.info(f'Batch size:                    {configuration["training"]["BATCH_SIZE"]}')
-    logger.info(f'Epochs:                        {configuration["training"]["ADDITIONAL_EPOCHS"]}')  
+    logger.info(f'Epochs:                        {CONFIG["training"]["ADDITIONAL_EPOCHS"]}')  
     logger.info('--------------------------------------------------------------\n')      
 
     # resume training from pretrained model    
