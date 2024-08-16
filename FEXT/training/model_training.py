@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
     logger.info('Building autoencoder model and data loaders')     
-    trainer = ModelTraining()    
+    trainer = ModelTraining(CONFIG)    
 
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators    

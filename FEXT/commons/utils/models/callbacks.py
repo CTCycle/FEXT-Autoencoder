@@ -35,10 +35,9 @@ class RealTimeHistory(keras.callbacks.Callback):
             Generates and saves plots of training and validation metrics.
 
     '''    
-    def __init__(self, plot_path, update_epoch_gap=2, **kwargs):
+    def __init__(self, plot_path, **kwargs):
         super(RealTimeHistory, self).__init__(**kwargs)
-        self.plot_path = plot_path
-        self.update_epoch_gap = update_epoch_gap
+        self.plot_path = plot_path        
         self.plot_epoch_gap = CONFIG["training"]["PLOT_EPOCH_GAP"]
                 
         # Initialize dictionaries to store history
@@ -84,6 +83,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         plt.tight_layout()
         plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=300)
         plt.close()
+
 
 
 # [LOGGING]
