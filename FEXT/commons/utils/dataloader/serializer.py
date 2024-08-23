@@ -179,13 +179,7 @@ class ModelSerializer:
         with open(history_path, 'w') as f:
             json.dump(existing_history, f)
 
-        logger.debug(f'Model configuration and session history have been saved and merged at {path}')
-
-        
-
-        
-
-       
+        logger.debug(f'Model configuration and session history have been saved and merged at {path}')      
 
     #--------------------------------------------------------------------------
     def load_session_configuration(self, path): 
@@ -273,7 +267,6 @@ class ModelSerializer:
         model = keras.models.load_model(model_path)
         
         # load configuration data from .json file in checkpoint folder
-        configuration, history = self.load_session_configuration(self.loaded_model_folder)
-        
+        configuration, history = self.load_session_configuration(self.loaded_model_folder)        
             
         return model, configuration, history
