@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = DataSplit(images_paths)     
-    train_data, validation_data = splitter.split_data()   
+    train_data, validation_data = splitter.split_train_and_validation()   
 
     # create subfolder for preprocessing data    
     logger.info('Saving images path references') 

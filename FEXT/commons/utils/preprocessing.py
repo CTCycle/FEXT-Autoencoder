@@ -20,7 +20,7 @@ class DataSplit:
         self.val_size = int(len(images_path) * validation_size)        
         
     #--------------------------------------------------------------------------
-    def split_data(self):          
+    def split_train_and_validation(self):          
        
         # Split the list of items based on the specified sizes
         train_data = self.images_path[:self.train_size]
