@@ -1,6 +1,6 @@
 {   
     "SEED" : 54,   
-    "dataset" : {"SAMPLE_SIZE" : 0.05,
+    "dataset" : {"SAMPLE_SIZE" : 0.5,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
@@ -9,10 +9,10 @@
     "model" : {"IMG_SHAPE" : [192, 192, 3],
                "SAVE_MODEL_PLOT" : true},
 
-    "training" : {"EPOCHS" : 1,
+    "training" : {"EPOCHS" : 2,
                   "ADDITIONAL_EPOCHS" : 2,
                   "LEARNING_RATE" : 0.001,
-                  "BATCH_SIZE" : 15,
+                  "BATCH_SIZE" : 16,
                   "MIXED_PRECISION" : false,
                   "USE_TENSORBOARD" : false,
                   "XLA_STATE" : false,
