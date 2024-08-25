@@ -14,7 +14,7 @@ class PooledConv(layers.Layer):
         self.units = units        
         self.num_layers = num_layers        
         self.pooling = layers.AveragePooling2D(pool_size=(2,2), padding='same')       
-        self.convolutions = [layers.Conv2D(units, kernel_size=(2,2), strides=(1,1), padding='same', 
+        self.convolutions = [layers.Conv2D(units, kernel_size=(3,3), strides=(1,1), padding='same', 
                                            activation=None) for _ in range(num_layers)]  
         self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                 
         
