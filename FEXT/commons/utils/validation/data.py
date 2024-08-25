@@ -30,10 +30,10 @@ class DataValidation:
         return {'train' : train_images, 'validation' : validation_images}
 
     #--------------------------------------------------------------------------
-    def pixel_intensity_histograms(self):
+    def pixel_intensity_histogram(self):
 
         images = self.get_images_for_validation()
-        figure_path = os.path.join(RESULTS_PATH, 'pixel_intensity_histograms.jpeg')
+        figure_path = os.path.join(RESULTS_PATH, 'pixel_intensity_histogram.jpeg')
         plt.figure(figsize=(16, 14))        
         for name, image_set in images.items():
             pixel_intensities = np.concatenate([image.flatten() for image in image_set])

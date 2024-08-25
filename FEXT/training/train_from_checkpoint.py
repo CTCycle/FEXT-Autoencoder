@@ -9,7 +9,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 # [IMPORT CUSTOM MODULES]
 from FEXT.commons.utils.dataloader.generators import training_data_pipeline
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
-from FEXT.commons.utils.models.training import ModelTraining
+from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     # resume training from pretrained model    
     trainer.train_model(model, train_dataset, validation_dataset, model_folder,
-                        is_resumed=True)
+                        from_checkpoint=True)
 
 
 
