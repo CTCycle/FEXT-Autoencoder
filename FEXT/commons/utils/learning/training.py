@@ -5,7 +5,7 @@ import torch
 from torch.amp import GradScaler
 import tensorflow as tf
 
-from FEXT.commons.utils.models.callbacks import RealTimeHistory, LoggingCallback
+from FEXT.commons.utils.learning.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
@@ -48,7 +48,7 @@ class ModelTraining:
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    current_checkpoint_path, is_resumed=False):
+                    current_checkpoint_path, from_checkpoint=False):
         
         # initialize model serializer
         serializer = ModelSerializer()  
@@ -56,15 +56,14 @@ class ModelTraining:
         # perform different initialization duties based on state of session:
         # training from scratch vs resumed training
         # calculate number of epochs taking into account possible training resumption
-        if not is_resumed:            
+        if not from_checkpoint:            
             epochs = self.configuration["training"]["EPOCHS"] 
             from_epoch = 0
             history = None
         else:
             _, history = serializer.load_session_configuration(current_checkpoint_path)                     
             epochs = history['total_epochs'] + CONFIG["training"]["ADDITIONAL_EPOCHS"] 
-            from_epoch = history['total_epochs']
-           
+            from_epoch = history['total_epochs']           
         
         # add logger callback for the training session
         RTH_callback = RealTimeHistory(current_checkpoint_path, past_logs=history)

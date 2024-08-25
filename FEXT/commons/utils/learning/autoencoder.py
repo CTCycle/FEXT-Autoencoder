@@ -1,7 +1,7 @@
 import keras
 import torch
 
-from FEXT.commons.utils.models.convolutionals import PooledConv, TransposeConv
+from FEXT.commons.utils.learning.convolutionals import PooledConv, TransposeConv
 from FEXT.commons.constants import CONFIG
 
        
