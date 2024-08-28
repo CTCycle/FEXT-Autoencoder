@@ -28,9 +28,9 @@ if __name__ == '__main__':
 
     # selected and load the pretrained model, then print the summary     
     logger.info('Loading specific checkpoint from pretrained models')   
-    model, parameters = modelserializer.load_pretrained_model()
+    model, configuration, history = modelserializer.load_pretrained_model()
     model.summary(expand_nested=True)    
 
     # extract features from images using the encoder output    
-    extractor = FeatureExtractor(model)
-    extractor.extract_from_encoder(images_paths, parameters)
+    extractor = FeatureExtractor(model, configuration)    
+    extractor.extract_from_encoder(images_paths)
