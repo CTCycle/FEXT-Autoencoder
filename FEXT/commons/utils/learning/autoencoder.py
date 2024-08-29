@@ -36,10 +36,10 @@ class FeXTAutoEncoder:
         layer = PooledConv(units=32, num_layers=2)(inputs)
         layer = PooledConv(units=64, num_layers=2)(layer)
         layer = PooledConv(units=128, num_layers=2)(layer)  
-        concat = layers.concatenate([layer, gradients]) 
+        add = AddNorm()([layer, gradients])
         # perform downstream convolution pooling on the concatenated vector
         # the results with the obtained gradients 
-        layer = PooledConv(units=256, num_layers=3)(concat) 
+        layer = PooledConv(units=256, num_layers=3)(add) 
         layer = PooledConv(units=512, num_layers=3)(layer) 
         layer = PooledConv(units=512, num_layers=3)(layer) 
         encoder_output = layers.Dense(512, activation='gelu',
