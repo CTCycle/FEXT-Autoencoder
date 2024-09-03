@@ -50,7 +50,7 @@ class FeXTAutoEncoder:
         #----------------------------------------------------------------------
         layer = TransposeConv(units=512, num_layers=3)(encoder_output)      
         layer = TransposeConv(units=512, num_layers=3)(layer)   
-        layer = TransposeConv(units=256, num_layers=2)(layer)
+        layer = TransposeConv(units=256, num_layers=3)(layer)
         layer = TransposeConv(units=128, num_layers=2)(layer)  
         layer = TransposeConv(units=64, num_layers=2)(layer) 
         layer = TransposeConv(units=32, num_layers=2)(layer)
@@ -61,7 +61,8 @@ class FeXTAutoEncoder:
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
         model.compile(loss=loss, optimizer=opt, metrics=[metric], 
-                      jit_compile=self.xla_state)         
+                      jit_compile=self.xla_state) 
+                
         if summary:
             model.summary(expand_nested=True)        
 
