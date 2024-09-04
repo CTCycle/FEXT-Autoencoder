@@ -2,6 +2,7 @@ import os
 import sys
 import cv2
 import json
+import pandas as pd
 import keras
 from datetime import datetime
 import tensorflow as tf
@@ -59,36 +60,44 @@ class DataSerializer:
 
     # ...
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data, validation_data, path):  
+    def save_preprocessed_data(self, train_data : list, validation_data : list, path):  
          
-        combined_data = {'train': train_data, 'validation': validation_data}
-        json_path = os.path.join(path, 'data', 'input_data.json')
-        with open(json_path, 'w') as json_file:
-            json.dump(combined_data, json_file)
-            logger.debug(f'Preprocessed data has been saved at {json_path}')
+        train_dataframe = pd.DataFrame(train_data, columns=['image path'])
+        validation_dataframe = pd.DataFrame(validation_data, columns=['image path'])       
+        train_data_path = os.path.join(path, 'data', 'train_data.csv')
+        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
+        train_dataframe.to_csv(train_data_path, index=False, sep=';', encoding='utf-8')
+        validation_dataframe.to_csv(val_data_path, index=False, sep=';', encoding='utf-8')
+        logger.debug(f'Preprocessed data has been saved at {path}')
+
 
     # ...
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
 
-        json_path = os.path.join(path, 'data', 'input_data.json')    
-        if not os.path.exists(json_path):
-            logger.error(f'The file {json_path} does not exist.')
-            
-        with open(json_path, 'r') as json_file:
-            combined_data = json.load(json_file)
-            logger.debug(f'Preprocessed data has been loaded from {json_path}')
-        
-        train_data = combined_data.get('train', None)
-        validation_data = combined_data.get('validation', None)
+        # Paths to the CSV files for train and validation data
+        train_data_path = os.path.join(path, 'data', 'train_data.csv')
+        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
 
-        # reconstruct images path        
-        train_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
-                      for x in train_data if os.path.basename(x) in os.listdir(IMG_DATA_PATH)]   
-        validation_data = [os.path.join(IMG_DATA_PATH, os.path.basename(x))
-                          for x in validation_data if os.path.basename(x) in os.listdir(IMG_DATA_PATH)]     
-        
-        return train_data, validation_data  
+        # Check if the CSV files exist
+        if not os.path.exists(train_data_path):
+            logger.error(f'{train_data_path} does not exist.')
+            return None, None
+            
+        if not os.path.exists(val_data_path):
+            logger.error(f'{val_data_path} does not exist.')
+            return None, None
+
+        # Load the CSV files using pandas
+        train_dataframe = pd.read_csv(train_data_path, sep=';', encoding='utf-8')
+        validation_dataframe = pd.read_csv(val_data_path, sep=';', encoding='utf-8')
+
+        # Extract image paths from the dataframes
+        train_data = train_dataframe['image path'].tolist()
+        validation_data = validation_dataframe['image path'].tolist()
+
+        logger.debug(f'Preprocessed data has been loaded from {path}')
+        return train_data, validation_data
 
     
 # [MODEL SERIALIZATION]
