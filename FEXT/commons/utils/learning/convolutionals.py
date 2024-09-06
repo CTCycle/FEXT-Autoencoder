@@ -63,7 +63,7 @@ class PooledConv(layers.Layer):
         for conv, bn in zip(self.convolutions, self.batch_norm_layers):
             layer = conv(layer)
             layer = bn(layer, training=training)
-            layer = activations.gelu(layer) 
+            layer = activations.relu(layer) 
         output = self.pooling(layer)           
         
         return output
@@ -104,7 +104,7 @@ class TransposeConv(layers.Layer):
         for conv, bn in zip(self.convolutions, self.batch_norm_layers):
             layer = conv(layer) 
             layer = bn(layer, training=training)
-            layer = activations.gelu(layer)
+            layer = activations.relu(layer)
         output = self.upsamp(layer)           
         
         return output   
@@ -127,11 +127,11 @@ class TransposeConv(layers.Layer):
 
 # [POOLING CONVOLUTIONAL BLOCKS]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='GradientConv')
-class GradientConv(layers.Layer):
+@keras.utils.register_keras_serializable(package='CustomLayers', name='SobelFilterConv')
+class SobelFilterConv(layers.Layer):
     
     def __init__(self, **kwargs):
-        super(GradientConv, self).__init__(**kwargs)
+        super(SobelFilterConv, self).__init__(**kwargs)
         self.sobel_x = keras.ops.convert_to_tensor([[[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
                                                     [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
                                                     [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]], 
@@ -147,8 +147,8 @@ class GradientConv(layers.Layer):
     #--------------------------------------------------------------------------
     def call(self, inputs, training=None):
         # Apply the Sobel filter for x and y directions
-        Gx = keras.ops.conv(inputs, self.sobel_x, padding="same", strides=(1, 1))
-        Gy = keras.ops.conv(inputs, self.sobel_y, padding="same", strides=(1, 1))
+        Gx = keras.ops.conv(inputs, self.sobel_x, padding="same", strides=(1,1))
+        Gy = keras.ops.conv(inputs, self.sobel_y, padding="same", strides=(1,1))
 
         # Calculate the magnitude of the gradients
         gradients = keras.ops.sqrt(keras.ops.square(Gx) + keras.ops.square(Gy))
@@ -161,7 +161,7 @@ class GradientConv(layers.Layer):
     # serialize layer for saving  
     #--------------------------------------------------------------------------
     def get_config(self):
-        config = super(GradientConv, self).get_config()
+        config = super(SobelFilterConv, self).get_config()
         config.update({})
         return config
 
