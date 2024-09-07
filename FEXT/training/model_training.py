@@ -9,7 +9,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 # [IMPORT CUSTOM MODULES]
 from FEXT.commons.utils.dataloader.generators import training_data_pipeline
 from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerializer, ModelSerializer
-from FEXT.commons.utils.preprocessing import DataSplit
+from FEXT.commons.utils.preprocessing.splitting import DataSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
