@@ -22,9 +22,8 @@ if __name__ == '__main__':
 
     # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
-    # select a fraction of data for training 
-    sample_size = CONFIG["dataset"]["SAMPLE_SIZE"]   
-    images_paths = get_images_path(IMG_DATA_PATH, sample_size=sample_size)    
+    # select a fraction of data for training     
+    images_paths = get_images_path(IMG_DATA_PATH)    
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  

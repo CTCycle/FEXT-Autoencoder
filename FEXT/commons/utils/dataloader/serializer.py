@@ -15,6 +15,9 @@ from FEXT.commons.logger import logger
 ###############################################################################
 def get_images_path(path, sample_size=None):
     
+    if sample_size is None:
+        sample_size =  CONFIG["dataset"]["SAMPLE_SIZE"]
+        
     valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif')
     logger.debug(f'Valid extensions are: {valid_extensions}')
     images_path = []
@@ -70,7 +73,6 @@ class DataSerializer:
         validation_dataframe.to_csv(val_data_path, index=False, sep=';', encoding='utf-8')
         logger.debug(f'Preprocessed data has been saved at {path}')
 
-
     # ...
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
@@ -95,8 +97,8 @@ class DataSerializer:
         # Extract image paths from the dataframes
         train_data = train_dataframe['image path'].tolist()
         validation_data = validation_dataframe['image path'].tolist()
-
         logger.debug(f'Preprocessed data has been loaded from {path}')
+
         return train_data, validation_data
 
     
