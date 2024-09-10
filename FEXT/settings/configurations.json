@@ -1,6 +1,6 @@
 {   
     "SEED" : 68,   
-    "dataset" : {"SAMPLE_SIZE" : 0.6,
+    "dataset" : {"SAMPLE_SIZE" : 0.05,
                  "VALIDATION_SIZE" : 0.25,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
