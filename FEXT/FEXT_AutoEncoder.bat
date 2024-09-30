@@ -103,7 +103,7 @@ echo 3. Extract features from images
 echo 4. FEXT setup
 echo 5. Exit and close
 echo.
-set /p choice="Select an option (1-4): "
+set /p choice="Select an option (1-5): "
 
 if "%choice%"=="1" goto :datanalysis
 if "%choice%"=="2" goto :ML_menu
