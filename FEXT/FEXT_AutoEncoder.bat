@@ -100,14 +100,16 @@ echo =======================================
 echo 1. Data analysis
 echo 2. Model training and evaluation
 echo 3. Extract features from images
-echo 4. Exit and close
+echo 4. FEXT setup
+echo 5. Exit and close
 echo.
 set /p choice="Select an option (1-4): "
 
-if "%choice%"=="1" goto datanalysis
-if "%choice%"=="2" goto ML_menu
-if "%choice%"=="3" goto inference
-if "%choice%"=="4" goto exit
+if "%choice%"=="1" goto :datanalysis
+if "%choice%"=="2" goto :ML_menu
+if "%choice%"=="3" goto :inference
+if "%choice%"=="4" goto :setup_menu
+if "%choice%"=="5" goto exit
 echo Invalid option, try again.
 pause
 goto :main_menu
@@ -122,7 +124,7 @@ pause
 goto :main_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Run model inference
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :inference
 cls
@@ -144,16 +146,16 @@ echo 4. Back to main menu
 echo.
 set /p sub_choice="Select an option (1-4): "
 
-if "%sub_choice%"=="1" goto train_fs
-if "%sub_choice%"=="2" goto train_ckpt
-if "%sub_choice%"=="3" goto modeleval
+if "%sub_choice%"=="1" goto :train_fs
+if "%sub_choice%"=="2" goto :train_ckpt
+if "%sub_choice%"=="3" goto :modeleval
 if "%sub_choice%"=="4" goto :main_menu
 echo Invalid option, try again.
 pause
 goto :ML_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Run model training from scratch
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :train_fs
 cls
@@ -162,7 +164,7 @@ pause
 goto :ML_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Run model training from checkpoint
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :train_ckpt
 cls
@@ -171,7 +173,7 @@ goto :ML_menu
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Run model evaluation
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :modeleval
 cls
@@ -179,3 +181,32 @@ call conda activate %env_name% && jupyter nbconvert --execute .validation\model_
 pause
 goto :ML_menu
 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Show setup menu
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:setup_menu
+cls
+echo =======================================
+echo           FEXT AutoEncoder setup
+echo =======================================
+echo 1. Install project dependencies
+echo 2. Remove logs
+echo 3. Back to main menu
+echo.
+set /p sub_choice="Select an option (1-4): "
+
+if "%sub_choice%"=="1" goto :eggs
+if "%sub_choice%"=="2" goto :logs
+if "%sub_choice%"=="3" goto :main_menu
+echo Invalid option, try again.
+pause
+goto :setup_menu
+
+:eggs
+call conda activate FEXT && cd .. && pip install -e . --use-pep517
+goto :setup_menu
+
+:logs
+cd /d "%~dp0..\FEXT\resources\logs"
+del *.log /q
+goto :setup_menu
