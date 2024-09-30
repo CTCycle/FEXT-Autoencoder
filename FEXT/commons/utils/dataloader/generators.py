@@ -82,7 +82,7 @@ class DataGenerator():
         return dataset
 
     
-# wrapper function to run the data pipeline from raw inputs to tensor dataset
+# LAUNCHER function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
 def training_data_pipeline(train_data, validation_data, batch_size=None):    
         

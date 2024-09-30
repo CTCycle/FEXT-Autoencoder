@@ -15,22 +15,39 @@ In contrast, the decoder component is tasked with reconstructing the original im
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
 
 ## 4. Installation
-The installation process is designed for simplicity, using the main app .bat file for the first time will run the installation procedure for you with no hassle at all! This means that it will check whether you have miniconda installed (and install it for you should you want to use the option), to then install all the necessary python dependencies to smmothly run the application. This includes Keras 3 with pytorch support as backend, and all required CUDA dependencies to enable GPU utilization (CUDA 12.1). Alternatively, you can run the standalone installation procedure with `setup/app_installer.bat`. 
-**IMPORTANT:** if the path to the project folder is changed for any reason after installation, the app will cease to work. Run `scripts/package_setup.bat` or alternatively use `pip install -e . --use-pep517` from cmd when in the project folder (upon activating the conda environment).
+The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run `FEXT_AutoEncoder.bat`. On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, you will need to install it manually. You can download and install Miniconda by following the instructions here: (https://docs.anaconda.com/miniconda/).
+
+After setting up Anaconda/Miniconda, the installation script will install all the necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.1) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing `setup/FEXT_installer.bat`. You can also use a custom python environment by modifying `settings/launcher_configurations.ini` and setting use_custom_environment as true, while specifying the name of your custom environment.
+
+**Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
+
+- Open the main menu, select "FEXT setup," and choose "Install project packages"
+- Manually run the following commands in the terminal, ensuring the project folder is set as the current working directory (CWD):
+
+    `conda activate FEXT`
+
+    `pip install -e . --use-pep517` 
 
 ### 3.1 Additional Package for XLA Acceleration
-XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript. This latter allows for the compilation of PyTorch models into an optimized, efficient form that enhances performance, especially when working with large-scale machine learning models or deploying models in production. TorchScript is designed to accelerate both CPU and GPU computations without requiring additional environment variables or complex setup.
+XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript (currently not implemented). 
 
-For those who wish to use Tensorflow as backend in their own fork of the project, XLA acceleration can be globally enables across your system setting an environment variable named `XLA_FLAGS`. The value of this variable should be `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` must be replaced with the actual directory path that leads to the folder containing the nvvm subdirectory. It is crucial that this path directs to the location where the file `libdevice.10.bc` resides, as this file is essential for the optimal functioning of XLA. This setup ensures that XLA can efficiently interface with the necessary CUDA components for GPU acceleration.
+For those who wish to use Tensorflow as backend, XLA acceleration can be globally enabled setting the `XLA_FLAGS` environmental variabile with the following value: `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` is the actual directory path to the folder containing the nvvm subdirectory (where the file `libdevice.10.bc` resides).
 
 ## 4. How to use
-Within the main project folder (FEXT) you will find other folders, each designated to specific tasks. On Windows, run `main_app.bat` to launch the main navigation panel and run scripts at whim. Alternatively, you can run each script separately using `python file.py` or `jupyter notebook.ipynb` with the desired files. 
+On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options. Alternatively, you can run each file separately using `python path/filename.py` or `jupyter path/notebook.ipynb`. 
 
-### 4.1 Navigation panel
+### 4.1 Navigation menu
 
-- **(A):** Data validation and pretrained model evaluations are performed using the scripts within this folder. Launch the jupyter notebook `model_evaluation.ipynb` to evaluate the performance of pretrained model checkpoints using different metrics. Launch the jupyter notebook `data_validation.ipynb` to validate the available dataset with different metrics.
-- **(B):** This folder contains the necessary files for conducting model training and evaluation: Run `model_training.py` to initiate the FeXT AutoEncoder training process from scratch, initializing a brand new checkpoint. Run `train_from_checkpoint.py` to resume training from a previous saved checkpoint, using the specific configurations of the model
-- **(C):** Here you can find the necessary files to run pretrained models in inference mode and use them to extract major features from images. use the pretrained encoder from a selected model checkpoint to extract abstract representation of image features in the form of lower-dimension embeddings, and save them as npy files. Alternartively, run `inference/images_encoding.py`.
+**1) Data analysis:** perform data validation using a series of metrics for image statistics, running `validation/data_validation.ipynb`
+
+**2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation. Once the menu is open, you will see different options:
+- **train from scratch:** runs `training/model_training.py` to start training an instance of the FEXT model from scratch using the available data and parameters. 
+- **train from checkpoint:** runs `training/train_from_checkpoint.py` to start training a pretrained FEXt checkpoint for an additional amount of epochs, using pretrained model settings and data.  
+- **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics, thoruhg running the jupyter notebook `validation/model_validation.ipynb`.
+
+**3) Extract features from images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
+
+**4) Exit and close:** exit the program immediately
 
 ### 4.2 Resources
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
