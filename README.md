@@ -29,9 +29,7 @@ After setting up Anaconda/Miniconda, the installation script will install all th
     `pip install -e . --use-pep517` 
 
 ### 3.1 Additional Package for XLA Acceleration
-XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript (currently not implemented). 
-
-For those who wish to use Tensorflow as backend, XLA acceleration can be globally enabled setting the `XLA_FLAGS` environmental variabile with the following value: `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` is the actual directory path to the folder containing the nvvm subdirectory (where the file `libdevice.10.bc` resides).
+XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript (currently not implemented). For those who wish to use Tensorflow as backend, XLA acceleration can be globally enabled setting the `XLA_FLAGS` environmental variabile with the following value: `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` is the actual directory path to the folder containing the nvvm subdirectory (where the file `libdevice.10.bc` resides).
 
 ## 4. How to use
 On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options. Alternatively, you can run each file separately using `python path/filename.py` or `jupyter path/notebook.ipynb`. 
@@ -47,7 +45,9 @@ On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and br
 
 **3) Extract features from images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
-**4) Exit and close:** exit the program immediately
+**4) FEXT setup:** allows running some options command such as **install project packages** to run the developer model project installation, and **remove logs** to remove all logs saved in `resources/logs`. 
+
+**5) Exit and close:** exit the program immediately
 
 ### 4.2 Resources
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
@@ -65,7 +65,7 @@ Contains `input images` where you place images intended as an input for inferenc
 
 
 ## 5. Configurations
-For customization, you can modify the main configuration parameters using `settings/configurations.json` 
+For customization, you can modify the main configuration parameters using `settings/app_configurations.json` 
 
 #### Dataset Configuration
 
