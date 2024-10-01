@@ -20,7 +20,7 @@ if %ERRORLEVEL%==0 (
 
 :: [INSTALL DEPENDENCIES] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Install dependencies to python environment
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :dependencies
 echo.
@@ -33,7 +33,7 @@ call conda install jupyter -y
 
 :: [INSTALLATION OF PYDOT/PYDOTPLUS]
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Install pydot/pydotplus for graphic model visualization
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 echo Installing pydot and pydotplus...
 call conda install pydot -y
@@ -41,14 +41,14 @@ call conda install pydotplus -y
 
 :: [INSTALL PROJECT IN EDITABLE MODE] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Install project in developer mode
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo Install utils packages in editable mode
 call cd .. && pip install -e . --use-pep517 && cd FEXT
 
 :: [CLEAN CACHE] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Clean packages cache
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo.
 echo Cleaning conda and pip cache 
@@ -57,7 +57,7 @@ call pip cache purge
 
 :: [SHOW LIST OF INSTALLED DEPENDENCIES]
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Check if NVIDIA GPU is available using nvidia-smi
+:: Show installed dependencies
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: 
 echo.
 echo List of installed dependencies:
