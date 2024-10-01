@@ -36,12 +36,12 @@ On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and br
 
 ### 4.1 Navigation menu
 
-**1) Data analysis:** perform data validation using a series of metrics for image statistics, running `validation/data_validation.ipynb`
+**1) Data analysis:** run `validation/data_validation.ipynb` to perform data validation using a series of metrics for image statistics. This feature cannot be directly started from the launcher due to unpredictable behavior of .ipynb files when executed from batch scripts.
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation. Once the menu is open, you will see different options:
 - **train from scratch:** runs `training/model_training.py` to start training an instance of the FEXT model from scratch using the available data and parameters. 
 - **train from checkpoint:** runs `training/train_from_checkpoint.py` to start training a pretrained FEXt checkpoint for an additional amount of epochs, using pretrained model settings and data.  
-- **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics, thoruhg running the jupyter notebook `validation/model_validation.ipynb`.
+- **model evaluation:** run `validation/model_validation.ipynb` to evaluate the performance of pretrained model checkpoints using different metrics. This feature cannot be directly started from the launcher due to unpredictable behavior of .ipynb files when executed from batch scripts.
 
 **3) Extract features from images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 

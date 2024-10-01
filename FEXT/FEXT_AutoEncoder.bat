@@ -119,7 +119,8 @@ goto :main_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :datanalysis
 cls
-call conda activate %env_name% && jupyter nbconvert --execute .\validation\data_validation.ipynb --to notebook --inplace
+echo Currently not implemented within the navigator due to the file format (jupyter notebook)
+echo Please execute the following command from within FEXT/validation ---> jupyter notebook data_validation.ipynb 
 pause
 goto :main_menu
 
@@ -177,7 +178,8 @@ goto :ML_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :modeleval
 cls
-call conda activate %env_name% && jupyter nbconvert --execute .validation\model_validation.ipynb --to notebook --inplace
+echo Currently not implemented within the navigator due to the file format (jupyter notebook)
+echo Please execute the following command from within FEXT/validation ---> jupyter notebook model_validation.ipynb 
 pause
 goto :ML_menu
 
@@ -187,13 +189,13 @@ goto :ML_menu
 :setup_menu
 cls
 echo =======================================
-echo           FEXT AutoEncoder setup
+echo         FEXT AutoEncoder setup
 echo =======================================
 echo 1. Install project dependencies
 echo 2. Remove logs
 echo 3. Back to main menu
 echo.
-set /p sub_choice="Select an option (1-4): "
+set /p sub_choice="Select an option (1-3): "
 
 if "%sub_choice%"=="1" goto :eggs
 if "%sub_choice%"=="2" goto :logs
@@ -203,10 +205,11 @@ pause
 goto :setup_menu
 
 :eggs
-call conda activate %env_name% && cd .. && pip install -e . --use-pep517
+call conda activate %env_name% && cd .. && pip install -e . --use-pep517 && cd FEXT
 goto :setup_menu
 
 :logs
 cd /d "%~dp0..\FEXT\resources\logs"
 del *.log /q
+cd /d "%~dp0..\FEXT"
 goto :setup_menu
