@@ -87,7 +87,6 @@ class DataGenerator():
 def training_data_pipeline(train_data, validation_data, batch_size=None):    
         
         generator = DataGenerator()
-
         train_dataset = generator.build_tensor_dataset(train_data, batch_size=batch_size)
         validation_dataset = generator.build_tensor_dataset(validation_data, batch_size=batch_size)        
         for x, y in train_dataset.take(1):

@@ -32,16 +32,16 @@ After setting up Anaconda/Miniconda, the installation script will install all th
 XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript (currently not implemented). For those who wish to use Tensorflow as backend, XLA acceleration can be globally enabled setting the `XLA_FLAGS` environmental variabile with the following value: `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` is the actual directory path to the folder containing the nvvm subdirectory (where the file `libdevice.10.bc` resides).
 
 ## 4. How to use
-On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options. Alternatively, you can run each file separately using `python path/filename.py` or `jupyter path/notebook.ipynb`. 
+On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options.  Alternatively, each file can be executed individually by running `python path/filename.py` for Python scripts or `jupyter notebook path/notebook.ipynb` for Jupyter notebooks. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
 ### 4.1 Navigation menu
 
-**1) Data analysis:** run `validation/data_validation.ipynb` to perform data validation using a series of metrics for image statistics. This feature cannot be directly started from the launcher due to unpredictable behavior of .ipynb files when executed from batch scripts.
+**1) Data analysis:** runs `validation/data_validation.ipynb` to perform data validation using a series of metrics for image statistics. 
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation. Once the menu is open, you will see different options:
 - **train from scratch:** runs `training/model_training.py` to start training an instance of the FEXT model from scratch using the available data and parameters. 
 - **train from checkpoint:** runs `training/train_from_checkpoint.py` to start training a pretrained FEXt checkpoint for an additional amount of epochs, using pretrained model settings and data.  
-- **model evaluation:** run `validation/model_validation.ipynb` to evaluate the performance of pretrained model checkpoints using different metrics. This feature cannot be directly started from the launcher due to unpredictable behavior of .ipynb files when executed from batch scripts.
+- **model evaluation:** runs `validation/model_validation.ipynb` to evaluate the performance of pretrained model checkpoints using different metrics. 
 
 **3) Extract features from images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
@@ -57,7 +57,7 @@ This folder is used to organize data and results for various stages of the proje
 - **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images format is of valid type (preferably either .jpg or .png).
 
 - **extraction:**
-Contains `input images` where you place images intended as an input for inference using the pretrained encoder. Moreover, hosts the folder `image features` where the resulting lower-dimension embeddings of the input images are saved (as npy files).
+Contains `input images` where you place images intended as an input for inference using the pretrained encoder. Moreover, hosts the folder `image features` where the resulting lower-dimension embeddings of the input images are saved (as .npy files).
 
 - **logs:** the application logs are saved within this folder
 
