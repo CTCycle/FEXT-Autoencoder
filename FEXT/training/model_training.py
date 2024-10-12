@@ -31,12 +31,12 @@ if __name__ == '__main__':
     train_data, validation_data = splitter.split_train_and_validation()   
 
     # create subfolder for preprocessing data    
-    logger.info('Saving images path references') 
     dataserializer = DataSerializer()
     modelserializer = ModelSerializer()
     model_folder_path = modelserializer.create_checkpoint_folder() 
 
     # save preprocessed data references
+    logger.info('Saving images path references')
     dataserializer.save_preprocessed_data(train_data, validation_data, 
                                           model_folder_path)    
 
