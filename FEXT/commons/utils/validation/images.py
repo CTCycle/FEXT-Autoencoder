@@ -1,32 +1,20 @@
 import os
+import numpy as np
 import keras
-import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from FEXT.commons.constants import CONFIG
+from FEXT.commons.utils.dataloader.serializer import DataSerializer
+from FEXT.commons.constants import CONFIG, RESULTS_PATH
 from FEXT.commons.logger import logger
-
 
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
-class ModelValidation:
+class ImageReconstruction:
 
     def __init__(self, model : keras.Model):
         self.DPI = 400
         self.file_type = 'jpeg'        
-        self.model = model
-
-    #-------------------------------------------------------------------------- 
-    def evaluation_report(self, train_dataset, validation_dataset):
-        
-        train_eval = self.model.evaluate(train_dataset, verbose=1)
-        validation_eval = self.model.evaluate(validation_dataset, verbose=1)
-        logger.info('Train dataset:')
-        logger.info(f'Loss: {train_eval[0]}')    
-        logger.info(f'Metric: {train_eval[1]}')  
-        logger.info('Test dataset:')
-        logger.info(f'Loss: {validation_eval[0]}')    
-        logger.info(f'Metric: {validation_eval[1]}') 
+        self.model = model    
 
     #-------------------------------------------------------------------------- 
     def visualize_features_vector(self, real_image, features, predicted_image, name, path):
@@ -74,10 +62,47 @@ class ModelValidation:
             plt.show(block=False)       
             plt.savefig(fig_path, bbox_inches='tight', format=self.file_type, dpi=self.DPI)               
             plt.close()
+
+
+
+# [VALIDATION OF DATA]
+###############################################################################
+class ImageDatasetValidation:
+
+    def __init__(self, train_data, validation_data):
+        self.DPI = 400
+        self.file_type = 'jpeg'
+        self.train_data = train_data
+        self.validation_data = validation_data
+        self.serializer = DataSerializer()        
+
+    #--------------------------------------------------------------------------
+    def get_images_for_validation(self):
+
+        train_images = (self.serializer.load_image(pt, as_tensor=False) 
+                        for pt in self.train_data)
+        validation_images = (self.serializer.load_image(pt, as_tensor=False) 
+                             for pt in self.validation_data)
+
+        return {'train' : train_images, 'validation' : validation_images}
+
+    #--------------------------------------------------------------------------
+    def pixel_intensity_histogram(self):
+
+        images = self.get_images_for_validation()
+        figure_path = os.path.join(RESULTS_PATH, 'pixel_intensity_histogram.jpeg')
+        plt.figure(figsize=(16, 14))        
+        for name, image_set in images.items():
+            pixel_intensities = np.concatenate([image.flatten() for image in image_set])
+            plt.hist(pixel_intensities, bins='auto', alpha=0.5, label=name)        
+        plt.title('Pixel Intensity Histograms', fontsize=16)
+        plt.xlabel('Pixel Intensity', fontsize=12)
+        plt.ylabel('Frequency', fontsize=12)
+        plt.legend()
+        plt.tight_layout()        
+        plt.savefig(figure_path, bbox_inches='tight', 
+                    format=self.file_type, dpi=self.DPI)
+        plt.show()
+        plt.close()
         
 
-              
-        
-        
-            
-        
