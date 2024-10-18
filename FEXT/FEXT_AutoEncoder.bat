@@ -202,10 +202,12 @@ goto :setup_menu
 
 :eggs
 call conda activate %env_name% && cd .. && pip install -e . --use-pep517 && cd FEXT
+pause
 goto :setup_menu
 
 :logs
 cd /d "%~dp0..\FEXT\resources\logs"
 del *.log /q
 cd /d "%~dp0..\FEXT"
+pause
 goto :setup_menu

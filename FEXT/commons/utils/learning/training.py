@@ -17,33 +17,31 @@ class ModelTraining:
        
     def __init__(self, configuration):
         self.configuration = configuration
-        np.random.seed(configuration["SEED"])
-        torch.manual_seed(configuration["SEED"])
-        tf.random.set_seed(configuration["SEED"])
-        self.device = torch.device('cpu')
-        self.scaler = GradScaler() if self.configuration["training"]["MIXED_PRECISION"] else None
+        keras.utils.set_random_seed(configuration["SEED"])        
+        self.selected_device = configuration["device"]["DEVICE"]
+        self.device_id = configuration["device"]["DEVICE_ID"]
+        self.mixed_precision = self.configuration["device"]["MIXED_PRECISION"]
+        self.scaler = GradScaler() if self.configuration["device"]["MIXED_PRECISION"] else None
         self.set_device()        
 
     # set device
     #--------------------------------------------------------------------------
     def set_device(self):
-        if CONFIG["training"]["ML_DEVICE"] == 'GPU':
+        if self.selected_device == 'GPU':
             if not torch.cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
                 self.device = torch.device('cpu')
             else:
-                self.device = torch.device('cuda:0')                
-                if self.configuration["training"]["MIXED_PRECISION"]:
+                self.device = torch.device(f'cuda:{self.device_id}')                
+                if self.mixed_precision:
                     keras.mixed_precision.set_global_policy("mixed_float16")
                     logger.info('Mixed precision policy is active during training')
                 torch.cuda.set_device(self.device)
                 logger.info('GPU is set as active device')
-        elif self.configuration["training"]["ML_DEVICE"] == 'CPU':
+        else:
             self.device = torch.device('cpu')
             logger.info('CPU is set as active device')             
-        else:
-            logger.error(f'Unknown ML_DEVICE value: {self.configuration["training"]["ML_DEVICE"]}')
-            self.device = torch.device('cpu')
+        
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
