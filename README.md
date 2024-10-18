@@ -82,7 +82,15 @@ For customization, you can modify the main configuration parameters using `setti
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
 | IMG_SHAPE          | Shape of the input images (height, width, channels)      |
+| APPLY_SOBEL        | Apply Sobel filter in the encoder model                  |
 | SAVE_MODEL_PLOT    | Whether to save a plot of the model architecture         |
+
+#### Device Configuration
+
+| DEVICE             | Device to use for training (e.g., GPU)                   |
+| DEVICE ID          | ID of the device (only used if GPU is selected)          |
+| MIXED_PRECISION    | Whether to use mixed precision training                  |
+| NUM_PROCESSORS     | Number of processors to use for data loading             |
 
 #### Training Configuration
 
@@ -91,11 +99,8 @@ For customization, you can modify the main configuration parameters using `setti
 | EPOCHS             | Number of epochs to train the model                      |
 | LEARNING_RATE      | Learning rate for the optimizer                          |
 | BATCH_SIZE         | Number of samples per batch                              |
-| MIXED_PRECISION    | Whether to use mixed precision training                  |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
-| XLA_STATE          | Whether to enable XLA (Accelerated Linear Algebra)       |
-| ML_DEVICE          | Device to use for training (e.g., GPU)                   |
-| NUM_PROCESSORS     | Number of processors to use for data loading             |
+| JIT_COMPILE        | Use Just In Time (JIT) compiler       |
 | PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
 
 #### Evaluation Configuration
