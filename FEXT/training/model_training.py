@@ -13,6 +13,7 @@ from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerial
 from FEXT.commons.utils.preprocessing.splitting import DataSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
+from FEXT.commons.utils.validation.reports import log_training_report
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
 from FEXT.commons.logger import logger
 
@@ -59,15 +60,7 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
-    logger.info('--------------------------------------------------------------')
-    logger.info('FeXT training report')
-    logger.info('--------------------------------------------------------------')    
-    logger.info(f'Number of train samples:       {len(train_data)}')
-    logger.info(f'Number of validation samples:  {len(validation_data)}')      
-    logger.info(f'Picture shape:                 {CONFIG["model"]["IMG_SHAPE"]}')   
-    logger.info(f'Batch size:                    {CONFIG["training"]["BATCH_SIZE"]}')
-    logger.info(f'Epochs:                        {CONFIG["training"]["EPOCHS"]}')  
-    logger.info('--------------------------------------------------------------\n')  
+    log_training_report(train_data, validation_data, CONFIG)
 
     # build the autoencoder model     
     autoencoder = FeXTAutoEncoder()

@@ -18,7 +18,7 @@
     "training" : {"EPOCHS" : 50,
                   "ADDITIONAL_EPOCHS" : 20,
                   "LEARNING_RATE" : 0.002,
-                  "BATCH_SIZE" : 30,                  
+                  "BATCH_SIZE" : 40,                  
                   "USE_TENSORBOARD" : false,
                   "JIT_COMPILE" : false,                  
                   "PLOT_EPOCH_GAP": 1},                     
