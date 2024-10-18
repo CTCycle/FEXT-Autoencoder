@@ -87,6 +87,8 @@ For customization, you can modify the main configuration parameters using `setti
 
 #### Device Configuration
 
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
 | DEVICE             | Device to use for training (e.g., GPU)                   |
 | DEVICE ID          | ID of the device (only used if GPU is selected)          |
 | MIXED_PRECISION    | Whether to use mixed precision training                  |
@@ -100,7 +102,7 @@ For customization, you can modify the main configuration parameters using `setti
 | LEARNING_RATE      | Learning rate for the optimizer                          |
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
-| JIT_COMPILE        | Use Just In Time (JIT) compiler       |
+| JIT_COMPILE        | Use Just In Time (JIT) compiler                          |
 | PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
 
 #### Evaluation Configuration

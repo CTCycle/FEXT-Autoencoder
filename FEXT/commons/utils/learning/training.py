@@ -1,9 +1,7 @@
 import os
-import numpy as np
 import keras
 import torch
 from torch.amp import GradScaler
-import tensorflow as tf
 
 from FEXT.commons.utils.learning.callbacks import RealTimeHistory, LoggingCallback
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
@@ -40,8 +38,7 @@ class ModelTraining:
                 logger.info('GPU is set as active device')
         else:
             self.device = torch.device('cpu')
-            logger.info('CPU is set as active device')             
-        
+            logger.info('CPU is set as active device')         
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
