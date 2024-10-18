@@ -11,6 +11,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 from FEXT.commons.utils.dataloader.generators import training_data_pipeline
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.learning.training import ModelTraining
+from FEXT.commons.utils.validation.reports import log_training_report
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
 
@@ -52,15 +53,8 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
-    logger.info('--------------------------------------------------------------')
-    logger.info('FeXT resume training report')
-    logger.info('--------------------------------------------------------------')    
-    logger.info(f'Number of train samples:       {len(train_data)}')
-    logger.info(f'Number of validation samples:  {len(validation_data)}')      
-    logger.info(f'Picture shape:                 {configuration["model"]["IMG_SHAPE"]}')   
-    logger.info(f'Batch size:                    {configuration["training"]["BATCH_SIZE"]}')
-    logger.info(f'Epochs:                        {CONFIG["training"]["ADDITIONAL_EPOCHS"]}')  
-    logger.info('--------------------------------------------------------------\n')      
+    log_training_report(train_data, validation_data, configuration, 
+                        additional_epochs=CONFIG['TRAINING']['ADDITIONAL_EPOCHS'])
 
     # resume training from pretrained model    
     trainer.train_model(model, train_dataset, validation_dataset, model_folder,
