@@ -5,71 +5,35 @@ import torch
 from FEXT.commons.constants import CONFIG
 
 
-# [ADD NORM LAYER]
-###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='AddNorm')
-class AddNorm(keras.layers.Layer):
-    def __init__(self, epsilon=10e-5, **kwargs):
-        super(AddNorm, self).__init__(**kwargs)
-        self.epsilon = epsilon
-        self.add = layers.Add()
-        self.layernorm = layers.LayerNormalization(epsilon=self.epsilon)    
-
-    # build method for the custom layer 
-    #--------------------------------------------------------------------------
-    def build(self, input_shape):        
-        super(AddNorm, self).build(input_shape)
-
-    # implement transformer encoder through call method  
-    #--------------------------------------------------------------------------        
-    def call(self, inputs):
-        x1, x2 = inputs
-        x_add = self.add([x1, x2])
-        x_norm = self.layernorm(x_add)
-
-        return x_norm
-    
-    # serialize layer for saving  
-    #--------------------------------------------------------------------------
-    def get_config(self):
-        config = super(AddNorm, self).get_config()
-        config.update({'epsilon' : self.epsilon})
-        return config
-
-    # deserialization method 
-    #--------------------------------------------------------------------------
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-    
-
-# [POOLING CONVOLUTIONAL BLOCKS]
+# [CONVOLUTIONAL BLOCKS]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='StackedResidualConv')
 class StackedResidualConv(layers.Layer):
     
-    def __init__(self, units, num_layers=2, residuals=True, **kwargs):
+    def __init__(self, units, residuals=True, **kwargs):
         super(StackedResidualConv, self).__init__(**kwargs)
-        self.units = units        
-        self.num_layers = num_layers
+        self.units = units          
         self.residuals = residuals
-        self.convolutions = [layers.Conv2D(units, kernel_size=(3,3), strides=(1,1), padding='same', 
-                                           activation=None) for _ in range(num_layers)]  
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]                  
+        self.conv1 = layers.Conv2D(units, kernel_size=(1,1), padding='same') 
+        self.conv2 = layers.Conv2D(units, kernel_size=(3,3), padding='same') 
+        self.batch_norm1 = layers.BatchNormalization()      
+        self.batch_norm2 = layers.BatchNormalization()  
+               
         
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
     def call(self, inputs, training=None):
-        layer = inputs
-        for conv, bn in zip(self.convolutions, self.batch_norm_layers):
-            layer = conv(layer)
-            layer = bn(layer, training=training)
-            layer = activations.relu(layer)
+        
+        layer = self.conv1(inputs)
+        layer = self.batch_norm1(layer, training=training)
+        layer = activations.relu(layer) 
+        layer = self.conv2(layer)
+        layer = self.batch_norm2(layer, training=training)    
         
         if self.residuals:
-            output = AddNorm()([layer, inputs])
-        else:
-            output = layer
+            layer = layers.Add()([layer, inputs])
+
+        output = activations.relu(layer)
         
         return output
     
@@ -77,8 +41,7 @@ class StackedResidualConv(layers.Layer):
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(StackedResidualConv, self).get_config()
-        config.update({'units': self.units,                       
-                       'num_layers': self.num_layers,
+        config.update({'units': self.units,                      
                        'residuals': self.residuals})
         return config
 
@@ -89,42 +52,41 @@ class StackedResidualConv(layers.Layer):
         return cls(**config)
     
     
-# [POOLING CONVOLUTIONAL BLOCKS]
+# [TRANSPOSE CONVOLUTIONAL BLOCKS]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='StackedResidualTransposeConv')
 class StackedResidualTransposeConv(layers.Layer):
 
-    def __init__(self, units, num_layers=3, residuals=True, **kwargs):
+    def __init__(self, units, residuals=True, **kwargs):
         super(StackedResidualTransposeConv, self).__init__(**kwargs)
-        self.units = units        
-        self.num_layers = num_layers
+        self.units = units            
         self.residuals = residuals
-        self.convolutions = [layers.Conv2DTranspose(units, kernel_size=(3,3), strides=(1,1), padding='same',  
-                                                    activation=None) for _ in range(num_layers)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]             
-        
+        self.conv1 = layers.Conv2DTranspose(units, kernel_size=(1,1),  padding='same')  
+        self.conv2 = layers.Conv2DTranspose(units, kernel_size=(3,3),  padding='same')  
+        self.batch_norm1 = layers.BatchNormalization()      
+        self.batch_norm2 = layers.BatchNormalization()  
+                                                      
+             
     # implement transformer encoder through call method  
     #--------------------------------------------------------------------------
     def call(self, inputs, training=None):
-        layer = inputs
-        for conv, bn in zip(self.convolutions, self.batch_norm_layers):
-            layer = conv(layer) 
-            layer = bn(layer, training=training)
-            layer = activations.relu(layer)
-
+        layer = self.conv1(inputs)
+        layer = self.batch_norm1(layer, training=training)
+        layer = activations.relu(layer)
+        layer = self.conv2(layer)
+        layer = self.batch_norm2(layer, training=training)       
         if self.residuals:
-            output = AddNorm()([layer, inputs])
-        else:
-            output = layer
+            layer = layers.Add()([layer, inputs])
+
+        output = activations.relu(layer)
         
-        return output
+        return output        
     
     # serialize layer for saving  
     #--------------------------------------------------------------------------
     def get_config(self):
         config = super(StackedResidualTransposeConv, self).get_config()
-        config.update({'units': self.units,                   
-                       'num_layers': self.num_layers,
+        config.update({'units': self.units,                       
                        'residuals': self.residuals})
         return config
 
@@ -135,9 +97,7 @@ class StackedResidualTransposeConv(layers.Layer):
         return cls(**config)
 
 
-       
-
-# [POOLING CONVOLUTIONAL BLOCKS]
+# [SOBEL CONVOLUTIONAL BLOCKS]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='SobelFilterConv')
 class SobelFilterConv(layers.Layer):
