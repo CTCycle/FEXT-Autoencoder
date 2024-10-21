@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.5,
+    "dataset" : {"SAMPLE_SIZE" : 0.3,
                  "VALIDATION_SIZE" : 0.25,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
@@ -17,10 +17,10 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 100,
+    "training" : {"EPOCHS" : 20,
                   "ADDITIONAL_EPOCHS" : 20,
                   "LEARNING_RATE" : 0.001,
-                  "BATCH_SIZE" : 40,                  
+                  "BATCH_SIZE" : 30,                  
                   "USE_TENSORBOARD" : false,                               
                   "PLOT_EPOCH_GAP": 1},                     
                   
