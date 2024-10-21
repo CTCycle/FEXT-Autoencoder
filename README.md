@@ -28,8 +28,8 @@ After setting up Anaconda/Miniconda, the installation script will install all th
 
     `pip install -e . --use-pep517` 
 
-### 3.1 Additional Package for XLA Acceleration
-XLA is designed to optimize computations for speed and efficiency, particularly beneficial when working with TensorFlow and other machine learning frameworks that support XLA. Since this project uses Keras 3 with PyTorch as backend, the approach for optimizing computations for speed and efficiency has shifted from XLA to PyTorch's native acceleration tools, particularly TorchScript (currently not implemented). For those who wish to use Tensorflow as backend, XLA acceleration can be globally enabled setting the `XLA_FLAGS` environmental variabile with the following value: `--xla_gpu_cuda_data_dir=path\to\XLA`, where `path\to\XLA` is the actual directory path to the folder containing the nvvm subdirectory (where the file `libdevice.10.bc` resides).
+### 3.1 Just-In-Time (JIT) Compiler
+This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. For Windows users, a precompiled Triton wheel is bundled with the installation, ensuring seamless integration and performance improvements.
 
 ## 4. How to use
 On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options.  Alternatively, each file can be executed individually by running `python path/filename.py` for Python scripts or `jupyter notebook path/notebook.ipynb` for Jupyter notebooks. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
@@ -84,6 +84,8 @@ For customization, you can modify the main configuration parameters using `setti
 | IMG_SHAPE          | Shape of the input images (height, width, channels)      |
 | APPLY_SOBEL        | Apply Sobel filter in the encoder model                  |
 | SAVE_MODEL_PLOT    | Whether to save a plot of the model architecture         |
+| JIT_COMPILE        | Apply Just-In_time (JIT) compiler for model optimization |
+| JIT_BACKEND        | Just-In_time (JIT) backend                               |
 
 #### Device Configuration
 
@@ -102,7 +104,6 @@ For customization, you can modify the main configuration parameters using `setti
 | LEARNING_RATE      | Learning rate for the optimizer                          |
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
-| JIT_COMPILE        | Use Just In Time (JIT) compiler                          |
 | PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
 
 #### Evaluation Configuration

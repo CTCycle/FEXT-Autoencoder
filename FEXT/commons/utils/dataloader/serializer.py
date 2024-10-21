@@ -7,7 +7,7 @@ import keras
 from datetime import datetime
 import tensorflow as tf
 
-from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
+from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
