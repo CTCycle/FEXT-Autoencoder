@@ -1,5 +1,6 @@
 import keras
 from keras import layers, Model
+import torch
 
 from FEXT.commons.utils.learning.convolutionals import AddNorm, PooledConv, TransposeConv, SobelFilterConv
 from FEXT.commons.constants import CONFIG
@@ -15,13 +16,14 @@ class FeXTAutoEncoder:
     def __init__(self): 
         self.img_shape = tuple(CONFIG["model"]["IMG_SHAPE"]) 
         self.apply_sobel = CONFIG["model"]["APPLY_SOBEL"]
-        self.learning_rate = CONFIG["training"]["LEARNING_RATE"]        
-        self.jit_compile = CONFIG["training"]["JIT_COMPILE"]
+        self.COMPILE = CONFIG["model"]["JIT_COMPILE"]
+        self.jit_backend = CONFIG["model"]["JIT_BACKEND"]
+        self.learning_rate = CONFIG["training"]["LEARNING_RATE"]         
         self.seed = CONFIG["SEED"]         
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def get_model(self, summary=True):       
+    def get_model(self, model_summary=True):       
        
         # [ENCODER SUBMODEL]
         #----------------------------------------------------------------------
@@ -65,9 +67,12 @@ class FeXTAutoEncoder:
         loss = keras.losses.MeanSquaredError()
         metric = keras.metrics.CosineSimilarity()
         model.compile(loss=loss, optimizer=opt, metrics=[metric], 
-                      jit_compile=self.jit_compile) 
+                      COMPILE=self.COMPILE)
+
+        if self.COMPILE:
+            torch.compile(model, backend=self.jit_backend, mode='default')
                 
-        if summary:
+        if model_summary:
             model.summary(expand_nested=True)        
 
         return model

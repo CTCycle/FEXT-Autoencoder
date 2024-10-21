@@ -1,6 +1,4 @@
-import numpy as np
 import tensorflow as tf
-import keras
 
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
