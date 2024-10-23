@@ -101,4 +101,4 @@ def callbacks_handler(configuration, checkpoint_path, history):
                                                               mode='auto',              
                                                               verbose=1))
 
-    return callbacks_list
+    return RTH_callback, callbacks_list

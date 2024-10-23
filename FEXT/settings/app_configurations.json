@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.4,
+    "dataset" : {"SAMPLE_SIZE" : 0.5,
                  "VALIDATION_SIZE" : 0.25,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
@@ -8,7 +8,7 @@
 
     "model" : {"IMG_SHAPE" : [160, 160, 3],
                "APPLY_SOBEL": false,
-               "RESIDUALS": false,
+               "RESIDUALS": true,
                "SAVE_MODEL_PLOT" : true,
                "JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},
@@ -18,10 +18,10 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 30,
+    "training" : {"EPOCHS" : 40,
                   "ADDITIONAL_EPOCHS" : 20,
                   "LEARNING_RATE" : 0.001,
-                  "BATCH_SIZE" : 40,                  
+                  "BATCH_SIZE" : 35,                  
                   "USE_TENSORBOARD" : false,
                   "SAVE_CHECKPOINTS": true,                               
                   "PLOT_EPOCH_GAP": 1},                     

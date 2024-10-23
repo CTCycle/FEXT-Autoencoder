@@ -38,7 +38,7 @@ class FeXTAutoEncoder:
             # calculate image pixels gradient using sobel filters
             # apply 2D convolution to obtained gradients
             gradients = SobelFilterConv()(inputs)
-            gradients = StackedResidualConv(units=32, residuals=self.use_residuals, num_layers=2)(gradients)           
+            gradients = StackedResidualConv(units=64, residuals=self.use_residuals, num_layers=2)(gradients)           
             layer = layers.Add()([layer, gradients])
         
 
@@ -49,23 +49,23 @@ class FeXTAutoEncoder:
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
         layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer) 
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer) 
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer)       
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)       
         layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
-        encoder_output = layers.Conv2D(filters=64, kernel_size=(1,1), padding='same', 
+        encoder_output = layers.Conv2D(filters=128, kernel_size=(1,1), padding='same', 
                                        activation='relu', dtype=torch.float32)(layer)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------        
-        layer = layers.Dense(64, activation='relu', kernel_initializer='he_uniform')(encoder_output)       
+        layer = layers.Dense(128, activation='relu', kernel_initializer='he_uniform')(encoder_output)       
         layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
         layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
