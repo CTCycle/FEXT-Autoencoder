@@ -76,3 +76,29 @@ class LoggingCallback(keras.callbacks.Callback):
 
 
     
+# add logger callback for the training session
+###############################################################################
+def callbacks_handler(configuration, checkpoint_path, history):
+
+    RTH_callback = RealTimeHistory(checkpoint_path, past_logs=history)
+    logger_callback = LoggingCallback()   
+    callbacks_list = [RTH_callback, logger_callback]
+
+    # initialize tensorboard if requested    
+    if configuration["training"]["USE_TENSORBOARD"]:
+        logger.debug('Using tensorboard during training')
+        log_path = os.path.join(checkpoint_path, 'tensorboard')
+        callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))  
+
+    # Add a checkpoint saving callback
+    if configuration["training"]["SAVE_CHECKPOINTS"]:
+        logger.debug('Adding checkpoint saving callback')
+        checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.h5')
+        callbacks_list.append(keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath,
+                                                              save_weights_only=False,  
+                                                              monitor='val_loss',       
+                                                              save_best_only=True,      
+                                                              mode='auto',              
+                                                              verbose=1))
+
+    return callbacks_list
