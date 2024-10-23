@@ -14,7 +14,8 @@ from FEXT.commons.constants import CONFIG
 class FeXTAutoEncoder: 
 
     def __init__(self): 
-        self.img_shape = tuple(CONFIG["model"]["IMG_SHAPE"]) 
+        self.img_shape = tuple(CONFIG["model"]["IMG_SHAPE"])
+        self.use_residuals = CONFIG["model"]["RESIDUALS"]
         self.apply_sobel = CONFIG["model"]["APPLY_SOBEL"]
         self.jit_compile = CONFIG["model"]["JIT_COMPILE"]
         self.jit_backend = CONFIG["model"]["JIT_BACKEND"]
@@ -31,57 +32,55 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = StackedResidualConv(units=64, residuals=False)(inputs)       
+        layer = layer = StackedResidualConv(64, residuals=self.use_residuals, num_layers=2)(inputs)     
 
         if self.apply_sobel:      
             # calculate image pixels gradient using sobel filters
             # apply 2D convolution to obtained gradients
             gradients = SobelFilterConv()(inputs)
-            gradients = StackedResidualConv(units=64, residuals=False)(gradients)           
+            gradients = StackedResidualConv(units=32, residuals=self.use_residuals, num_layers=2)(gradients)           
             layer = layers.Add()([layer, gradients])
-
-        layer = StackedResidualConv(units=64, residuals=True)(layer) 
-        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)        
-        layer = StackedResidualConv(units=128, residuals=False)(layer)
-        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=128, residuals=True)(layer)
-        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
+        
 
         # perform downstream convolution pooling on the concatenated vector
-        # the results with the obtained gradients 
-        layer = StackedResidualConv(units=256,residuals=False)(layer) 
+        # the results with the obtained gradients         
+        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)       
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=256, residuals=True)(layer)
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer) 
+        layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer)
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.AveragePooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=256, residuals=True)(layer)       
-        layer = layers.Dropout(rate=0.2, seed=self.seed)(layer)
-        encoder_output = layers.Dense(128, activation='relu',
-                                      kernel_initializer='he_uniform',
-                                      name='encoder_output', dtype=torch.float32)(layer)
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer)       
+        layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
+        encoder_output = layers.Conv2D(filters=64, kernel_size=(1,1), padding='same', 
+                                       activation='relu', dtype=torch.float32)(layer)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------        
-        layer = layers.Dense(128, activation='relu', kernel_initializer='he_uniform')(encoder_output)       
-        layer = StackedResidualTransposeConv(units=256, residuals=False)(layer)
+        layer = layers.Dense(64, activation='relu', kernel_initializer='he_uniform')(encoder_output)       
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(units=256, residuals=True)(layer)
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(units=256, residuals=True)(layer)
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(units=128, residuals=False)(layer)
+        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(units=64, residuals=False)(layer)
+        layer = StackedResidualTransposeConv(64, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(units=64, residuals=True)(layer)
+        layer = StackedResidualTransposeConv(64, residuals=self.use_residuals, num_layers=2)(layer)
 
         # Final layer to match the image shape and output channels (RGB)
-        output = layers.Dense(3, activation='relu', kernel_initializer='he_uniform',
-                              name='sigmoid', dtype=torch.float32)(layer)
+        output = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', activation='sigmoid',
+                               dtype=torch.float32)(layer)
         
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         loss = keras.losses.MeanAbsoluteError()
-        metric = [keras.metrics.CosineSimilarity(), keras.metrics.LogCoshError]
+        metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
 
         if self.jit_compile:
