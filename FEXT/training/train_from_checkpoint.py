@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators   
     logger.info('Building data loaders') 
-    train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data)
+    train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data, configuration)
     
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  

@@ -3,6 +3,9 @@
 ## 1. Project Overview
 The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. This model comprises two primary components: the encoder and the decoder. However, the encoder submodel is modified as such that the raw images are passed through a Sobel filter that computes the pixels gradient and join this information with the upstream convolution output. These components collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional vector representation compared to the original image size of 160x160x3 (selected as default input shape, though it could be modified). This compression allows for the retention of critical image information while reducing dimensionality, making the extracted features suitable for a wide range of downstream tasks.
 
+![VVG16 encoder](docs/VGG16_encoder.png)
+Architecture of the VVG16 encoder
+
 ### 1.2 Supplementary information
 Further information are available in the `docs` folder (to be added).
 
