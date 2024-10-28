@@ -11,11 +11,12 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class DataGenerator():
 
-    def __init__(self):              
+    def __init__(self, configuration):              
         
-        self.img_shape = CONFIG["model"]["IMG_SHAPE"]       
-        self.normalization = CONFIG["dataset"]["IMG_NORMALIZE"]
-        self.augmentation = CONFIG["dataset"]["IMG_AUGMENT"] 
+        self.img_shape = configuration["model"]["IMG_SHAPE"]       
+        self.normalization = configuration["dataset"]["IMG_NORMALIZE"]
+        self.augmentation = configuration["dataset"]["IMG_AUGMENT"]
+        self.configuration = configuration 
         
     
     # load and preprocess a single image
@@ -69,22 +70,22 @@ class DataGenerator():
         '''
         num_samples = len(data) 
         if batch_size is None:
-            batch_size = CONFIG["training"]["BATCH_SIZE"]
+            batch_size = self.configuration["training"]["BATCH_SIZE"]
 
-        dataset = tf.data.Dataset.from_tensor_slices(data)
-        dataset = dataset.shuffle(buffer_size=num_samples)          
+        dataset = tf.data.Dataset.from_tensor_slices(data)                  
         dataset = dataset.map(self.load_image, num_parallel_calls=buffer_size)        
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=buffer_size)
+        dataset = dataset.shuffle(buffer_size=num_samples)
 
         return dataset
 
     
 # LAUNCHER function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
-def training_data_pipeline(train_data, validation_data, batch_size=None):    
+def training_data_pipeline(train_data, validation_data, configuration, batch_size=None):    
         
-        generator = DataGenerator()
+        generator = DataGenerator(configuration)
         train_dataset = generator.build_tensor_dataset(train_data, batch_size=batch_size)
         validation_dataset = generator.build_tensor_dataset(validation_data, batch_size=batch_size)        
         for x, y in train_dataset.take(1):
