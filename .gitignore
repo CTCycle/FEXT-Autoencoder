@@ -1,7 +1,7 @@
 __pycache__
 FEXT/resources/dataset/*
 FEXT/resources/validation/*
-FEXT/resources/extraction/input images/*
+FEXT/resources/encoding/input images/*
 FEXT/resources/checkpoints/*
 
 *.egg-info

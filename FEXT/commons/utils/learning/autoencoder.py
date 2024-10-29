@@ -2,8 +2,9 @@ import keras
 from keras import layers, Model
 import torch
 
-from FEXT.commons.utils.learning.convolutionals import StackedResidualConv, StackedResidualTransposeConv, SobelFilterConv
-from FEXT.commons.constants import CONFIG
+from FEXT.commons.utils.learning.convolutionals import (StackedResidualConv, 
+                                                        StackedResidualTransposeConv, 
+                                                        SobelFilterConv)
 
        
 # [AUTOENCODER MODEL]
@@ -13,14 +14,15 @@ from FEXT.commons.constants import CONFIG
 ###############################################################################
 class FeXTAutoEncoder: 
 
-    def __init__(self): 
-        self.img_shape = tuple(CONFIG["model"]["IMG_SHAPE"])
-        self.use_residuals = CONFIG["model"]["RESIDUALS"]
-        self.apply_sobel = CONFIG["model"]["APPLY_SOBEL"]
-        self.jit_compile = CONFIG["model"]["JIT_COMPILE"]
-        self.jit_backend = CONFIG["model"]["JIT_BACKEND"]
-        self.learning_rate = CONFIG["training"]["LEARNING_RATE"]         
-        self.seed = CONFIG["SEED"]         
+    def __init__(self, configuration): 
+        self.img_shape = tuple(configuration["model"]["IMG_SHAPE"])
+        self.use_residuals = configuration["model"]["RESIDUALS"]
+        self.apply_sobel = configuration["model"]["APPLY_SOBEL"]
+        self.jit_compile = configuration["model"]["JIT_COMPILE"]
+        self.jit_backend = configuration["model"]["JIT_BACKEND"]
+        self.learning_rate = configuration["training"]["LEARNING_RATE"]         
+        self.seed = configuration["SEED"]  
+        self.configuration = configuration       
 
     # build model given the architecture
     #--------------------------------------------------------------------------
@@ -39,8 +41,7 @@ class FeXTAutoEncoder:
             # apply 2D convolution to obtained gradients
             gradients = SobelFilterConv()(inputs)
             gradients = StackedResidualConv(units=64, residuals=self.use_residuals, num_layers=2)(gradients)           
-            layer = layers.Add()([layer, gradients])
-        
+            layer = layers.Add()([layer, gradients])        
 
         # perform downstream convolution pooling on the concatenated vector
         # the results with the obtained gradients         
@@ -77,9 +78,10 @@ class FeXTAutoEncoder:
         output = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', activation='sigmoid',
                                dtype=torch.float32)(layer)
         
+        # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = keras.losses.MeanAbsoluteError()
+        loss = keras.losses.Huber(delta=1)
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
 

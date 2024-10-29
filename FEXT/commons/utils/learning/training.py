@@ -41,7 +41,7 @@ class ModelTraining:
                     checkpoint_path, from_checkpoint=False):
         
         # initialize model serializer
-        serializer = ModelSerializer()  
+        serializer = ModelSerializer() 
 
         # perform different initialization duties based on state of session:
         # training from scratch vs resumed training
