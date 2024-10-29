@@ -8,8 +8,7 @@
 
     "model" : {"IMG_SHAPE" : [160, 160, 3],
                "APPLY_SOBEL": false,
-               "RESIDUALS": true,
-               "SAVE_MODEL_PLOT" : true,
+               "RESIDUALS": true,              
                "JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},
 

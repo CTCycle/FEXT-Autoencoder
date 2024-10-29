@@ -4,35 +4,20 @@ from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
              
         
-# [CUSTOM DATA GENERATOR FOR TRAINING]
+# [CUSTOM DATA GENERATOR]
 ###############################################################################
-# Generate and preprocess input and output for the machine learning model and build
-# a tensor dataset with prefetching and batching
-###############################################################################
-class DataGenerator():
+class DataGenerator:
 
-    def __init__(self, configuration):              
-        
+    def __init__(self, configuration):        
         self.img_shape = configuration["model"]["IMG_SHAPE"]       
         self.normalization = configuration["dataset"]["IMG_NORMALIZE"]
         self.augmentation = configuration["dataset"]["IMG_AUGMENT"]
-        self.configuration = configuration 
-        
+        self.configuration = configuration         
     
     # load and preprocess a single image
     #--------------------------------------------------------------------------
     def load_image(self, path):
-
-        '''
-        Loads and preprocesses a single image.
-
-        Keyword arguments:
-            path (str): The path to the image file.
-
-        Returns:
-            rgb_image (tf.Tensor): The preprocessed RGB image tensor.
-
-        '''
+        
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(image, channels=3, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape[:-1])
@@ -41,8 +26,7 @@ class DataGenerator():
         if self.normalization:
             rgb_image = rgb_image/255.0 
 
-        return rgb_image, rgb_image     
-    
+        return rgb_image, rgb_image         
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------

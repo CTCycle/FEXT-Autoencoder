@@ -13,7 +13,7 @@ from FEXT.commons.logger import logger
 
 # [INFERENCE]
 ###############################################################################
-class FeatureExtractor:
+class FeatureEncoding:
     
     def __init__(self, model : keras.Model, configuration):
        
@@ -31,7 +31,7 @@ class FeatureExtractor:
              
 
     #--------------------------------------------------------------------------
-    def extract_from_encoder(self, images_paths):
+    def encoder_images(self, images_paths):
         
         features = {}
         for pt in tqdm(images_paths):

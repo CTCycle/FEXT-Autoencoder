@@ -21,12 +21,10 @@ from FEXT.commons.logger import logger
 if __name__ == '__main__':
 
     # 1. [LOAD PRETRAINED MODEL]
-    #--------------------------------------------------------------------------    
-    dataserializer = DataSerializer()   
-    modelserializer = ModelSerializer()     
-    
+    #--------------------------------------------------------------------------     
     # selected and load the pretrained model, then print the summary     
-    logger.info('Loading specific checkpoint from pretrained models')   
+    logger.info('Loading specific checkpoint from pretrained models') 
+    modelserializer = ModelSerializer()   
     model, configuration, history = modelserializer.load_pretrained_model()
     model_folder = modelserializer.loaded_model_folder
     model.summary(expand_nested=True)  
@@ -39,7 +37,8 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------   
-    # load saved tf.datasets from the proper folders in the checkpoint directory     
+    # load saved tf.datasets from the proper folders in the checkpoint directory  
+    dataserializer = DataSerializer(configuration)   
     train_data, validation_data = dataserializer.load_preprocessed_data(model_folder)
 
     # initialize the TensorDataSet class with the generator instances

@@ -1,11 +1,11 @@
 import os
 import numpy as np
-import tensorflow as tf
 import keras
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
-from FEXT.commons.constants import CONFIG, RESULTS_PATH
+from FEXT.commons.constants import RESULTS_PATH
 from FEXT.commons.logger import logger
 
 # [VALIDATION OF PRETRAINED MODELS]
@@ -80,9 +80,9 @@ class ImageDatasetValidation:
     #--------------------------------------------------------------------------
     def get_images_for_validation(self):
 
-        train_images = (self.serializer.load_image(pt, as_tensor=False) 
+        train_images = (self.serializer.load_image(pt) 
                         for pt in self.train_data)
-        validation_images = (self.serializer.load_image(pt, as_tensor=False) 
+        validation_images = (self.serializer.load_image(pt) 
                              for pt in self.validation_data)
 
         return {'train' : train_images, 'validation' : validation_images}

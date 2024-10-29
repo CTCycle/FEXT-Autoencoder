@@ -25,22 +25,21 @@ if __name__ == '__main__':
     # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
     # select a fraction of data for training     
-    images_paths = get_images_path(IMG_DATA_PATH)    
+    images_paths = get_images_path(IMG_DATA_PATH, CONFIG)    
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
-    splitter = DataSplit(images_paths)     
+    splitter = DataSplit(images_paths, CONFIG)     
     train_data, validation_data = splitter.split_train_and_validation()   
 
     # create subfolder for preprocessing data    
-    dataserializer = DataSerializer()
     modelserializer = ModelSerializer()
     model_folder_path = modelserializer.create_checkpoint_folder() 
 
     # save preprocessed data references
-    logger.info('Saving images path references')
-    dataserializer.save_preprocessed_data(train_data, validation_data, 
-                                          model_folder_path)    
+    logger.info(f'Saving images path references in {model_folder_path}')
+    dataserializer = DataSerializer(CONFIG)
+    dataserializer.save_preprocessed_data(train_data, validation_data, model_folder_path)    
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
@@ -63,10 +62,10 @@ if __name__ == '__main__':
     log_training_report(train_data, validation_data, CONFIG)
 
     # build the autoencoder model     
-    autoencoder = FeXTAutoEncoder()
+    autoencoder = FeXTAutoEncoder(CONFIG)
     model = autoencoder.get_model(model_summary=True)
     
-    # generate graphviz plot fo the model layout         
+    # generate graphviz plot for the model layout        
     modelserializer.save_model_plot(model, model_folder_path)              
 
     # perform training and save model at the end

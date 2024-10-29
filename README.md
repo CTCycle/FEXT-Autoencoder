@@ -1,13 +1,10 @@
 # FeXT AutoEncoder: Extraction of Images Features
 
 ## 1. Project Overview
-The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. As such, this project implements a series of stacked convolution layers, where pooling operations are performed to decrease the vector dimensions. Despite being similar to VVG16, the encoder submodel can optionally integrate a Sobel filter layer that computes the pixels gradient and join this information with a parallel convolution stream. Both the encoder and the decoder collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional representation compared to the original image size. This compression allows for the retention of critical information, making the extracted features suitable for a wide range of downstream tasks.
+The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. As such, this project implements a series of stacked convolution layers, where pooling operations are performed to decrease the encoding dimensions. Despite being similar to VVG16, the encoder submodel can optionally integrate a Sobel filter layer that computes the pixels gradient and join this information with a parallel convolution stream. Both the encoder and the decoder collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional representation compared to the original image size. This compression allows for the retention of critical information, making the extracted features suitable for a wide range of downstream tasks.
 
 ![VVG16 encoder](docs/VGG16_encoder.png)
 Architecture of the VVG16 encoder
-
-### 1.2 Supplementary information
-Further information are available in the `docs` folder (to be added).
 
 ## 2. FeXT AutoEncoder model
 The encoder component of the FeXT AutoEncoder is responsible for feature extraction. It achieves this through a series of convolutional layers with a kernel size of 3x3 and a stride of 1 pixel. The kernel size is chosen to be compatible with the implementation of the Sobel filter layer, which allows to extract information about the pixel gradients and use them in conjunction with the default convolution flow, with the downstream convolution layers being followed by average pooling operations. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions, effectively capturing the abstract representations of the image content. Each stack of convolutional layers is stabilized with batch normalization and enhanced with ReLU activation functions to introduce non-linearity, enabling the model to learn complex patterns within the data.
@@ -68,7 +65,13 @@ Contains `input images` where you place images intended as an input for inferenc
 
 
 ## 5. Configurations
-For customization, you can modify the main configuration parameters using `settings/app_configurations.json` 
+For customization, you can modify the main configuration parameters using `settings/app_configurations.json`. 
+
+#### General Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| SEED               | Global seed for all numerical operations                 |
 
 #### Dataset Configuration
 
@@ -86,7 +89,7 @@ For customization, you can modify the main configuration parameters using `setti
 |--------------------|----------------------------------------------------------|
 | IMG_SHAPE          | Shape of the input images (height, width, channels)      |
 | APPLY_SOBEL        | Apply Sobel filter in the encoder model                  |
-| SAVE_MODEL_PLOT    | Whether to save a plot of the model architecture         |
+| RESIDUALS          | Apply residual connections in convolution layers         |
 | JIT_COMPILE        | Apply Just-In_time (JIT) compiler for model optimization |
 | JIT_BACKEND        | Just-In_time (JIT) backend                               |
 
@@ -104,17 +107,18 @@ For customization, you can modify the main configuration parameters using `setti
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
 | EPOCHS             | Number of epochs to train the model                      |
+| ADDITIONAL EPOCHS  | Number of epochs to train the model from checkpoint      |
 | LEARNING_RATE      | Learning rate for the optimizer                          |
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
+| SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
 | PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
 
 #### Evaluation Configuration
 
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
-| BATCH_SIZE         | Number of samples per batch during evaluation            |    
-                    
+| BATCH_SIZE         | Number of samples per batch during evaluation            |                        
  
 ## 6. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
