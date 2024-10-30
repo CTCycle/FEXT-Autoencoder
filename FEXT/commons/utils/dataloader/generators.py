@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 from FEXT.commons.constants import CONFIG
@@ -32,9 +33,15 @@ class DataGenerator:
     #--------------------------------------------------------------------------
     def image_augmentation(self, image):    
            
-        image = tf.image.random_flip_left_right(image)
-        image = tf.image.random_flip_up_down(image) 
-
+        augmentations = {"flip_left_right": (lambda img: tf.image.random_flip_left_right(img), 0.5),
+                        "flip_up_down": (lambda img: tf.image.random_flip_up_down(img), 0.5),                        
+                        "brightness": (lambda img: tf.image.random_brightness(img, max_delta=0.2), 0.25),
+                        "contrast": (lambda img: tf.image.random_contrast(img, lower=0.7, upper=1.3), 0.35)}    
+        
+        for _, (func, prob) in augmentations.items():
+            if np.random.rand() <= prob:
+                image = func(image)
+        
         return image
               
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching

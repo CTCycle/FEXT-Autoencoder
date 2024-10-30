@@ -1,12 +1,10 @@
 import os
 import numpy as np
-import torch
-import tensorflow as tf
 import keras
 from tqdm import tqdm
 
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
-from FEXT.commons.constants import CONFIG, ENCODED_OUTPUT_PATH
+from FEXT.commons.constants import ENCODED_PATH
 from FEXT.commons.logger import logger
 
 
@@ -17,18 +15,15 @@ class FeatureEncoding:
     
     def __init__(self, model : keras.Model, configuration):
        
-        np.random.seed(configuration["SEED"])
-        torch.manual_seed(configuration["SEED"])
-        tf.random.set_seed(configuration["SEED"])
-        self.dataserializer = DataSerializer()  
+        keras.utils.set_random_seed(configuration["SEED"])  
+        self.dataserializer = DataSerializer(configuration)  
         self.img_shape = configuration["model"]["IMG_SHAPE"]
         self.configuration = configuration
         self.model = model 
 
         # isolate the encoder submodel from the autoencoder model, and use it for inference             
         encoder_output = model.get_layer('encoder_output').output 
-        self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output) 
-             
+        self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
     def encoder_images(self, images_paths):
@@ -46,7 +41,7 @@ class FeatureEncoding:
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array([(image, features[image]) for image in features], dtype=object)
-        file_loc = os.path.join(ENCODED_OUTPUT_PATH, 'extracted_features.npy')
+        file_loc = os.path.join(ENCODED_PATH, 'extracted_features.npy')
         np.save(file_loc, structured_data)
 
         logger.debug(f'Extracted img features saved as numpy array at {file_loc}')

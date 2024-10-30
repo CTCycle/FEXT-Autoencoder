@@ -6,7 +6,7 @@
                  "IMG_AUGMENT" : false,
                  "SPLIT_SEED" : 52},
 
-    "model" : {"IMG_SHAPE" : [160, 160, 3],
+    "model" : {"IMG_SHAPE" : [192, 192, 3],
                "APPLY_SOBEL": false,
                "RESIDUALS": true,              
                "JIT_COMPILE" : false,
