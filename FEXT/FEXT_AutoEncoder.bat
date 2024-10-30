@@ -97,11 +97,12 @@ echo.
 echo =======================================
 echo           FEXT AutoEncoder
 echo =======================================
-echo 1. Data analysis
+echo 1. Analyze image dataset
 echo 2. Model training and evaluation
-echo 3. Extract features from images
-echo 4. FEXT setup
+echo 3. Encode images
+echo 4. App setup & maintenance
 echo 5. Exit and close
+echo =======================================
 echo.
 set /p choice="Select an option (1-5): "
 
@@ -119,7 +120,7 @@ goto :main_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :datanalysis
 cls
-start cmd /k "call conda activate %env_name% && jupyter notebook .\validation\data_validation.ipynb"
+start cmd /k "call conda activate %env_name% && jupyter notebook .\validation\image_dataset_validation.ipynb"
 goto :main_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -140,7 +141,7 @@ echo           FEXT AutoEncoder ML
 echo =======================================
 echo 1. Train from scratch
 echo 2. Train from checkpoint
-echo 3. Evaluate model performances
+echo 3. Evaluate model performance
 echo 4. Back to main menu
 echo.
 set /p sub_choice="Select an option (1-4): "
@@ -187,7 +188,7 @@ cls
 echo =======================================
 echo         FEXT AutoEncoder setup
 echo =======================================
-echo 1. Install project dependencies
+echo 1. Install project into environment
 echo 2. Remove logs
 echo 3. Back to main menu
 echo.

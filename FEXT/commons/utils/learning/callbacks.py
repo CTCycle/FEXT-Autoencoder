@@ -73,8 +73,6 @@ class LoggingCallback(keras.callbacks.Callback):
         if logs is not None:
             logger.debug(f"Epoch {epoch + 1}: {logs}")
 
-
-
     
 # add logger callback for the training session
 ###############################################################################
@@ -93,12 +91,12 @@ def callbacks_handler(configuration, checkpoint_path, history):
     # Add a checkpoint saving callback
     if configuration["training"]["SAVE_CHECKPOINTS"]:
         logger.debug('Adding checkpoint saving callback')
-        checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.keras')
+        checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.weights.h5')
         callbacks_list.append(keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath,
-                                                              save_weights_only=False,  
+                                                              save_weights_only=True,  
                                                               monitor='val_loss',       
                                                               save_best_only=True,      
                                                               mode='auto',              
-                                                              verbose=1))
+                                                              verbose=0))
 
     return RTH_callback, callbacks_list

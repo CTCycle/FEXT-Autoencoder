@@ -18,9 +18,9 @@ class ImageReconstruction:
         self.model = model    
 
     #-------------------------------------------------------------------------- 
-    def visualize_features_vector(self, real_image, features, predicted_image, name, path):
+    def visualize_features_vector(self, real_image, features, predicted_image, path):
         
-        fig_path = os.path.join(path, f'{name}.jpeg')
+        fig_path = os.path.join(path, 'visual_feature_vector.jpeg')
         fig, axs = plt.subplots(1, 3, figsize=(14, 20), dpi=600)                                     
         axs[0].imshow(real_image)
         axs[0].set_title('Original picture')
@@ -70,12 +70,12 @@ class ImageReconstruction:
 ###############################################################################
 class ImageDatasetValidation:
 
-    def __init__(self, train_data, validation_data):
+    def __init__(self, train_data, validation_data, configuration):
         self.DPI = 400
         self.file_type = 'jpeg'
         self.train_data = train_data
         self.validation_data = validation_data
-        self.serializer = DataSerializer()        
+        self.serializer = DataSerializer(configuration)        
 
     #--------------------------------------------------------------------------
     def get_images_for_validation(self):

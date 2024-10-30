@@ -8,7 +8,6 @@ from FEXT.commons.constants import ENCODED_PATH
 from FEXT.commons.logger import logger
 
 
-
 # [INFERENCE]
 ###############################################################################
 class FeatureEncoding:
@@ -22,7 +21,7 @@ class FeatureEncoding:
         self.model = model 
 
         # isolate the encoder submodel from the autoencoder model, and use it for inference             
-        encoder_output = model.get_layer('encoder_output').output 
+        encoder_output = model.get_layer('compression_layer').output 
         self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
