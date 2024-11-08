@@ -12,6 +12,7 @@ The encoder component of the FeXT AutoEncoder is responsible for image encoding 
 In contrast, the decoder component is tasked with reconstructing the original image from the lower-dimensional encoded representation. This is accomplished by used transposed 2D convolutions and direct upsampling with 3x3 kernels. The decoder works to reconstruct the spatial dimensions and pixel details of the original image as accurately as possible from the abstract features encoded by the model, using the Huber loss as indication of the reconstruction error.
 
 ![Huber loss](docs/Huber_loss.png)
+
 Huber loss formula
 
 ## 3. Training dataset
