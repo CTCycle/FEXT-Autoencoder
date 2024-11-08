@@ -13,8 +13,6 @@ In contrast, the decoder component is tasked with reconstructing the original im
 
 ![Huber loss](docs/Huber_loss.png)
 
-Huber loss formula
-
 ## 3. Training dataset
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
 
