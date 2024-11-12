@@ -85,7 +85,8 @@ def callbacks_handler(configuration, checkpoint_path, history):
     if configuration["training"]["USE_TENSORBOARD"]:
         logger.debug('Using tensorboard during training')
         log_path = os.path.join(checkpoint_path, 'tensorboard')
-        callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1))          
+        callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1,
+                                                          write_images=True))          
         start_tensorboard(log_path)      
 
     # Add a checkpoint saving callback
@@ -106,8 +107,8 @@ def callbacks_handler(configuration, checkpoint_path, history):
 def start_tensorboard(log_dir):
     
     tensorboard_command = ["tensorboard", "--logdir", log_dir, "--port", "6006"]
-    subprocess.Popen(tensorboard_command)       
-    time.sleep(1)            
+    subprocess.Popen(tensorboard_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)      
+    time.sleep(4)            
     webbrowser.open("http://localhost:6006")       
         
     

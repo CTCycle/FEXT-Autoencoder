@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.1,
+    "dataset" : {"SAMPLE_SIZE" : 0.3,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : false,
@@ -9,7 +9,7 @@
     "model" : {"IMG_SHAPE" : [192, 192, 3],
                "APPLY_SOBEL": false,
                "RESIDUALS": true,              
-               "JIT_COMPILE" : true,
+               "JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},
 
     "device" : {"DEVICE" : "GPU",
@@ -17,12 +17,12 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 10,
+    "training" : {"EPOCHS" : 30,
                   "ADDITIONAL_EPOCHS" : 20,
-                  "LEARNING_RATE" : 0.002,
+                  "LEARNING_RATE" : 0.001,
                   "BATCH_SIZE" : 30,                  
                   "USE_TENSORBOARD" : true,
-                  "SAVE_CHECKPOINTS": true},                     
+                  "SAVE_CHECKPOINTS": false},                     
                   
     "evaluation" : {"BATCH_SIZE" : 20}     
       
