@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
     log_training_report(train_data, validation_data, configuration, 
-                        additional_epochs=CONFIG['TRAINING']['ADDITIONAL_EPOCHS'])
+                        additional_epochs=CONFIG['training']['ADDITIONAL_EPOCHS'])
 
     # resume training from pretrained model    
     trainer.train_model(model, train_dataset, validation_dataset, model_folder,

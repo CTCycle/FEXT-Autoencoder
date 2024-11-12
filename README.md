@@ -114,7 +114,7 @@ For customization, you can modify the main configuration parameters using `setti
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
 | SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
-| PLOT_EPOCH_GAP     | Epochs skipped between each point of the training plot   |
+
 
 #### Evaluation Configuration
 
