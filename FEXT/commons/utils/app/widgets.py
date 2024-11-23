@@ -1,8 +1,8 @@
+import os
 from nicegui import ui
-import copy
 
 from FEXT.commons.utils.app.threads import InferenceThread
-from FEXT.commons.constants import PROJECT_DIR, RESULTS_PATH
+from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -35,3 +35,45 @@ class ProgressBarWidgets:
                 progress_bar.visible = False
 
 
+###############################################################################
+class CheckpointLoadingWidgets:
+     
+    def __init__(self):
+        self.feedback = 'instant-feedback'
+        self.selected_checkpoint = None  # Store the select component for later access
+
+    #--------------------------------------------------------------------------
+    def build_checkpoints_selector(self):
+
+        models_list = self.update_checkpoints_list()
+        ui.label('Available checkpoints')
+        
+        with ui.row().classes('w-full no-wrap'):            
+            ui.button(icon='refresh', on_click=self.on_refresh_click).classes('icon-button')           
+            self.selected_checkpoint = ui.select(models_list, label='Select checkpoints').classes('w-full')
+
+        return self.selected_checkpoint
+
+    #--------------------------------------------------------------------------
+    def update_checkpoints_list(self):
+          
+        models_list = []
+        for entry in os.scandir(CHECKPOINT_PATH):
+            if entry.is_dir():
+                models_list.append(entry.name) 
+
+        models_list.sort()       
+        
+        if not models_list:
+            logger.error('No pretrained model checkpoints in resources')
+
+        return models_list
+
+    #--------------------------------------------------------------------------
+    def on_refresh_click(self, e):
+        # Update the models list
+        models_list = self.update_checkpoints_list()
+        # Update the options of the select component
+        self.selected_checkpoint.options = models_list
+        # Refresh the UI to display the updated options
+        self.selected_checkpoint.update()
