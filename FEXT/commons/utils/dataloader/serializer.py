@@ -3,13 +3,34 @@ import sys
 import cv2
 import json
 import pandas as pd
-import keras
 from datetime import datetime
-
+import keras
 
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
+
+
+###############################################################################
+def checkpoint_selection_menu(models_list):
+
+    index_list = [idx + 1 for idx, item in enumerate(models_list)]     
+    print('Currently available pretrained models:')             
+    for i, directory in enumerate(models_list):
+        print(f'{i + 1} - {directory}')                         
+    while True:
+        try:
+            selection_index = int(input('\nSelect the pretrained model: '))
+            print()
+        except ValueError:
+            logger.error('Invalid choice for the pretrained model, asking again')
+            continue
+        if selection_index in index_list:
+            break
+        else:
+            logger.warning('Model does not exist, please select a valid index')
+
+    return selection_index
 
 # get the path of multiple images from a given directory
 ###############################################################################
@@ -98,7 +119,8 @@ class DataSerializer:
 class ModelSerializer:
 
     def __init__(self):
-        self.model_name = 'FeXT'        
+        self.model_name = 'FeXT'
+        self.model = None        
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -181,15 +203,34 @@ class ModelSerializer:
         keras.utils.plot_model(model, to_file=plot_path, show_shapes=True, 
                     show_layer_names=True, show_layer_activations=True, 
                     expand_nested=True, rankdir='TB', dpi=400)
-            
+
     #-------------------------------------------------------------------------- 
-    def load_pretrained_model(self):
-        
-        # look into checkpoint folder to get pretrained model names      
+    def scan_checkpoints_folder(self):
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
                 model_folders.append(entry.name)
+        
+        return model_folders   
+    
+    #--------------------------------------------------------------------------
+    def load_checkpoint(self, checkpoint_name, show_summary=False):
+
+        model_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
+        model_path = os.path.join(model_folder_path, 'saved_model.keras') 
+        model = keras.models.load_model(model_path) 
+        self.model = model       
+
+        if show_summary:
+            model.summary()
+
+        return model
+
+    #-------------------------------------------------------------------------- 
+    def select_and_load_checkpoint(self):
+        
+        # look into checkpoint folder to get pretrained model names      
+        model_folders = self.scan_checkpoints_folder()
 
         # quit the script if no pretrained models are found 
         if len(model_folders) == 0:
@@ -198,35 +239,17 @@ class ModelSerializer:
 
         # select model if multiple checkpoints are available
         if len(model_folders) > 1:
-            model_folders.sort()
-            index_list = [idx + 1 for idx, item in enumerate(model_folders)]     
-            print('Currently available pretrained models:')             
-            for i, directory in enumerate(model_folders):
-                print(f'{i + 1} - {directory}')                         
-            while True:
-                try:
-                    dir_index = int(input('\nSelect the pretrained model: '))
-                    print()
-                except ValueError:
-                    logger.error('Invalid choice for the pretrained model, asking again')
-                    continue
-                if dir_index in index_list:
-                    break
-                else:
-                    logger.warning('Model does not exist, please select a valid index')
-                    
-            self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[dir_index - 1])
+            selection_index = checkpoint_selection_menu(model_folders)                    
+            checkpoint_name = os.path.join(CHECKPOINT_PATH, model_folders[selection_index-1])
 
         # load directly the pretrained model if only one is available 
         elif len(model_folders) == 1:
             logger.info('Loading pretrained model directly as only one is available')
-            self.loaded_model_folder = os.path.join(CHECKPOINT_PATH, model_folders[0])                 
+            checkpoint_name = os.path.join(CHECKPOINT_PATH, model_folders[0])                 
             
         # effectively load the model using keras builtin method
-        model_path = os.path.join(self.loaded_model_folder, 'saved_model.keras') 
-        model = keras.models.load_model(model_path)
-        
         # load configuration data from .json file in checkpoint folder
-        configuration, history = self.load_session_configuration(self.loaded_model_folder)        
+        model = self.load_checkpoint(checkpoint_name)       
+        configuration, history = self.load_session_configuration(checkpoint_name)        
             
-        return model, configuration, history
+        return model, configuration, history, checkpoint_name

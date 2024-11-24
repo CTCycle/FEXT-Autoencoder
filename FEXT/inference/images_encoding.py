@@ -9,45 +9,37 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.serializer import get_images_path
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
-from FEXT.commons.utils.learning.inferencer import ImagesEncoding
-from FEXT.commons.constants import CONFIG, ENCODED_INPUT_PATH
-from FEXT.commons.logger import logger
-
+from FEXT.commons.utils.learning.inference import ImagesEncoding
 from FEXT.commons.utils.app.widgets import CheckpointLoadingWidgets, ProgressBarWidgets
 from FEXT.commons.utils.app.threads import InferenceThread
+from FEXT.commons.constants import CONFIG, ENCODED_INPUT_PATH
+from FEXT.commons.logger import logger
 
 
 ###############################################################################
 with ui.row().classes('w-full no-wrap justify-between') as page:
 
+    # initialize classes used for backend ops and UI widgets building
+    # inference is run using the InferenceThread class for asynchronous run
     pb = ProgressBarWidgets()
     selector = CheckpointLoadingWidgets()
     modelserializer = ModelSerializer()  
-    inferencer = InferenceThread()
-   
-
-    # [SOLVER SECTION]
+    inference = InferenceThread()   
+    
     #--------------------------------------------------------------------------           
     with ui.column().classes('w-full'):
         ui.label('Device Selection')
-        device = ui.select(['CPU', 'GPU'], label='Select device').classes('w-full')  
-        #ui.checkbox('Enable device').classes('mt-2')  
+        device = ui.select(['CPU', 'GPU'], value='CPU', label='Select device').classes('w-full')  
+        npy_save = ui.checkbox('Save as .npy').classes('mt-2')         
     with ui.column().classes('w-full'):
-        selector.build_checkpoints_selector()
-        
+        selector.build_checkpoints_selector()        
 
     with ui.column().classes('w-full'):
         ui.label('Model inference images')  
-        inference_button = ui.button('Encode images', on_click=lambda : [solver.start_data_fitting_thread(
-                                                                                   processor.processed_data,
-                                                                                   processor.experiment_col,
-                                                                                   processor.pressure_col,
-                                                                                   processor.uptake_col,
-                                                                                   models_widgets.model_states,
-                                                                                   max_iterations.value,
-                                                                                   best_models.value)])
+        loader_button = ui.button('Load model', on_click=lambda : [modelserializer.load_checkpoint(selector.selected_checkpoint.value,
+                                                                                                   selector.summary.value)])
+        inference_button = ui.button('Encode images', on_click=lambda : [inference.start_inference_thread()])
 
     # [PROGRESS BAR]
     #--------------------------------------------------------------------------
@@ -55,7 +47,7 @@ with ui.row().classes('w-full no-wrap justify-between') as page:
         progress_bar = pb.build_progress_bar()
 
     # [TIMER TO UPDATE PROGRESS BAR]
-    ui.timer(0.5, lambda: pb.update_progress_bar(progress_bar, inferencer))
+    ui.timer(0.5, lambda: pb.update_progress_bar(progress_bar, inference))
 
 
 

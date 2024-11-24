@@ -6,7 +6,6 @@ from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
-
 ###############################################################################
 class ProgressBarWidgets:
 
@@ -38,9 +37,8 @@ class ProgressBarWidgets:
 ###############################################################################
 class CheckpointLoadingWidgets:
      
-    def __init__(self):
-        self.feedback = 'instant-feedback'
-        self.selected_checkpoint = None  # Store the select component for later access
+    def __init__(self):        
+        self.selected_checkpoint = None 
 
     #--------------------------------------------------------------------------
     def build_checkpoints_selector(self):
@@ -52,7 +50,7 @@ class CheckpointLoadingWidgets:
             ui.button(icon='refresh', on_click=self.on_refresh_click).classes('icon-button')           
             self.selected_checkpoint = ui.select(models_list, label='Select checkpoints').classes('w-full')
 
-        return self.selected_checkpoint
+        self.summary = ui.checkbox('Show model summary', value=True).classes('mt-2')          
 
     #--------------------------------------------------------------------------
     def update_checkpoints_list(self):
@@ -70,10 +68,10 @@ class CheckpointLoadingWidgets:
         return models_list
 
     #--------------------------------------------------------------------------
-    def on_refresh_click(self, e):
-        # Update the models list
+    def on_refresh_click(self):
+
         models_list = self.update_checkpoints_list()
-        # Update the options of the select component
-        self.selected_checkpoint.options = models_list
-        # Refresh the UI to display the updated options
+        self.selected_checkpoint.options = models_list        
         self.selected_checkpoint.update()
+
+

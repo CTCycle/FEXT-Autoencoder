@@ -1,8 +1,7 @@
 import threading
 
-from FEXT.commons.utils.dataloader.serializer import get_images_path
-from FEXT.commons.utils.dataloader.serializer import ModelSerializer
-from FEXT.commons.utils.learning.inferencer import ImagesEncoding
+from FEXT.commons.utils.dataloader.serializer import get_images_path, ModelSerializer
+from FEXT.commons.utils.learning.inference import ImagesEncoding
 from FEXT.commons.constants import CONFIG, ENCODED_INPUT_PATH
 from FEXT.commons.logger import logger
 
@@ -13,19 +12,21 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class InferenceThread:
 
-   def __init__(self):  
-              
-        self.progress = 0
-        self.total = 0
+   def __init__(self):              
+      
+      self.progress = 0
+      self.total = 0
 
    #---------------------------------------------------------------------------
-   def start_inference_thread(self):
-      
-      threading.Thread(target=self.run_inference, args=(), daemon=True).start()
+   def start_inference_thread(self, model, configuration):
+          
+      threading.Thread(target=self.run_inference, args=(model, configuration), daemon=True).start()
 
    #---------------------------------------------------------------------------
-   def run_inference(self):
+   def run_inference(self, model, configuration):
       
+      self.img_encoder = ImagesEncoding(model, configuration)  
+
       def progress_callback(current, total):
          self.progress = current
          self.total = total

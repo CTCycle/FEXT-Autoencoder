@@ -13,17 +13,18 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ImagesEncoding:
     
-    def __init__(self, configuration):
+    def __init__(self, model : keras.Model, configuration):
        
         keras.utils.set_random_seed(configuration["SEED"])  
         self.dataserializer = DataSerializer(configuration)  
         self.img_shape = configuration["model"]["IMG_SHAPE"]
         self.configuration = None       
         self.encoder_model = None
+        self.model = model
 
     #--------------------------------------------------------------------------
     def get_encoder_from_checkpoint(self, model : keras.Model):  
-        encoder_output = model.get_layer('compression_layer').output 
+        encoder_output = self.model.get_layer('compression_layer').output 
         self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output)            
 
     #--------------------------------------------------------------------------
