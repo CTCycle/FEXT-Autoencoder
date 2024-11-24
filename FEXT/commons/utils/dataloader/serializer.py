@@ -34,10 +34,11 @@ def checkpoint_selection_menu(models_list):
 
 # get the path of multiple images from a given directory
 ###############################################################################
-def get_images_path(path, configuration, sample_size=None):
+def get_images_path(path, configuration=None, sample_size=None):
     
-    if sample_size is None:
-        sample_size =  configuration["dataset"]["SAMPLE_SIZE"]
+    if (sample_size is None and
+       configuration is not None):
+        sample_size = configuration["dataset"]["SAMPLE_SIZE"]
         
     valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif')
     logger.debug(f'Valid extensions are: {valid_extensions}')
@@ -120,7 +121,9 @@ class ModelSerializer:
 
     def __init__(self):
         self.model_name = 'FeXT'
-        self.model = None        
+        self.model = None 
+        self.history = None
+        self.configuration = None       
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -180,20 +183,7 @@ class ModelSerializer:
         with open(history_path, 'w') as f:
             json.dump(existing_history, f)
 
-        logger.debug(f'Model configuration and session history have been saved and merged at {path}')      
-
-    #--------------------------------------------------------------------------
-    def load_session_configuration(self, path): 
-
-        config_path = os.path.join(path, 'configurations', 'configurations.json')        
-        with open(config_path, 'r') as f:
-            configurations = json.load(f)        
-
-        history_path = os.path.join(path, 'configurations', 'session_history.json')
-        with open(history_path, 'r') as f:
-            history = json.load(f)
-
-        return configurations, history
+        logger.debug(f'Model configuration and session history have been saved and merged at {path}')       
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
@@ -211,7 +201,23 @@ class ModelSerializer:
             if entry.is_dir():
                 model_folders.append(entry.name)
         
-        return model_folders   
+        return model_folders  
+
+    #--------------------------------------------------------------------------
+    def load_session_configuration(self, checkpoint_name): 
+
+        model_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
+        config_path = os.path.join(model_folder_path, 'configurations', 'configurations.json')        
+        with open(config_path, 'r') as f:
+            configuration = json.load(f)        
+
+        history_path = os.path.join(model_folder_path, 'configurations', 'session_history.json')
+        with open(history_path, 'r') as f:
+            history = json.load(f)
+
+        self.history, self.configuration = history, configuration
+
+        return configuration, history 
     
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name, show_summary=False):
@@ -249,7 +255,7 @@ class ModelSerializer:
             
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
-        model = self.load_checkpoint(checkpoint_name)       
+        model = self.load_checkpoint(checkpoint_name, show_summary=True)       
         configuration, history = self.load_session_configuration(checkpoint_name)        
             
         return model, configuration, history, checkpoint_name

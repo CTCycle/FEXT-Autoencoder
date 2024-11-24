@@ -30,27 +30,32 @@ class ImagesEncoding:
     #--------------------------------------------------------------------------
     def single_image_encoding(self, path):
         
-        image = self.dataserializer.load_image(path, self.img_shape)
+        image = self.dataserializer.load_image(path)
         image = keras.ops.expand_dims(image, axis=0)
         extracted_features = self.encoder_model.predict(image, verbose=0)
 
         return extracted_features
     
     #--------------------------------------------------------------------------
-    def encode_images(self):
+    def encode_images(self, model, progress_callback=None):
 
+        self.get_encoder_from_checkpoint(model)
         images_path = get_images_path(ENCODED_INPUT_PATH)
         encodings = {}
-        for path in images_path:
+        for i, path in enumerate(images_path):
             encoded_img = self.single_image_encoding(path)
             encodings[os.path.basename(path)] = encoded_img
+
+            # Update progress
+            if progress_callback:
+                progress_callback(i + 1, len(images_path))
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array([(image, encodings[image]) for image in images_path], dtype=object)
         file_loc = os.path.join(ENCODED_PATH, 'extracted_features.npy')
         np.save(file_loc, structured_data)
 
-        logger.debug(f'Extracted img features saved as numpy array at {file_loc}')
+        logger.info(f'Extracted image features saved as numpy array at {file_loc}')
 
         return structured_data
         

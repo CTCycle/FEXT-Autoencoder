@@ -38,8 +38,10 @@ with ui.row().classes('w-full no-wrap justify-between') as page:
     with ui.column().classes('w-full'):
         ui.label('Model inference images')  
         loader_button = ui.button('Load model', on_click=lambda : [modelserializer.load_checkpoint(selector.selected_checkpoint.value,
-                                                                                                   selector.summary.value)])
-        inference_button = ui.button('Encode images', on_click=lambda : [inference.start_inference_thread()])
+                                                                                                   selector.summary.value),
+                                                                   modelserializer.load_session_configuration(selector.selected_checkpoint.value)])
+        inference_button = ui.button('Encode images', on_click=lambda : [inference.start_inference_thread(modelserializer.model,
+                                                                                                          modelserializer.configuration)])
 
     # [PROGRESS BAR]
     #--------------------------------------------------------------------------
