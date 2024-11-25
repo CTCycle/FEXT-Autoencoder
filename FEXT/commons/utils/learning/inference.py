@@ -10,7 +10,7 @@ from FEXT.commons.logger import logger
 
 # [INFERENCE]
 ###############################################################################
-class FeatureEncoding:
+class ImageEncoding:
     
     def __init__(self, model : keras.Model, configuration):
        
@@ -30,13 +30,13 @@ class FeatureEncoding:
         features = {}
         for pt in tqdm(images_paths):
             try:
-                image = self.dataserializer.load_image(pt, self.img_shape)
+                image = self.dataserializer.load_image(pt)
                 image = keras.ops.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
             except Exception as e:
                 features[pt] = f'Could not extract features: {str(e)}'
-                logger.warning(f'Could not extract features from image at {pt}: {str(e)}')
+                logger.error(f'Could not extract features from image at {pt}: {str(e)}')
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array([(image, features[image]) for image in features], dtype=object)
