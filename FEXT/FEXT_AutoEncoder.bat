@@ -100,7 +100,7 @@ echo =======================================
 echo 1. Analyze image dataset
 echo 2. Model training and evaluation
 echo 3. Encode images
-echo 4. App setup & maintenance
+echo 4. App setup and maintenance
 echo 5. Exit and close
 echo =======================================
 echo.

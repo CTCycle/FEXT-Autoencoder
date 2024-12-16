@@ -17,7 +17,7 @@ In contrast, the decoder component is tasked with reconstructing the original im
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
 
 ## 4. Installation
-The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run `FEXT_AutoEncoder.bat`. On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, you will need to install it manually. You can download and install Miniconda by following the instructions here: (https://docs.anaconda.com/miniconda/).
+The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run `FEXT_AutoEncoder.bat`. On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, you will need to install it manually. You can download and install Miniconda by following the instructions here: https://docs.anaconda.com/miniconda/.
 
 After setting up Anaconda/Miniconda, the installation script will install all the necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.1) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing `setup/FEXT_installer.bat`. You can also use a custom python environment by modifying `settings/launcher_configurations.ini` and setting use_custom_environment as true, while specifying the name of your custom environment.
 
@@ -47,7 +47,7 @@ On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and br
 
 **3) Encode images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
-**4) App setup & maintenance:** execute optional commands such as **Install project into environment** to run the developer model project installation, and **remove logs** to remove all logs saved in `resources/logs`. 
+**4) App setup and maintenance:** execute optional commands such as **Install project into environment** to run the developer model project installation, and **remove logs** to remove all logs saved in `resources/logs`. 
 
 **5) Exit and close** 
 
