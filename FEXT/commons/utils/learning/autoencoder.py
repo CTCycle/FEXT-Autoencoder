@@ -35,48 +35,48 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = StackedResidualConv(64, residuals=self.use_residuals, num_layers=2)(inputs)     
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(inputs)     
 
         if self.apply_sobel:      
             # calculate image pixels gradient using sobel filters
             # apply 2D convolution to obtained gradients
             gradients = SobelFilterConv()(inputs)
-            gradients = StackedResidualConv(units=64, residuals=self.use_residuals, num_layers=2)(gradients)           
+            gradients = StackedResidualConv(units=128, residuals=self.use_residuals, num_layers=2)(gradients)           
             layer = layers.Add()([layer, gradients])        
 
         # perform downstream convolution pooling on the concatenated vector
         # the results with the obtained gradients         
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)       
-        layer = StackedResidualConv(32, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(64, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=128, residuals=self.use_residuals, num_layers=2)(layer) 
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=2)(layer) 
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=128, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)      
+        layer = StackedResidualConv(units=512, residuals=self.use_residuals, num_layers=3)(layer)      
         layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)        
+        layer = StackedResidualConv(units=512, residuals=self.use_residuals, num_layers=3)(layer)        
         layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
         encoder_output = CompressionLayer(units=512)(layer) 
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------   
         decoder_input = DecompressionLayer(units=512)(encoder_output)            
-        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(decoder_input)
+        layer = StackedResidualTransposeConv(512, residuals=self.use_residuals, num_layers=3)(decoder_input)
+        layer = layers.UpSampling2D(size=(2,2))(layer)
+        layer = StackedResidualTransposeConv(512, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
         layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=3)(layer)
+        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
         layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
         layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=2)(layer)
         layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(64, residuals=self.use_residuals, num_layers=2)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(32, residuals=self.use_residuals, num_layers=2)(layer)
+        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=2)(layer)
 
         # Final layer to match the image shape and output channels (RGB)
         layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)

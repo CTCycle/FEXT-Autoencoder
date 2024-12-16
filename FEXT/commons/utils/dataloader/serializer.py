@@ -126,12 +126,12 @@ class ModelSerializer:
     def create_checkpoint_folder(self):
    
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
-        checkpoint_folder_path = os.path.join(CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
-        os.makedirs(checkpoint_folder_path, exist_ok=True)        
-        os.makedirs(os.path.join(checkpoint_folder_path, 'data'), exist_ok=True)
-        logger.debug(f'Created checkpoint folder at {checkpoint_folder_path}')
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
+        os.makedirs(checkpoint_path, exist_ok=True)        
+        os.makedirs(os.path.join(checkpoint_path, 'data'), exist_ok=True)
+        logger.debug(f'Created checkpoint folder at {checkpoint_path}')
         
-        return checkpoint_folder_path    
+        return checkpoint_path    
 
     #--------------------------------------------------------------------------
     def save_pretrained_model(self, model : keras.Model, path):
@@ -211,8 +211,8 @@ class ModelSerializer:
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):
 
-        model_folder_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
-        model_path = os.path.join(model_folder_path, 'saved_model.keras') 
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
+        model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path) 
         
         return model

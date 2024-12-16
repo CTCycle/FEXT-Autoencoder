@@ -34,12 +34,12 @@ if __name__ == '__main__':
 
     # create subfolder for preprocessing data    
     modelserializer = ModelSerializer()
-    model_folder_path = modelserializer.create_checkpoint_folder() 
+    checkpoint_path = modelserializer.create_checkpoint_folder() 
 
     # save preprocessed data references
-    logger.info(f'Saving images path references in {model_folder_path}')
+    logger.info(f'Saving images path references in {checkpoint_path}')
     dataserializer = DataSerializer(CONFIG)
-    dataserializer.save_preprocessed_data(train_data, validation_data, model_folder_path)    
+    dataserializer.save_preprocessed_data(train_data, validation_data, checkpoint_path)    
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #--------------------------------------------------------------------------
@@ -66,10 +66,10 @@ if __name__ == '__main__':
     model = autoencoder.get_model(model_summary=True)
     
     # generate graphviz plot for the model layout        
-    modelserializer.save_model_plot(model, model_folder_path)              
+    modelserializer.save_model_plot(model, checkpoint_path)              
 
     # perform training and save model at the end
-    trainer.train_model(model, train_dataset, validation_dataset, model_folder_path)
+    trainer.train_model(model, train_dataset, validation_dataset, checkpoint_path)
 
 
 
