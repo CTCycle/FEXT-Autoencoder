@@ -3,7 +3,7 @@
 ## 1. Project Overview
 The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. As such, the model proposed in this project implements a series of stacked convolution layers, where pooling operations are performed to decrease the encoding dimensions recursively. Despite being similar to VVG16, the encoder submodel can optionally integrate a Sobel filter layer, which computes the pixels gradient and join this information with a parallel 2D convolution stream. Both the encoder and the decoder collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional representation suitable for a wide range of downstream tasks.
 
-![VVG16 encoder](docs/VGG16_encoder.png)
+![VVG16 encoder](FEXT/commons/assets/VGG16_encoder.png)
 Architecture of the VVG16 encoder
 
 ## 2. FeXT AutoEncoder model
@@ -11,7 +11,7 @@ The encoder component of the FeXT AutoEncoder is responsible for image encoding 
 
 In contrast, the decoder component is tasked with reconstructing the original image from the lower-dimensional encoded representation. This is accomplished by used transposed 2D convolutions and direct upsampling with 3x3 kernels. The decoder works to reconstruct the spatial dimensions and pixel details of the original image as accurately as possible from the abstract features encoded by the model, using the Huber loss as indication of the reconstruction error.
 
-![Huber loss](docs/Huber_loss.png)
+![Huber loss](FEXT/commons/assets/Huber_loss.png)
 
 ## 3. Training dataset
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
