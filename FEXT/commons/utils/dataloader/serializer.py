@@ -60,17 +60,16 @@ class DataSerializer:
 
     def __init__(self, configuration):        
         self.color_encoding = cv2.COLOR_BGR2RGB
-        self.img_shape = configuration["model"]["IMG_SHAPE"]        
-        self.normalization = configuration["dataset"]["IMG_NORMALIZE"] 
+        self.img_shape = configuration["model"]["IMG_SHAPE"]             
         self.resized_img_shape = self.img_shape[:-1]      
        
     #--------------------------------------------------------------------------
-    def load_image(self, path):    
+    def load_image(self, path, normalization=False):    
        
         image = cv2.imread(path)             
         image = cv2.resize(image, self.resized_img_shape)            
-        image = cv2.cvtColor(image, self.color_encoding)         
-        if self.normalization:
+        image = cv2.cvtColor(image, self.color_encoding)                 
+        if normalization:
             image = image/255.0          
 
         return image    

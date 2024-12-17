@@ -3,7 +3,7 @@ import numpy as np
 
 # [DATA SPLITTING]
 ###############################################################################
-class DataSplit:
+class TrainValidationSplit:
 
     def __init__(self, images_path : list, configuration):        
         
@@ -19,11 +19,13 @@ class DataSplit:
         self.val_size = int(len(images_path) * validation_size)        
         
     #--------------------------------------------------------------------------
-    def split_train_and_validation(self):          
-       
-        # Split the list of items based on the specified sizes
-        train_data = self.images_path[:self.train_size]
-        validation_data = self.images_path[self.train_size:]
+    def split_train_and_validation(self):    
+
+        shuffled_indices = np.random.permutation(len(self.images_path))     
+        train_indices = shuffled_indices[:self.train_size]
+        validation_indices = shuffled_indices[self.train_size:]        
+        train_data = [self.images_path[i] for i in train_indices]
+        validation_data = [self.images_path[i] for i in validation_indices]
         
         return train_data, validation_data
 

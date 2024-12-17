@@ -30,13 +30,13 @@ After setting up Anaconda/Miniconda, the installation script will install all th
 
     `pip install -e . --use-pep517` 
 
-### 3.1 Just-In-Time (JIT) Compiler
+### 4.1 Just-In-Time (JIT) Compiler
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. For Windows users, a precompiled Triton wheel is bundled with the installation, ensuring seamless integration and performance improvements.
 
-## 4. How to use
+## 5. How to use
 On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options.  Alternatively, each file can be executed individually by running `python path/filename.py` for Python scripts or `jupyter notebook path/notebook.ipynb` for Jupyter notebooks. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
-### 4.1 Navigation menu
+### 5.1 Navigation menu
 
 **1) Analyze image dataset:** runs `validation/image_dataset_validation.ipynb` to perform data validation using a series of metrics for image statistics. 
 
@@ -51,7 +51,7 @@ On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and br
 
 **5) Exit and close** 
 
-### 4.2 Resources
+### 5.2 Resources
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
 
 - **checkpoints:**  pretrained model checkpoints are stored here, and can be used either for resuming training or performing inference with an already trained model.
@@ -65,7 +65,7 @@ Contains `input images` where you place images intended as an input for inferenc
 
 - **validation:** Used to save the results of data validation processes. This helps in keeping track of validation metrics and logs.
 
-## 5. Configurations
+## 6. Configurations
 For customization, you can modify the main configuration parameters using `settings/app_configurations.json`. 
 
 #### General Configuration
@@ -121,5 +121,5 @@ For customization, you can modify the main configuration parameters using `setti
 |--------------------|----------------------------------------------------------|
 | BATCH_SIZE         | Number of samples per batch during evaluation            |                        
  
-## 6. License
+## 7. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
