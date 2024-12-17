@@ -7,7 +7,7 @@ from FEXT.commons.logger import logger
         
 # [CUSTOM DATA GENERATOR]
 ###############################################################################
-class DataGenerator:
+class DatasetGenerator:
 
     def __init__(self, configuration):        
         self.img_shape = configuration["model"]["IMG_SHAPE"]       
@@ -46,19 +46,8 @@ class DataGenerator:
               
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #------------------------------------------------------------------------------
-    def build_tensor_dataset(self, data, batch_size=None, buffer_size=tf.data.AUTOTUNE):
-
-        '''
-        Builds a TensorFlow dataset and applies preprocessing, batching, and prefetching.
-
-        Keyword arguments:
-            data (list): A list of image file paths.
-            buffer_size (int): The buffer size for shuffling and prefetching (default is tf.data.AUTOTUNE).
-
-        Returns:
-            dataset (tf.data.Dataset): The prepared TensorFlow dataset.
-
-        '''
+    def build_dataset_from_generator(self, data, batch_size=None, buffer_size=tf.data.AUTOTUNE):
+        
         num_samples = len(data) 
         if batch_size is None:
             batch_size = self.configuration["training"]["BATCH_SIZE"]
@@ -74,11 +63,11 @@ class DataGenerator:
     
 # LAUNCHER function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
-def training_data_pipeline(train_data, validation_data, configuration, batch_size=None):    
+def ML_model_dataloader(train_data, validation_data, configuration, batch_size=None):    
         
-        generator = DataGenerator(configuration)
-        train_dataset = generator.build_tensor_dataset(train_data, batch_size=batch_size)
-        validation_dataset = generator.build_tensor_dataset(validation_data, batch_size=batch_size)        
+        generator = DatasetGenerator(configuration)
+        train_dataset = generator.build_dataset_from_generator(train_data, batch_size=batch_size)
+        validation_dataset = generator.build_dataset_from_generator(validation_data, batch_size=batch_size)        
         for x, y in train_dataset.take(1):
             logger.debug(f'X batch shape is: {x.shape}')  
             logger.debug(f'Y batch shape is: {y.shape}') 

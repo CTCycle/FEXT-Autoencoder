@@ -19,7 +19,7 @@
 
     "training" : {"EPOCHS" : 10,
                   "ADDITIONAL_EPOCHS" : 10,
-                  "LEARNING_RATE" : 0.0005,
+                  "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 30,                  
                   "USE_TENSORBOARD" : true,
                   "SAVE_CHECKPOINTS": false},                     

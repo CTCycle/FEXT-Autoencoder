@@ -8,9 +8,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.generators import training_data_pipeline
+from FEXT.commons.utils.dataloader.generators import ML_model_dataloader
 from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerializer, ModelSerializer
-from FEXT.commons.utils.process.splitting import DataSplit
+from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.validation.reports import log_training_report
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
-    splitter = DataSplit(images_paths, CONFIG)     
+    splitter = TrainValidationSplit(images_paths, CONFIG)     
     train_data, validation_data = splitter.split_train_and_validation()   
 
     # create subfolder for preprocessing data    
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators    
-    train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data, CONFIG)         
+    train_dataset, validation_dataset = ML_model_dataloader(train_data, validation_data, CONFIG)         
     
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  

@@ -8,7 +8,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.generators import training_data_pipeline
+from FEXT.commons.utils.dataloader.generators import ML_model_dataloader
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.validation.reports import log_training_report
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators   
     logger.info('Building data loaders') 
-    train_dataset, validation_dataset = training_data_pipeline(train_data, validation_data, configuration)
+    train_dataset, validation_dataset = ML_model_dataloader(train_data, validation_data, configuration)
     
     # 3. [TRAINING MODEL]  
     #--------------------------------------------------------------------------  
