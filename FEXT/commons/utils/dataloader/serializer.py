@@ -69,7 +69,7 @@ class DataSerializer:
        
         image = cv2.imread(path)             
         image = cv2.resize(image, self.resized_img_shape)            
-        image = cv2.cvtColor(image, self.color_encoding) 
+        image = cv2.cvtColor(image, self.color_encoding)         
         if self.normalization:
             image = image/255.0          
 
