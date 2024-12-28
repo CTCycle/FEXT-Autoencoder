@@ -141,38 +141,17 @@ class ModelSerializer:
     #--------------------------------------------------------------------------
     def save_session_configuration(self, path, history : dict, configurations : dict):        
         config_folder = os.path.join(path, 'configurations')
-        os.makedirs(config_folder, exist_ok=True)
-        # Paths to the JSON files
+        os.makedirs(config_folder, exist_ok=True)        
         config_path = os.path.join(config_folder, 'configurations.json')
-        history_path = os.path.join(config_folder, 'session_history.json')
-        # Function to merge dictionaries
-        def merge_dicts(original, new_data):
-            for key, value in new_data.items():
-                if key in original:
-                    if isinstance(value, dict) and isinstance(original[key], dict):
-                        merge_dicts(original[key], value)
-                    elif isinstance(value, list) and isinstance(original[key], list):
-                        original[key].extend(value)
-                    else:
-                        original[key] = value
-                else:
-                    original[key] = value    
+        history_path = os.path.join(config_folder, 'session_history.json')        
 
         # Save the merged configurations
         with open(config_path, 'w') as f:
-            json.dump(configurations, f)
-
-        # Load existing session history if the file exists and merge
-        if os.path.exists(history_path):
-            with open(history_path, 'r') as f:
-                existing_history = json.load(f)
-            merge_dicts(existing_history, history)
-        else:
-            existing_history = history
+            json.dump(configurations, f)       
 
         # Save the merged session history
         with open(history_path, 'w') as f:
-            json.dump(existing_history, f)
+            json.dump(history, f)
 
         logger.debug(f'Model configuration and session history have been saved at {path}') 
 

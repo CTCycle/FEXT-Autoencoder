@@ -36,7 +36,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------   
-    # load saved tf.datasets from the proper folders in the checkpoint directory  
+    # load preprocessed training data from the checkpoint directory  
     dataserializer = DataSerializer(configuration)   
     train_data, validation_data = dataserializer.load_preprocessed_data(checkpoint_path)
 
@@ -51,9 +51,8 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
-    log_training_report(train_data, validation_data, configuration, 
-                        additional_epochs=CONFIG['training']['ADDITIONAL_EPOCHS'])
-
+    log_training_report(train_data, validation_data, configuration, from_checkpoint=True) 
+                        
     # resume training from pretrained model    
     trainer.train_model(model, train_dataset, validation_dataset, checkpoint_path,
                         from_checkpoint=True)
