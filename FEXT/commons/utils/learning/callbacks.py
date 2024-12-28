@@ -15,7 +15,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class RealTimeHistory(keras.callbacks.Callback):    
         
-    def __init__(self, plot_path, configuration, past_logs=None, **kwargs):
+    def __init__(self, plot_path, past_logs=None, **kwargs):
         super(RealTimeHistory, self).__init__(**kwargs)
         self.plot_path = plot_path 
         self.past_logs = past_logs       
@@ -77,7 +77,7 @@ class LoggingCallback(keras.callbacks.Callback):
 ###############################################################################
 def callbacks_handler(configuration, checkpoint_path, history):
 
-    RTH_callback = RealTimeHistory(checkpoint_path, configuration, past_logs=history)
+    RTH_callback = RealTimeHistory(checkpoint_path, past_logs=history)
     logger_callback = LoggingCallback()   
     callbacks_list = [RTH_callback, logger_callback]
 
