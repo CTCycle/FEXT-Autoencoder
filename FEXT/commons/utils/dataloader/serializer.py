@@ -2,10 +2,10 @@ import os
 import sys
 import cv2
 import json
+import numpy as np
 import pandas as pd
 import keras
 from datetime import datetime
-import tensorflow as tf
 
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
@@ -64,26 +64,27 @@ class DataSerializer:
         self.resized_img_shape = self.img_shape[:-1]      
        
     #--------------------------------------------------------------------------
-    def load_image(self, path, normalization=False):    
-       
-        image = cv2.imread(path)             
-        image = cv2.resize(image, self.resized_img_shape)            
-        image = cv2.cvtColor(image, self.color_encoding)                 
+    def load_image(self, path, normalization=True):       
+        image = cv2.imread(path)          
+        image = cv2.cvtColor(image, self.color_encoding)
+        image = np.asarray(cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)            
         if normalization:
-            image = image/255.0          
+            image = image / 255.0       
 
-        return image    
+        return image 
 
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data : list, validation_data : list, path):  
-         
-        train_dataframe = pd.DataFrame(train_data, columns=['image path'])
-        validation_dataframe = pd.DataFrame(validation_data, columns=['image path'])       
-        train_data_path = os.path.join(path, 'data', 'train_data.csv')
-        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
-        train_dataframe.to_csv(train_data_path, index=False, sep=';', encoding='utf-8')
-        validation_dataframe.to_csv(val_data_path, index=False, sep=';', encoding='utf-8')
-        logger.debug(f'Preprocessed data has been saved at {path}')
+    def save_preprocessed_data(self, train_data : list, validation_data : list, path):         
+        
+        train_dataframe = pd.DataFrame([os.path.basename(img) for img in train_data], 
+                                       columns=['image name'])
+        validation_dataframe = pd.DataFrame([os.path.basename(img) for img in validation_data],
+                                            columns=['image name'])          
+      
+        train_dataframe.to_csv(os.path.join(path, 'data', 'train_data.csv'), 
+                               index=False, sep=';', encoding='utf-8')
+        validation_dataframe.to_csv(os.path.join(path, 'data', 'validation_data.csv'), 
+                                    index=False, sep=';', encoding='utf-8')        
 
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
