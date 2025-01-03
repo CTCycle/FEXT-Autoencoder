@@ -78,7 +78,6 @@ For customization, you can modify the main configuration parameters using `setti
 |--------------------|----------------------------------------------------------|
 | SAMPLE_SIZE        | Number of samples to use from the dataset                |
 | VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
-| IMG_NORMALIZE      | Whether to normalize image data                          |
 | IMG_AUGMENT        | Whether to apply data augmentation to images             |
 | SPLIT_SEED         | Seed for random splitting of the dataset                 |
 

@@ -2,7 +2,6 @@
     "SEED" : 42,   
     "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
-                 "IMG_NORMALIZE" : true,
                  "IMG_AUGMENT" : true,
                  "SPLIT_SEED" : 52},
 
