@@ -1,9 +1,9 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.1,
+    "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_NORMALIZE" : true,
-                 "IMG_AUGMENT" : false,
+                 "IMG_AUGMENT" : true,
                  "SPLIT_SEED" : 52},
 
     "model" : {"IMG_SHAPE" : [128, 128, 3],
@@ -17,13 +17,11 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 5,
-                  "ADDITIONAL_EPOCHS" : 2,
+    "training" : {"EPOCHS" : 20,
+                  "ADDITIONAL_EPOCHS" : 20,
                   "LEARNING_RATE" : 0.0002,
-                  "BATCH_SIZE" : 30,                  
+                  "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
-                  "SAVE_CHECKPOINTS": false},                     
-                  
-    "evaluation" : {"BATCH_SIZE" : 20}     
-      
+                  "SAVE_CHECKPOINTS": false}                
+     
 }

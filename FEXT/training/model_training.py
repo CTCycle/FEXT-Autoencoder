@@ -37,7 +37,7 @@ if __name__ == '__main__':
     checkpoint_path = modelserializer.create_checkpoint_folder() 
 
     # save preprocessed data references
-    logger.info(f'Saving images path references in {checkpoint_path}')
+    logger.info(f'Saving images references in {checkpoint_path}')
     dataserializer = DataSerializer(CONFIG)
     dataserializer.save_preprocessed_data(train_data, validation_data, checkpoint_path)    
 

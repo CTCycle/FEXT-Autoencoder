@@ -1,93 +1,69 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Specify the settings file path
-set settings_file=settings/launcher_configurations.ini
-
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: Read settings from the configurations file
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-for /f "tokens=1,2 delims==" %%a in (%settings_file%) do (
-    set key=%%a
-    set value=%%b
-    if not "!key:~0,1!"=="[" (        
-        if "!key!"=="skip_CUDA_check" set skip_CUDA_check=!value!
-        if "!key!"=="use_custom_environment" set use_custom_environment=!value!
-        if "!key!"=="custom_env_name" set custom_env_name=!value!
-    )
-)
-
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if conda is installed
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:check_conda
 where conda >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Anaconda/Miniconda is not installed. Please install it manually first.
-    pause
-    goto exit
+    echo Anaconda/Miniconda is not installed. Installing Miniconda...   
+    cd /d "%~dp0"        
+    if not exist Miniconda3-latest-Windows-x86_64.exe (
+        echo Downloading Miniconda 64-bit installer...
+        powershell -Command "Invoke-WebRequest -Uri https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -OutFile Miniconda3-latest-Windows-x86_64.exe"
+    )    
+    echo Installing Miniconda to %USERPROFILE%\Miniconda3
+    start /wait "" Miniconda3-latest-Windows-x86_64.exe ^
+        /InstallationType=JustMe ^
+        /RegisterPython=0 ^
+        /AddToPath=0 ^
+        /S ^
+        /D=%USERPROFILE%\Miniconda3    
+    
+    call "%USERPROFILE%\Miniconda3\Scripts\activate.bat" "%USERPROFILE%\Miniconda3"
+    echo Miniconda installation is complete.
+    goto :initial_check
+
 ) else (
     echo Anaconda/Miniconda already installed. Checking python environment...
-    goto :initial_check   
+    goto :initial_check
 )
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if the 'FEXT' environment exists when not using a custom environment
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:initial_check
-if /i "%use_custom_environment%"=="false" (
-    set "env_name=FEXT"
-    goto :check_environment
-) else (
-    echo A custom Python environment '%custom_env_name%' has been selected.
-    set "env_name=%custom_env_name%"
-    goto :check_environment
-)
+:initial_check   
+cd /d "%~dp0\.."
 
 :check_environment
-set "env_exists=false"
-:: Loop through Conda environments to check if the specified environment exists
-for /f "skip=2 tokens=1*" %%a in ('conda env list') do (
-    if /i "%%a"=="%env_name%" (
-        set "env_exists=true"
-        goto :env_found
-    )
-)
+set "env_name=FEXT"
+set "env_path=.setup\environment\FEXT"
 
-:env_found
-if "%env_exists%"=="true" (
+if exist ".setup\environment\FEXT\" (    
     echo Python environment '%env_name%' detected.
     goto :cudacheck
+
 ) else (
-    if /i "%env_name%"=="FEXT" (
-        echo Running first-time installation for FEXT. Please wait until completion and do not close the console!
-        call "%~dp0\..\setup\FEXT_installer.bat"
-        set "custom_env_name=FEXT"
-        goto :cudacheck
-    ) else (
-        echo Selected custom environment '%custom_env_name%' does not exist.
-        echo Please select a valid environment or set use_custom_environment=false.
-        pause
-        exit
-    )
+    echo Running first-time installation for %env_name%. 
+    echo Please wait until completion and do not close this window!
+    echo Depending on your internet connection, this may take a while...
+    call ".\setup\FEXT_installer.bat"
+    goto :cudacheck
 )
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if NVIDIA GPU is available using nvidia-smi
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :cudacheck
-if /i "%skip_CUDA_check%"=="true" (
-    goto :main_menu
+nvidia-smi >nul 2>&1
+if %ERRORLEVEL%==0 (
+    echo NVIDIA GPU detected. Checking CUDA version...
+    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
 ) else (
-    nvidia-smi >nul 2>&1
-    if %ERRORLEVEL%==0 (
-        echo NVIDIA GPU detected. Checking CUDA version...
-        nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
-        goto :main_menu
-    ) else (
-        echo No NVIDIA GPU detected or NVIDIA drivers are not installed.
-        goto :main_menu
-    )
+    echo No NVIDIA GPU detected or NVIDIA drivers are not installed.
 )
+goto :main_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Show main menu
@@ -100,8 +76,8 @@ echo =======================================
 echo 1. Analyze image dataset
 echo 2. Model training and evaluation
 echo 3. Encode images
-echo 4. App setup and maintenance
-echo 5. Exit and close
+echo 4. Setup and maintenance
+echo 5. Exit 
 echo =======================================
 echo.
 set /p choice="Select an option (1-5): "
@@ -120,7 +96,7 @@ goto :main_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :datanalysis
 cls
-start cmd /k "call conda activate %env_name% && jupyter notebook .\validation\image_dataset_validation.ipynb"
+start cmd /k "call conda activate --prefix %env_path% && jupyter notebook .\validation\image_dataset_validation.ipynb"
 goto :main_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -128,7 +104,7 @@ goto :main_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :inference
 cls
-call conda activate %env_name% && python .\inference\images_encoding.py
+call conda activate --prefix %env_path% && python .\inference\images_encoding.py
 goto :main_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -159,7 +135,7 @@ goto :ML_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :train_fs
 cls
-call conda activate %env_name% && python .\training\model_training.py
+call conda activate --prefix %env_path% && python .\training\model_training.py
 pause
 goto :ML_menu
 
@@ -168,7 +144,7 @@ goto :ML_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :train_ckpt
 cls
-call conda activate %env_name% && python .\training\train_from_checkpoint.py
+call conda activate --prefix %env_path% && python .\training\train_from_checkpoint.py
 goto :ML_menu
 
 
@@ -177,7 +153,7 @@ goto :ML_menu
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :modeleval
 cls
-start cmd /k "call conda activate %env_name% && jupyter notebook .\validation\model_validation.ipynb"
+start cmd /k "call conda activate --prefix %env_path% && jupyter notebook .\validation\model_validation.ipynb"
 goto :ML_menu
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -188,7 +164,7 @@ cls
 echo =======================================
 echo         FEXT AutoEncoder setup
 echo =======================================
-echo 1. Install project into environment
+echo 1. Install project in editable mode
 echo 2. Remove logs
 echo 3. Back to main menu
 echo.
@@ -202,7 +178,7 @@ pause
 goto :setup_menu
 
 :eggs
-call conda activate %env_name% && cd .. && pip install -e . --use-pep517 && cd FEXT
+call conda activate --prefix %env_path% && cd .. && pip install -e . --use-pep517 && cd FEXT
 pause
 goto :setup_menu
 

@@ -20,7 +20,7 @@ SETTING_PATH = join(PROJECT_DIR, 'settings')
 
 # [CONFIGURATIONS]
 ###############################################################################
-CONFIG_PATH = join(SETTING_PATH, 'app_configurations.json')
+CONFIG_PATH = join(SETTING_PATH, 'configurations.json')
 with open(CONFIG_PATH, 'r') as file:
     CONFIG = json.load(file)
 

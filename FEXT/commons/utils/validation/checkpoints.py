@@ -65,8 +65,7 @@ class ModelEvaluationSummary:
                           'Device': configuration["device"].get("DEVICE", 'NA'),
                           'Device ID': configuration["device"].get("DEVICE_ID", 'NA'),
                           'Number of Processors': configuration["device"].get("NUM_PROCESSORS", 'NA'),
-                          'Use TensorBoard': configuration["training"].get("USE_TENSORBOARD", 'NA'),                          
-                          'Evaluation Batch Size': configuration["evaluation"].get("BATCH_SIZE", 'NA')}
+                          'Use TensorBoard': configuration["training"].get("USE_TENSORBOARD", 'NA')}
 
             model_parameters.append(chkp_config)
 
