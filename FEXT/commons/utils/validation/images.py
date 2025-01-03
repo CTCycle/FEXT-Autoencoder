@@ -24,11 +24,12 @@ class ImageReconstruction:
         self.model = model    
 
     #-------------------------------------------------------------------------- 
-    def visualize_latent_space(self, model : keras.Model, dataset, path, method='PCA', n_components=2):
+    def visualize_latent_space(self, model : keras.Model, dataset : tf.data.Dataset,
+                               method='PCA', n_components=2, num_images=10):
 
         methods = {'PCA': lambda latent: PCA(n_components=n_components).fit_transform(latent),
-                    'TSNE': lambda latent: TSNE(n_components=n_components, random_state=42).fit_transform(latent),
-                    'UMAP': lambda latent: umap.UMAP(n_components=n_components, random_state=42).fit_transform(latent)}
+                   'TSNE': lambda latent: TSNE(n_components=n_components, random_state=42).fit_transform(latent),
+                   'UMAP': lambda latent: umap.UMAP(n_components=n_components, random_state=42).fit_transform(latent)}
 
         if method not in methods:
             raise ValueError(f"Invalid method '{method}'. Choose from {list(methods.keys())}.")
@@ -60,28 +61,24 @@ class ImageReconstruction:
             ax.set_zlabel("Component 3")
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, dataset : tf.data.Dataset, path):
+    def visualize_reconstructed_images(self, images : list):                      
         
-        # perform visual validation for the train dataset (initialize a validation tf.dataset
-        # with batch size of 10 images)                
-        batch = dataset.take(1)
-        for images, labels in batch:                  
-            reconstructed_images = self.model.predict(images, verbose=0)
-            num_pics = len(images)        
-            fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
-            for i, (real, pred) in enumerate(zip(images, reconstructed_images)):      
-                real = np.clip(real, 0, 1)
-                pred = np.clip(pred, 0, 1)
-                axs[i, 0].imshow(real)
-                if i == 0:
-                    axs[i, 0].set_title('Original Picture')
-                axs[i, 0].axis('off')
-
-                axs[i, 1].imshow(pred)
-                if i == 0:
-                    axs[i, 1].set_title('Reconstructed Picture')
-                axs[i, 1].axis('off')
-
-            plt.tight_layout()          
+        num_pics = len(images)
+        fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
+        for i, img in enumerate(images): 
+            
+            expanded_img = np.expand_dims(img, axis=0)                 
+            reconstructed_image = self.model.predict(expanded_img, verbose=0, batch_size=1)[0]              
+            real = np.clip(img, 0, 1)
+            pred = np.clip(reconstructed_image, 0, 1)          
+            axs[i, 0].imshow(real)
+            axs[i, 0].set_title('Original Picture' if i == 0 else "")
+            axs[i, 0].axis('off')            
+            axs[i, 1].imshow(pred)
+            axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
+            axs[i, 1].axis('off')
+        
+        plt.tight_layout()
+                 
 
 

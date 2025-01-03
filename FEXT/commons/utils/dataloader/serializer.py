@@ -7,7 +7,7 @@ import pandas as pd
 import keras
 from datetime import datetime
 
-from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
+from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -71,29 +71,24 @@ class DataSerializer:
         if normalization:
             image = image / 255.0       
 
-        return image 
+        return image   
 
     #--------------------------------------------------------------------------
     def save_preprocessed_data(self, train_data : list, validation_data : list, path):         
         
-        train_dataframe = pd.DataFrame([os.path.basename(img) for img in train_data], 
-                                       columns=['image name'])
-        validation_dataframe = pd.DataFrame([os.path.basename(img) for img in validation_data],
-                                            columns=['image name'])          
-      
-        train_dataframe.to_csv(os.path.join(path, 'data', 'train_data.csv'), 
-                               index=False, sep=';', encoding='utf-8')
-        validation_dataframe.to_csv(os.path.join(path, 'data', 'validation_data.csv'), 
-                                    index=False, sep=';', encoding='utf-8')        
+        train_dataframe = pd.DataFrame([os.path.basename(img) for img in train_data], columns=['image name'])
+        validation_dataframe = pd.DataFrame([os.path.basename(img) for img in validation_data], columns=['image name'])          
+        train_data_path = os.path.join(path, 'data', 'train_data.csv')
+        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
+        train_dataframe.to_csv(train_data_path, index=False, sep=';', encoding='utf-8')
+        validation_dataframe.to_csv(val_data_path, index=False, sep=';', encoding='utf-8')        
 
     #--------------------------------------------------------------------------
     def load_preprocessed_data(self, path):
-
-        # Paths to the CSV files for train and validation data
+        
         train_data_path = os.path.join(path, 'data', 'train_data.csv')
         val_data_path = os.path.join(path, 'data', 'validation_data.csv')
 
-        # Check if the CSV files exist
         if not os.path.exists(train_data_path):
             logger.error(f'{train_data_path} does not exist.')
             return None, None
@@ -101,16 +96,16 @@ class DataSerializer:
         if not os.path.exists(val_data_path):
             logger.error(f'{val_data_path} does not exist.')
             return None, None
-
-        # Load the CSV files using pandas
+        
         train_dataframe = pd.read_csv(train_data_path, sep=';', encoding='utf-8')
         validation_dataframe = pd.read_csv(val_data_path, sep=';', encoding='utf-8')
-
-        # Extract image paths from the dataframes
-        train_data = train_dataframe['image path'].tolist()
-        validation_data = validation_dataframe['image path'].tolist()
-        logger.debug(f'Preprocessed data has been loaded from {path}')
-
+        
+        # load the list of image names and append the path to the image
+        train_data = [os.path.join(IMG_DATA_PATH, img) 
+                      for img in train_dataframe['image name'].tolist()]
+        validation_data = [os.path.join(IMG_DATA_PATH, img)
+                           for img in validation_dataframe['image name'].tolist()]
+        
         return train_data, validation_data
 
     
