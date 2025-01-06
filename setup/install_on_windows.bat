@@ -5,6 +5,16 @@ set "env_name=FEXT"
 set "project_name=FEXT"
 set "env_path=.\environment\%env_name%"
 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Precheck for conda source 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:conda_activation
+where conda >nul 2>&1
+if %ERRORLEVEL% neq 0 (   
+    call "%~dp0miniconda\Scripts\activate.bat" "%~dp0miniconda"       
+    goto :main_menu
+) 
+
 :: [CHECK CUSTOM ENVIRONMENTS] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if FEXT environment is available or use custom environment
@@ -42,8 +52,8 @@ echo.
 echo Install python libraries and packages
 call pip install torch==2.5.0+cu124 torchvision==0.20.0+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
 call pip install https://storage.googleapis.com/tensorflow/versions/2.18.0/tensorflow-2.18.0-cp311-cp311-win_amd64.whl
-call pip install keras==3.7.0 scikit-learn==1.6.0 matplotlib==3.9.2 opencv-python==4.10.0.84 umap-learn==0.5.7
-call pip install numpy==2.1.0 pandas==2.2.3 tqdm==4.66.4 
+call pip install keras==3.7.0 scikit-learn==1.6.0 opencv-python==4.10.0.84 umap-learn==0.5.7
+call pip install matplotlib==3.9.2 numpy==2.1.0 pandas==2.2.3 tqdm==4.66.4 
 call pip install jupyter==1.1.1
 
 :: [INSTALL TRITON] 
