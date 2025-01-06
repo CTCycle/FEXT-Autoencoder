@@ -1,16 +1,35 @@
 @echo off
 cd /d "%~dp0"
 
+set "env_name=FEXT"
+set "project_name=FEXT"
+set "env_path=.\environment\%env_name%"
+
 :: [CHECK CUSTOM ENVIRONMENTS] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if FEXT environment is available or use custom environment
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-set "env_path=.\environment\FEXT"
 call conda activate "%env_path%" 2>nul
 if %ERRORLEVEL% neq 0 (
-    echo Environment not found. Creating the environment...
+    echo %env_name% is being created (python version = 3.11)
     call conda create --prefix "%env_path%" python=3.11 -y
     call conda activate "%env_path%"
+)
+goto :check_git
+
+:: [INSTALL GIT] 
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: Install git using conda
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:check_git
+echo.
+echo Checking git installation
+git --version >nul 2>&1
+if errorlevel 1 (
+    echo Git not found. Installing git using conda...
+    call conda install -y git
+) else (
+    echo Git is already installed.
 )
 goto :dependencies
 
@@ -22,10 +41,9 @@ goto :dependencies
 echo.
 echo Install python libraries and packages
 call pip install torch==2.5.0+cu124 torchvision==0.20.0+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
-call pip install tensorflow-cpu==2.18.0 keras==3.7.0 
-call pip install -U tensorboard-plugin-profile==2.18.0
-call pip install scikit-learn==1.6.0 matplotlib==3.9.2 opencv-python==4.10.0.84 umap-learn==0.5.7
-call pip install numpy==2.1.2 pandas==2.2.3 tqdm==4.66.4 
+call pip install https://storage.googleapis.com/tensorflow/versions/2.18.0/tensorflow-2.18.0-cp311-cp311-win_amd64.whl
+call pip install keras==3.7.0 scikit-learn==1.6.0 matplotlib==3.9.2 opencv-python==4.10.0.84 umap-learn==0.5.7
+call pip install numpy==2.1.0 pandas==2.2.3 tqdm==4.66.4 
 call pip install jupyter==1.1.1
 
 :: [INSTALL TRITON] 
@@ -50,7 +68,7 @@ call conda install pydotplus -y
 :: Install project in developer mode
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 echo Install utils packages in editable mode
-call cd .. && pip install -e . --use-pep517 && cd FEXT
+call cd .. && pip install -e . --use-pep517 && cd %project_name%
 
 :: [CLEAN CACHE] 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -69,5 +87,5 @@ echo.
 echo List of installed dependencies:
 call conda list
 echo.
-echo Installation complete. You can now run FEXT on this system!
+echo Installation complete. You can now run %env_name% on this system!
 pause

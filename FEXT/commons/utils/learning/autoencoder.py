@@ -80,7 +80,7 @@ class FeXTAutoEncoder:
 
         # Final layer to match the image shape and output channels (RGB)
         layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        output = activations.relu(layer, max_value=1.0)
+        output = activations.sigmoid(layer)
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')

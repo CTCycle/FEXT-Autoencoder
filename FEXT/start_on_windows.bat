@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+set "env_name=FEXT"
+set "project_name=FEXT"
+
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Check if conda is installed
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -37,10 +40,9 @@ if %ERRORLEVEL% neq 0 (
 cd /d "%~dp0\.."
 
 :check_environment
-set "env_name=FEXT"
-set "env_path=.setup\environment\FEXT"
+set "env_path=.setup\environment\%env_name%"
 
-if exist ".setup\environment\FEXT\" (    
+if exist ".setup\environment\%env_name%\" (    
     echo Python environment '%env_name%' detected.
     goto :cudacheck
 
@@ -48,7 +50,7 @@ if exist ".setup\environment\FEXT\" (
     echo Running first-time installation for %env_name%. 
     echo Please wait until completion and do not close this window!
     echo Depending on your internet connection, this may take a while...
-    call ".\setup\FEXT_installer.bat"
+    call ".\setup\install_on_windows.bat"
     goto :cudacheck
 )
 
@@ -76,7 +78,7 @@ echo =======================================
 echo 1. Analyze image dataset
 echo 2. Model training and evaluation
 echo 3. Encode images
-echo 4. Setup and maintenance
+echo 4. Setup and Maintenance
 echo 5. Exit 
 echo =======================================
 echo.
@@ -162,7 +164,7 @@ goto :ML_menu
 :setup_menu
 cls
 echo =======================================
-echo         FEXT AutoEncoder setup
+echo         Setup and Maintenance
 echo =======================================
 echo 1. Install project in editable mode
 echo 2. Remove logs
@@ -178,13 +180,13 @@ pause
 goto :setup_menu
 
 :eggs
-call conda activate --prefix %env_path% && cd .. && pip install -e . --use-pep517 && cd FEXT
+call conda activate --prefix %env_path% && cd .. && pip install -e . --use-pep517 && cd %project_name%
 pause
 goto :setup_menu
 
 :logs
-cd /d "%~dp0..\FEXT\resources\logs"
+cd /d "%~dp0..\%project_name%\resources\logs"
 del *.log /q
-cd /d "%~dp0..\FEXT"
+cd ..\..
 pause
 goto :setup_menu
