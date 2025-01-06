@@ -17,7 +17,7 @@ In contrast, the decoder component is tasked with reconstructing the original im
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
 
 ## 4. Installation
-The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run *FEXT_AutoEncoder.bat* On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, it will automatically download and install the latest Miniconda release from https://docs.anaconda.com/miniconda/. After setting up Anaconda/Miniconda, the installation script will proceed with the installation of all necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.1) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing `setup/FEXT_installer.bat`. 
+The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run *start_on_windows.bat.* On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, it will automatically download and install the latest Miniconda release from https://docs.anaconda.com/miniconda/. After setting up Anaconda/Miniconda, the installation script will proceed with the installation of all necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.1) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing *setup/install_on_windows.bat*.
 
 **Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
 
@@ -32,7 +32,7 @@ The installation process on Windows has been designed for simplicity and ease of
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. For Windows users, a precompiled Triton wheel is bundled with the installation, ensuring seamless integration and performance improvements.
 
 ## 5. How to use
-On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and browse through the various options.  Alternatively, each file can be executed individually by running `python path/filename.py` for Python scripts or `jupyter notebook path/notebook.ipynb` for Jupyter notebooks. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
+On Windows, run *start_on_windows.bat* to launch the main navigation menu and browse through the various options.  Alternatively, each file can be executed individually by running *python path/filename.py* for Python scripts or *jupyter notebook path/notebook.ipynb* for Jupyter notebooks. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
 ### 5.1 Navigation menu
 
@@ -45,7 +45,7 @@ On Windows, run `FEXT_AutoEncoder.bat` to launch the main navigation menu and br
 
 **3) Encode images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
-**4) App setup and maintenance:** execute optional commands such as **Install project into environment** to run the developer model project installation, and **remove logs** to remove all logs saved in `resources/logs`. 
+**4) Setup and Maintenance:** execute optional commands such as **Install project into environment** to run the developer model project installation, and **remove logs** to remove all logs saved in `resources/logs`. 
 
 **5) Exit:** close the program immediately 
 
