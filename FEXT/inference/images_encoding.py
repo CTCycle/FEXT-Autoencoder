@@ -32,6 +32,6 @@ if __name__ == '__main__':
 
     # extract features from images using the encoder output 
     logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
-    logger.info(f'{len(images_paths)} images have been found in resources/encoding/input_images')    
+    logger.info(f'{len(images_paths)} images have been found in resources/encoding/images')    
     encoder = ImageEncoding(model, configuration)    
     encoder.encoder_images(images_paths)
