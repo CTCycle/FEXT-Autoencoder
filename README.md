@@ -36,16 +36,16 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 ### 5.1 Navigation menu
 
-**1) Analyze image dataset:** runs `validation/image_dataset_validation.ipynb` to perform data validation using a series of metrics for image statistics. 
+**1) Analyze image dataset:** runs *validation/image_dataset_validation.ipynb* to perform data validation using a series of metrics for image statistics. 
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation. Once the menu is open, you will see different options:
 - **train from scratch:** runs *training/model_training.py* to start training an instance of the autoencoder model from scratch. 
 - **train from checkpoint:** runs *training/train_from_checkpoint.py* to start training a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
 - **model evaluation:** runs *validation/model_evaluation.ipynb* to evaluate the performance of pretrained model checkpoints using different metrics. 
 
-**3) Encode images:** runs `inference/images_encoding.py` to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
+**3) Encode images:** runs *inference/images_encoding.py* to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
-**4) Setup and Maintenance:** execute optional commands such as **Install project into environment** to run the developer model project installation, and **remove logs** to remove all logs saved in *resources/logs*. 
+**4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to run the developer model project installation, and **remove logs** to remove all logs saved in *resources/logs*. 
 
 **5) Exit:** close the program immediately 
 
@@ -57,7 +57,7 @@ This folder is used to organize data and results for various stages of the proje
 - **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images format is of valid type (preferably either .jpg or .png).
 
 - **extraction:**
-Contains `input images` where you place images intended as an input for inference using the pretrained encoder. Moreover, hosts the folder `image features` where the resulting lower-dimension embeddings of the input images are saved (as .npy files).
+Contains the subfolder *images* where you place images intended as an input for inference using the pretrained encoder. The resulting lower-dimension projections of the images are saved here as .npy files.
 
 - **logs:** the application logs are saved within this folder
 

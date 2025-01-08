@@ -1,9 +1,11 @@
 __pycache__
 FEXT/resources/dataset/*
 FEXT/resources/validation/*
-FEXT/resources/encoding/input images/*
+FEXT/resources/encoding/images/*
 FEXT/resources/checkpoints/*
+
 setup/environment/*
+setup/miniconda/*
 
 *.egg-info
 *.log
