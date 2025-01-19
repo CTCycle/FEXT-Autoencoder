@@ -18,9 +18,9 @@
 
     "training" : {"EPOCHS" : 20,
                   "ADDITIONAL_EPOCHS" : 20,
-                  "LEARNING_RATE" : 0.0002,
+                  "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
-                  "SAVE_CHECKPOINTS": false}                
+                  "SAVE_CHECKPOINTS": false}             
      
 }

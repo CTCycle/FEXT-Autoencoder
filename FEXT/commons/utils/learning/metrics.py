@@ -28,16 +28,14 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
 
     #--------------------------------------------------------------------------   
     def _create_gaussian_window(self, size, sigma):
-        # Create a 1D Gaussian kernel
+        
         coords = keras.ops.arange(size) - size // 2
         g = keras.ops.exp(-(coords ** 2) / (2 * sigma ** 2))
-        g = g / keras.ops.sum(g)
-        
-        # Create a 2D Gaussian kernel via outer product
+        g = g / keras.ops.sum(g)        
+       
         window = keras.ops.outer(g, g)
-        window = window / keras.ops.sum(window)
+        window = window / keras.ops.sum(window)        
         
-        # Reshape to [1, 1, filter_size, filter_size] for convolution
         window = window[None, None, ...]
         return window
     
@@ -56,14 +54,14 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
         out = keras.ops.conv(x, window.repeat(keras.ops.shape(x)[1], axis=0),  
                             strides=(1, 1),
                             padding=padding,
-                            groups= keras.ops.shape(x)[1])
+                            groups= keras.ops.shape(x)[1])        
         
-        # Convert back to NHWC if necessary
         if keras.ops.shape(out)[1] == keras.ops.shape(x)[1]:
             out = keras.ops.transpose(out, [0, 2, 3, 1])  
         
         return out
-        
+
+    #-------------------------------------------------------------------------- 
     def call(self, y_true, y_pred):
         # Ensure inputs are float32
         y_true = keras.ops.cast(y_true, 'float32')
@@ -110,3 +108,30 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
     def from_config(cls, config):
         return cls(**config)
     
+
+# [LOSS FUNCTION]
+###############################################################################
+class WeightedMeanAbsoluteError(keras.losses.Loss):
+    
+    
+    def __init__(self, name='WeightedMeanAbsoluteError', size=(128, 128), **kwargs):        
+        super(WeightedMeanAbsoluteError, self).__init__(name=name, **kwargs)
+        self.loss = keras.losses.MeanAbsoluteError(reduction=None)
+        self.size = size
+        
+    #--------------------------------------------------------------------------    
+    def call(self, y_true, y_pred):
+        loss = self.loss(y_true, y_pred)
+        penalty_factor = keras.ops.power((self.size[0] * self.size[1] / 255), 1/3)
+        loss = loss * penalty_factor       
+
+        return loss
+    
+    #--------------------------------------------------------------------------    
+    def get_config(self):
+        base_config = super(WeightedMeanAbsoluteError, self).get_config()
+        return {**base_config, 'name': self.name}
+    
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
