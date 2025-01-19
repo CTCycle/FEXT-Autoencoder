@@ -2,6 +2,7 @@ import keras
 from keras import activations, layers, Model
 import torch
 
+from FEXT.commons.utils.learning.metrics import WeightedMeanAbsoluteError
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
 from FEXT.commons.utils.learning.convolutionals import (StackedResidualConv, 
                                                         StackedResidualTransposeConv, 
@@ -80,12 +81,12 @@ class FeXTAutoEncoder:
 
         # Final layer to match the image shape and output channels (RGB)
         layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        output = activations.sigmoid(layer)
+        output = activations.relu(layer, max_value=1.0)
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = keras.losses.Huber(delta=1)
+        loss = WeightedMeanAbsoluteError(size=self.img_shape)        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
 
