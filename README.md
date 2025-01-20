@@ -44,7 +44,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 **3) Encode images:** runs *inference/images_encoding.py* to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
-**4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to run the developer model project installation, and **remove logs** to remove all logs saved in *resources/logs*. 
+**4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to run the developer model project installation, *update project* to pull the last updates from github, and *remove logs* to remove all logs saved in *resources/logs*. 
 
 **5) Exit:** close the program immediately 
 
