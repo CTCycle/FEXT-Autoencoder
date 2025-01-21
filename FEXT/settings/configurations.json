@@ -3,7 +3,7 @@
     "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_AUGMENT" : true,
-                 "SPLIT_SEED" : 52},
+                 "SPLIT_SEED" : 76},
 
     "model" : {"IMG_SHAPE" : [128, 128, 3],
                "APPLY_SOBEL": false,
@@ -16,11 +16,10 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 20,
+    "training" : {"EPOCHS" : 10,
                   "ADDITIONAL_EPOCHS" : 20,
                   "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
-                  "SAVE_CHECKPOINTS": false}             
-     
+                  "SAVE_CHECKPOINTS": false}     
 }

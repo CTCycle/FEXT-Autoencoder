@@ -14,15 +14,11 @@ class StackedResidualConv(layers.Layer):
         super(StackedResidualConv, self).__init__(**kwargs)
         self.units = units
         self.num_layers = num_layers
-        self.residuals = residuals
-
-        # First convolution layer for residual connection
+        self.residuals = residuals        
         self.initial_conv = layers.Conv2D(units, kernel_size=(1,1), padding='same')
-
-        # Dynamically create additional convolutional layers and batch normalization layers
+       
         self.conv_layers = []
-        self.batch_norm_layers = []
-        
+        self.batch_norm_layers = []        
         for _ in range(num_layers - 1):  
             self.conv_layers.append(layers.Conv2D(units, kernel_size=(2,2), padding='same'))
             self.batch_norm_layers.append(layers.BatchNormalization())
@@ -31,8 +27,7 @@ class StackedResidualConv(layers.Layer):
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None):
         
-        residual = self.initial_conv(inputs)        
-        # Pass through dynamically created convolutional and batch norm layers
+        residual = self.initial_conv(inputs)         
         layer = residual
         for conv, batch_norm in zip(self.conv_layers, self.batch_norm_layers):
             layer = batch_norm(layer, training=training)
@@ -42,8 +37,7 @@ class StackedResidualConv(layers.Layer):
         # Add residual connection if enabled
         if self.residuals:
             layer = layers.Add()([layer, residual])
-
-        # Final ReLU activation
+        
         output = activations.relu(layer)
         
         return output
