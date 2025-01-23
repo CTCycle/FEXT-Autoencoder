@@ -61,7 +61,7 @@ class DatasetGenerator:
     
 # LAUNCHER function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
-def ML_model_dataloader(train_data, validation_data, configuration, batch_size=None):    
+def build_model_dataloader(train_data, validation_data, configuration, batch_size=None):    
         
         generator = DatasetGenerator(configuration)
         train_dataset = generator.build_dataset_from_generator(train_data, batch_size=batch_size)
