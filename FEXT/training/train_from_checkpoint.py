@@ -37,7 +37,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------   
     # select a fraction of data for training
     dataserializer = DataSerializer(configuration) 
-    images_path = dataserializer.load_preprocessed_data(checkpoint_path)    
+    images_path = dataserializer.load_data_from_checkpoint(checkpoint_path)    
     
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
