@@ -7,8 +7,8 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.generators import ML_model_dataloader
-from FEXT.commons.utils.dataloader.serializer import get_images_path, DataSerializer, ModelSerializer
+from FEXT.commons.utils.dataloader.generators import build_model_dataloader
+from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
@@ -23,8 +23,9 @@ if __name__ == '__main__':
 
     # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
-    # select a fraction of data for training     
-    images_paths = get_images_path(IMG_DATA_PATH, CONFIG)    
+    # select a fraction of data for training
+    dataserializer = DataSerializer(CONFIG)     
+    images_paths = dataserializer.get_images_path(IMG_DATA_PATH)    
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
@@ -36,12 +37,10 @@ if __name__ == '__main__':
     checkpoint_path = modelserializer.create_checkpoint_folder() 
 
     # save preprocessed data references
-    logger.info(f'Saving images references in {checkpoint_path}')
-    dataserializer = DataSerializer(CONFIG)
-    dataserializer.save_preprocessed_data(train_data, validation_data, checkpoint_path)    
+    logger.info(f'Saving images references in {checkpoint_path}')    
+    dataserializer.save_preprocessed_data(images_paths, checkpoint_path)    
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
-    #--------------------------------------------------------------------------
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
     logger.info('Building autoencoder model and data loaders')     
@@ -50,10 +49,9 @@ if __name__ == '__main__':
 
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators    
-    train_dataset, validation_dataset = ML_model_dataloader(train_data, validation_data, CONFIG)         
+    train_dataset, validation_dataset = build_model_dataloader(train_data, validation_data, CONFIG)         
     
-    # 3. [TRAINING MODEL]  
-    #--------------------------------------------------------------------------  
+    # 3. [TRAINING MODEL]
     # Setting callbacks and training routine for the features extraction model 
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 

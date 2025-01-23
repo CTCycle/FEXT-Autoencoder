@@ -34,35 +34,34 @@ def checkpoint_selection_menu(models_list):
     return selection_index
 
 
-# get the path of multiple images from a given directory
-###############################################################################
-def get_images_path(path, configuration=None, sample_size=None):
-    
-    if (sample_size is None and
-        configuration is not None):
-        sample_size = configuration["dataset"]["SAMPLE_SIZE"]
-        
-    valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif')
-    logger.debug(f'Valid extensions are: {valid_extensions}')
-    images_path = []
-    for root, _, files in os.walk(path):
-        if sample_size is not None:
-            files = files[:int(sample_size*len(files))]           
-        for file in files:
-            if os.path.splitext(file)[1].lower() in valid_extensions:
-                images_path.append(os.path.join(root, file))                
-
-    return images_path
-
-
 # [DATA SERIALIZATION]
 ###############################################################################
 class DataSerializer:
 
     def __init__(self, configuration):        
-        self.color_encoding = cv2.COLOR_BGR2RGB
-        self.img_shape = configuration["model"]["IMG_SHAPE"]             
-        self.resized_img_shape = self.img_shape[:-1]      
+        self.img_shape = configuration["model"]["IMG_SHAPE"] 
+        self.num_channels = self.img_shape[-1]                
+        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels == 3 else cv2.COLOR_BGR2GRAY 
+        self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
+        self.seed = configuration['SEED']        
+
+        self.parameters = configuration["dataset"]
+        self.configuration = configuration
+
+    #--------------------------------------------------------------------------
+    def get_images_path(self, path, sample_size=None):   
+    
+        sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
+        logger.debug(f'Valid extensions are: {self.valid_extensions}')
+        images_path = []
+        for root, _, files in os.walk(path):
+            if sample_size is not None:
+                files = files[:int(sample_size*len(files))]           
+            for file in files:
+                if os.path.splitext(file)[1].lower() in self.valid_extensions:
+                    images_path.append(os.path.join(root, file))                
+
+        return images_path      
        
     #--------------------------------------------------------------------------
     def load_image(self, path, normalization=True):       
@@ -75,40 +74,22 @@ class DataSerializer:
         return image   
 
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, train_data : list, validation_data : list, path):         
-        
-        train_dataframe = pd.DataFrame([os.path.basename(img) for img in train_data], columns=['image name'])
-        validation_dataframe = pd.DataFrame([os.path.basename(img) for img in validation_data], columns=['image name'])          
-        train_data_path = os.path.join(path, 'data', 'train_data.csv')
-        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
-        train_dataframe.to_csv(train_data_path, index=False, sep=';', encoding='utf-8')
-        validation_dataframe.to_csv(val_data_path, index=False, sep=';', encoding='utf-8')        
+    def save_preprocessed_data(self, data : list, path):         
+        processed_data_path = os.path.join(path, 'data', 'processed_data.json')
+        image_names = {'name' : [os.path.basename(img) for img in data]}         
+        with open(processed_data_path, 'w') as file:
+            json.dump(image_names, file, indent=4)                
 
     #--------------------------------------------------------------------------
-    def load_preprocessed_data(self, path):
+    def load_preprocessed_data(self, path):        
+        processed_data_path = os.path.join(path, 'data', 'processed_data.json')           
+        with open(processed_data_path, 'r') as file:
+            image_names = json.load(file)        
         
-        train_data_path = os.path.join(path, 'data', 'train_data.csv')
-        val_data_path = os.path.join(path, 'data', 'validation_data.csv')
-
-        if not os.path.exists(train_data_path):
-            logger.error(f'{train_data_path} does not exist.')
-            return None, None
-            
-        if not os.path.exists(val_data_path):
-            logger.error(f'{val_data_path} does not exist.')
-            return None, None
-        
-        train_dataframe = pd.read_csv(train_data_path, sep=';', encoding='utf-8')
-        validation_dataframe = pd.read_csv(val_data_path, sep=';', encoding='utf-8')
-        
-        # load the list of image names and append the path to the image
-        train_data = [os.path.join(IMG_DATA_PATH, img) 
-                      for img in train_dataframe['image name'].tolist()]
-        validation_data = [os.path.join(IMG_DATA_PATH, img)
-                           for img in validation_dataframe['image name'].tolist()]
-        
-        return train_data, validation_data
-
+        images_path = [os.path.join(IMG_DATA_PATH, img) for img in image_names['name']]      
+    
+        return images_path
+    
     
 # [MODEL SERIALIZATION]
 ###############################################################################

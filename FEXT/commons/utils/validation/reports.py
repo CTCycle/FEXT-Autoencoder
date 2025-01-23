@@ -4,7 +4,6 @@ from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
 
 
-
 ###############################################################################
 def evaluation_report(model : keras.Model, train_dataset, validation_dataset):
     
@@ -16,6 +15,7 @@ def evaluation_report(model : keras.Model, train_dataset, validation_dataset):
     logger.info('Test dataset:')
     logger.info(f'Loss: {validation_eval[0]}')    
     logger.info(f'Metric: {validation_eval[1]}')
+
 
 ###############################################################################
 def log_training_report(train_data, validation_data, config : dict, from_checkpoint=False):
