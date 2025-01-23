@@ -50,7 +50,6 @@ class DataSerializer:
 
     #--------------------------------------------------------------------------
     def get_images_path(self, path, sample_size=None):   
-    
         sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
@@ -74,14 +73,14 @@ class DataSerializer:
         return image   
 
     #--------------------------------------------------------------------------
-    def save_preprocessed_data(self, data : list, path):         
+    def save_data_to_checkpoint(self, data : list, path):         
         processed_data_path = os.path.join(path, 'data', 'processed_data.json')
         image_names = {'name' : [os.path.basename(img) for img in data]}         
         with open(processed_data_path, 'w') as file:
             json.dump(image_names, file, indent=4)                
 
     #--------------------------------------------------------------------------
-    def load_preprocessed_data(self, path):        
+    def load_data_from_checkpoint(self, path):        
         processed_data_path = os.path.join(path, 'data', 'processed_data.json')           
         with open(processed_data_path, 'r') as file:
             image_names = json.load(file)        
