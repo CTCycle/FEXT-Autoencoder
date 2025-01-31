@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.tensordata import TensorDatasetBuilder
+from FEXT.commons.utils.dataloader.generators import DataLoaderBuilder
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     trainer.set_device()   
 
     # create the tf.datasets using the previously initialized generators 
-    builder = TensorDatasetBuilder(CONFIG)   
+    builder = DataLoaderBuilder(CONFIG)   
     train_dataset, validation_dataset = builder.build_model_dataloader(train_data, validation_data)           
     
     # 3. [TRAINING MODEL]
