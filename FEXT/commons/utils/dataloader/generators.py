@@ -7,7 +7,7 @@ from FEXT.commons.logger import logger
         
 # [CUSTOM DATA GENERATOR]
 ###############################################################################
-class DatasetGenerator:
+class DataGenerator:
 
     def __init__(self, configuration):        
         self.img_shape = configuration["model"]["IMG_SHAPE"]           

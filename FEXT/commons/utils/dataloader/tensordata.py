@@ -1,7 +1,7 @@
 import pandas as pd
 import tensorflow as tf
 
-from FEXT.commons.utils.dataloader.generators import DatasetGenerator
+from FEXT.commons.utils.dataloader.generators import DataGenerator
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
     
@@ -12,18 +12,18 @@ from FEXT.commons.logger import logger
 class TensorDatasetBuilder:
 
     def __init__(self, configuration):
-        self.generator = DatasetGenerator(configuration) 
+        self.generator = DataGenerator(configuration) 
         self.configuration = configuration
 
     #--------------------------------------------------------------------------
-    def _shape_fingerprint(self, dataset : tf.data.Dataset):
+    def get_shape_fingerprint(self, dataset : tf.data.Dataset):
         for x, y in dataset.take(1):
             logger.debug(f'X batch shape is: {x.shape}')  
             logger.debug(f'Y batch shape is: {y.shape}') 
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
-    def _build_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):
+    def build_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):
 
         num_samples = len(images) 
         batch_size = self.configuration["training"]["BATCH_SIZE"] if batch_size is None else batch_size
@@ -40,9 +40,9 @@ class TensorDatasetBuilder:
     def build_model_dataloader(self, train_data : pd.DataFrame, validation_data : pd.DataFrame, 
                                batch_size=None):            
         
-        train_dataset = self._build_tensor_dataset(train_data, batch_size)
-        validation_dataset = self._build_tensor_dataset(validation_data, batch_size)      
-        self._shape_fingerprint(train_dataset)
+        train_dataset = self.build_tensor_dataset(train_data, batch_size)
+        validation_dataset = self.build_tensor_dataset(validation_data, batch_size)      
+        self.get_shape_fingerprint(train_dataset)
 
         return train_dataset, validation_dataset
 
