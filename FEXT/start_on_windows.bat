@@ -84,14 +84,13 @@ if %ERRORLEVEL% neq 0 (
 :main_menu
 echo.
 echo ==========================================================================
-echo           FEXT AutoEncoder
+echo                            FEXT AutoEncoder
 echo ==========================================================================
 echo 1. Analyze image dataset
 echo 2. Model training and evaluation
 echo 3. Encode images
 echo 4. Setup and Maintenance
 echo 5. Exit 
-echo ==========================================================================
 echo.
 set /p choice="Select an option (1-5): "
 
