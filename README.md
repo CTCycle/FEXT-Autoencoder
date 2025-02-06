@@ -1,13 +1,13 @@
 # FeXT AutoEncoder: Extraction of Images Features
 
 ## 1. Project Overview
-The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. As such, the model proposed in this project implements a series of stacked convolution layers, where pooling operations are performed to decrease the encoding dimensions recursively. Despite being similar to VVG16, the encoder submodel can optionally integrate a Sobel filter layer, which computes the pixels gradient and join this information with a parallel 2D convolution stream. Both the encoder and the decoder collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional representation suitable for a wide range of downstream tasks.
+The FeXT AutoEncoder project is centered around the development, evaluation, and application of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction. As such, the model proposed in this project implements a series of stacked convolution layers, where pooling operations are performed to decrease the encoding dimensions recursively. Both the encoder and the decoder collaboratively work to extract salient features from input images, compressing the information into a lower-dimensional representation suitable for a wide range of downstream tasks.
 
 ![VVG16 encoder](FEXT/commons/assets/VGG16_encoder.png)
 Architecture of the VVG16 encoder
 
 ## 2. FeXT AutoEncoder model
-The encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 3x3 and a stride of 1 pixel. The kernel size is chosen to be compatible with the implementation of the Sobel filter layer, optionally used to extract information about the pixel gradients and use them in conjunction with the default convolution flow, with the downstream convolution layers being followed by max pooling operations. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization.
+The encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 3x3 and a stride of 1 pixel, with the downstream convolution layers being followed by max pooling operations. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization.
 
 In contrast, the decoder is responsible for reconstructing the original image from the lower-dimensional encoded representation. This is achieved using transposed 2D convolutions and direct upsampling with 3x3 kernels. The decoder aims to restore the spatial dimensions and pixel details of the original image as faithfully as possible by leveraging the abstract features encoded by the model. A modified Mean Squared Error (MSE) function, incorporating a size-based penalty, is used to prevent the model from converging to suboptimal solutions, such as reconstructing an average-like image that lacks meaningful features (i.e., poor reconstruction)
 
@@ -85,7 +85,6 @@ For customization, you can modify the main configuration parameters using *setti
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
 | IMG_SHAPE          | Shape of the input images (height, width, channels)      |
-| APPLY_SOBEL        | Apply Sobel filter in the encoder model                  |
 | RESIDUALS          | Apply residual connections in convolution layers         |
 | JIT_COMPILE        | Apply Just-In_time (JIT) compiler for model optimization |
 | JIT_BACKEND        | Just-In_time (JIT) backend                               |
@@ -109,7 +108,6 @@ For customization, you can modify the main configuration parameters using *setti
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
 | SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
-            
  
 ## 7. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.

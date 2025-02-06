@@ -19,11 +19,11 @@ class FeXTAutoEncoder:
     def __init__(self, configuration): 
         self.img_shape = tuple(configuration["model"]["IMG_SHAPE"])
         self.use_residuals = configuration["model"]["RESIDUALS"]
-        self.apply_sobel = configuration["model"]["APPLY_SOBEL"]
         self.jit_compile = configuration["model"]["JIT_COMPILE"]
         self.jit_backend = configuration["model"]["JIT_BACKEND"]
         self.learning_rate = configuration["training"]["LEARNING_RATE"]            
-        self.seed = configuration["SEED"]  
+        self.seed = configuration["SEED"] 
+    
         self.configuration = configuration       
 
     # build model given the architecture
@@ -36,14 +36,7 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(inputs)     
-
-        if self.apply_sobel:      
-            # calculate image pixels gradient using sobel filters
-            # apply 2D convolution to obtained gradients
-            gradients = SobelFilterConv()(inputs)
-            gradients = StackedResidualConv(units=128, residuals=self.use_residuals, num_layers=2)(gradients)           
-            layer = layers.Add()([layer, gradients])        
+        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(inputs)         
 
         # perform downstream convolution pooling on the concatenated vector
         # the results with the obtained gradients         
@@ -83,8 +76,8 @@ class FeXTAutoEncoder:
         layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=3)(layer)
 
         # Final layer to match the image shape and output channels (RGB)
-        layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
+        layer = layers.Conv2D(filters=64, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
+        layer = layers.Conv2D(filters=32, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
         layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
         output = activations.relu(layer, max_value=1.0)
         
