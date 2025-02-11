@@ -34,11 +34,10 @@ if __name__ == '__main__':
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     # initialize training device, allows changing device prior to initializing the generators
-    #--------------------------------------------------------------------------   
-    # select a fraction of data for training
-    dataserializer = DataSerializer(configuration) 
-    images_path = dataserializer.load_data_from_checkpoint(checkpoint_path)    
-    
+    #-------------------------------------------------------------------------- 
+    dataserializer = DataSerializer(configuration)     
+    images_path = dataserializer.get_images_path(IMG_DATA_PATH)
+
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = TrainValidationSplit(images_path, configuration)     

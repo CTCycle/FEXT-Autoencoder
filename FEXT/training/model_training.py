@@ -34,12 +34,8 @@ if __name__ == '__main__':
 
     # create subfolder for preprocessing data    
     modelserializer = ModelSerializer()
-    checkpoint_path = modelserializer.create_checkpoint_folder() 
-
-    # save preprocessed data references
-    logger.info(f'Saving images references in {checkpoint_path}')    
-    dataserializer.save_data_to_checkpoint(images_paths, checkpoint_path)    
-
+    checkpoint_path = modelserializer.create_checkpoint_folder()
+    
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
