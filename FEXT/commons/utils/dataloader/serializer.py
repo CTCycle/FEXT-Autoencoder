@@ -70,24 +70,7 @@ class DataSerializer:
         if normalization:
             image = image / 255.0       
 
-        return image   
-
-    #--------------------------------------------------------------------------
-    def save_data_to_checkpoint(self, data : list, path):         
-        processed_data_path = os.path.join(path, 'data', 'processed_data.json')
-        image_names = {'name' : [os.path.basename(img) for img in data]}         
-        with open(processed_data_path, 'w') as file:
-            json.dump(image_names, file, indent=4)                
-
-    #--------------------------------------------------------------------------
-    def load_data_from_checkpoint(self, path):        
-        processed_data_path = os.path.join(path, 'data', 'processed_data.json')           
-        with open(processed_data_path, 'r') as file:
-            image_names = json.load(file)        
-        
-        images_path = [os.path.join(IMG_DATA_PATH, img) for img in image_names['name']]      
-    
-        return images_path
+        return image       
     
     
 # [MODEL SERIALIZATION]
