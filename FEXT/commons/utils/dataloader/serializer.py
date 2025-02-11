@@ -39,7 +39,7 @@ def checkpoint_selection_menu(models_list):
 class DataSerializer:
 
     def __init__(self, configuration):        
-        self.img_shape = configuration["model"]["IMG_SHAPE"] 
+        self.img_shape = (144, 144, 3)
         self.num_channels = self.img_shape[-1]                
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels == 3 else cv2.COLOR_BGR2GRAY 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
@@ -99,8 +99,7 @@ class ModelSerializer:
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
-    def create_checkpoint_folder(self):
-   
+    def create_checkpoint_folder(self):   
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
         checkpoint_path = os.path.join(CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
         os.makedirs(checkpoint_path, exist_ok=True)        
