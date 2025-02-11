@@ -6,17 +6,13 @@ from os.path import join, dirname, abspath
 ###############################################################################
 PROJECT_DIR = dirname(dirname(abspath(__file__)))
 RSC_PATH = join(PROJECT_DIR, 'resources')
-IMG_DATA_PATH = join(RSC_PATH, 'dataset')
+IMG_DATA_PATH = join(RSC_PATH, 'dataset', 'images')
 RESULTS_PATH = join(RSC_PATH, 'validation')
 CHECKPOINT_PATH = join(RSC_PATH, 'checkpoints')
-ENCODED_PATH = join(RSC_PATH, 'encoding')
-ENCODED_INPUT_PATH = join(ENCODED_PATH, 'input images')
+ENCODED_PATH = join(RSC_PATH, 'inference')
+ENCODED_INPUT_PATH = join(ENCODED_PATH, 'images')
 LOGS_PATH = join(RSC_PATH, 'logs')
 SETTING_PATH = join(PROJECT_DIR, 'settings')
-
-# [FILENAMES]
-###############################################################################
-# add filenames here
 
 # [CONFIGURATIONS]
 ###############################################################################

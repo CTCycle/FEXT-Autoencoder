@@ -1,7 +1,7 @@
 __pycache__
 FEXT/resources/dataset/*
 FEXT/resources/validation/*
-FEXT/resources/encoding/images/*
+FEXT/resources/inference/images/*
 FEXT/resources/checkpoints/*
 
 setup/environment/*

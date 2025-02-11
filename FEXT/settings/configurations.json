@@ -5,8 +5,7 @@
                  "IMG_AUGMENT" : true,
                  "SPLIT_SEED" : 76},
 
-    "model" : {"IMG_SHAPE" : [128, 128, 3],              
-               "RESIDUALS": true,              
+    "model" : {"RESIDUAL_CONNECTIONS": true,              
                "JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},
 

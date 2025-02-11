@@ -3,7 +3,7 @@ from keras import activations, layers, Model
 import torch
 
 from FEXT.commons.utils.learning.metrics import WeightedMeanAbsoluteError
-from FEXT.commons.utils.learning.bottleneck import CompressionLayer
+from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
 from FEXT.commons.utils.learning.convolutionals import StackedResidualConv, StackedResidualTransposeConv
 
        
