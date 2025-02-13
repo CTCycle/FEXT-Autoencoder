@@ -3,7 +3,6 @@ import sys
 import cv2
 import json
 import numpy as np
-import pandas as pd
 import keras
 from datetime import datetime
 
@@ -39,7 +38,7 @@ def checkpoint_selection_menu(models_list):
 class DataSerializer:
 
     def __init__(self, configuration):        
-        self.img_shape = (144, 144, 3)
+        self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]                
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels == 3 else cv2.COLOR_BGR2GRAY 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
@@ -68,7 +67,7 @@ class DataSerializer:
         image = cv2.cvtColor(image, self.color_encoding)
         image = np.asarray(cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)            
         if normalization:
-            image = image / 255.0       
+            image = image/255.0       
 
         return image       
     
@@ -98,17 +97,16 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model has been saved in folder {path}')
 
     #--------------------------------------------------------------------------
-    def save_session_configuration(self, path, history : dict, configurations : dict):        
-        config_folder = os.path.join(path, 'configurations')
-        os.makedirs(config_folder, exist_ok=True)        
-        config_path = os.path.join(config_folder, 'configurations.json')
-        history_path = os.path.join(config_folder, 'session_history.json')        
+    def save_session_configuration(self, path, history : dict, configurations : dict):         
+        os.makedirs(os.path.join(path, 'configurations'), exist_ok=True)        
+        config_path = os.path.join(path, 'configurations', 'configurations.json')
+        history_path = os.path.join(path, 'configurations', 'session_history.json')        
 
-        # Save the merged configurations
+        # Save training and model configurations
         with open(config_path, 'w') as f:
             json.dump(configurations, f)       
 
-        # Save the merged session history
+        # Save session history
         with open(history_path, 'w') as f:
             json.dump(history, f)
 
@@ -124,8 +122,7 @@ class ModelSerializer:
         return model_folders     
 
     #--------------------------------------------------------------------------
-    def load_session_configuration(self, path): 
-
+    def load_session_configuration(self, path):
         config_path = os.path.join(path, 'configurations', 'configurations.json')        
         with open(config_path, 'r') as f:
             configurations = json.load(f)        
@@ -147,7 +144,6 @@ class ModelSerializer:
         
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):
-
         custom_objects = {'WeightedMeanAbsoluteError': WeightedMeanAbsoluteError} 
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
@@ -175,8 +171,7 @@ class ModelSerializer:
         elif len(model_folders) == 1:
             checkpoint_path = os.path.join(CHECKPOINT_PATH, model_folders[0])
             logger.info(f'Since only checkpoint {os.path.basename(checkpoint_path)} is available, it will be loaded directly')
-                            
-            
+           
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         model = self.load_checkpoint(checkpoint_path)       

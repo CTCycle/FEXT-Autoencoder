@@ -12,11 +12,9 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ImageEncoding:
     
-    def __init__(self, model : keras.Model, configuration):
-       
+    def __init__(self, model : keras.Model, configuration):       
         keras.utils.set_random_seed(configuration["SEED"])  
-        self.dataserializer = DataSerializer(configuration)  
-        self.img_shape = configuration["model"]["IMG_SHAPE"]
+        self.dataserializer = DataSerializer(configuration)        
         self.configuration = configuration
         self.model = model 
 
@@ -25,8 +23,7 @@ class ImageEncoding:
         self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encoder_images(self, images_paths):
-        
+    def encoder_images(self, images_paths):        
         features = {}
         for pt in tqdm(images_paths):
             try:

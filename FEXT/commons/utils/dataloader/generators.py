@@ -10,7 +10,7 @@ from FEXT.commons.logger import logger
 class DatasetGenerator:
 
     def __init__(self, configuration):        
-        self.img_shape = (160, 160)   
+        self.img_shape = (128, 128)   
         self.num_channels = 3    
         self.augmentation = configuration["dataset"]["IMG_AUGMENT"]
         self.configuration = configuration         

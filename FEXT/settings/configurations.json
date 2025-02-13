@@ -5,8 +5,7 @@
                  "IMG_AUGMENT" : true,
                  "SPLIT_SEED" : 76},
 
-    "model" : {"RESIDUAL_CONNECTIONS": true,              
-               "JIT_COMPILE" : false,
+    "model" : {"JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},
 
     "device" : {"DEVICE" : "GPU",
@@ -19,5 +18,9 @@
                   "LEARNING_RATE" : 0.0001,
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
-                  "SAVE_CHECKPOINTS": false}     
+                  "SAVE_CHECKPOINTS": false,
+                  "LR_SCHEDULER" : {"INITIAL_LR" : 0.001,
+                                    "CONSTANT_STEPS": 10,
+                                    "DECAY_STEPS" : 5}   
+                  }    
 }

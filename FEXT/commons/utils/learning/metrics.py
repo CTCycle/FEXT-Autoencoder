@@ -1,6 +1,4 @@
-import torch
 import keras
-from keras import layers
 
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
@@ -111,8 +109,7 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
 
 # [LOSS FUNCTION]
 ###############################################################################
-class WeightedMeanAbsoluteError(keras.losses.Loss):
-    
+class WeightedMeanAbsoluteError(keras.losses.Loss):    
     
     def __init__(self, name='WeightedMeanAbsoluteError', size=(128, 128), **kwargs):        
         super(WeightedMeanAbsoluteError, self).__init__(name=name, **kwargs)
