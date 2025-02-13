@@ -1,10 +1,11 @@
 import keras
-from keras import activations, layers, Model
+from keras import layers, activations, Model
 import torch
 
+from FEXT.commons.utils.learning.scheduler import LRScheduler
 from FEXT.commons.utils.learning.metrics import WeightedMeanAbsoluteError
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
-from FEXT.commons.utils.learning.convolutionals import StackedResidualConv, StackedResidualTransposeConv
+from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransconvolutiveUpsampling
 
        
 # [AUTOENCODER MODEL]
@@ -14,14 +15,16 @@ from FEXT.commons.utils.learning.convolutionals import StackedResidualConv, Stac
 ###############################################################################
 class FeXTAutoEncoder: 
 
-    def __init__(self, configuration): 
-        self.img_shape = tuple(configuration["model"]["IMG_SHAPE"])
-        self.use_residuals = configuration["model"]["RESIDUALS"]
+    def __init__(self, configuration):  
+        self.image_shape = (128, 128, 3)
+        self.seed = configuration["SEED"]       
         self.jit_compile = configuration["model"]["JIT_COMPILE"]
         self.jit_backend = configuration["model"]["JIT_BACKEND"]
-        self.learning_rate = configuration["training"]["LEARNING_RATE"]            
-        self.seed = configuration["SEED"] 
-    
+        self.scheduler_config = configuration["training"]["LR_SCHEDULER"]
+        self.initial_lr = self.scheduler_config["INITIAL_LR"]
+        self.constant_lr_steps = self.scheduler_config["CONSTANT_STEPS"]       
+        self.decay_steps = self.scheduler_config["DECAY_STEPS"]             
+           
         self.configuration = configuration       
 
     # build model given the architecture
@@ -30,67 +33,47 @@ class FeXTAutoEncoder:
        
         # [ENCODER SUBMODEL]
         #----------------------------------------------------------------------
-        inputs = layers.Input(shape=self.img_shape, name='image_input') 
+        inputs = layers.Input(shape=self.image_shape, name='image_input')        
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=2)(inputs)         
-
-        # perform downstream convolution pooling on the concatenated vector
-        # the results with the obtained gradients         
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)       
-        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(128, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer) 
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer)
-        layer = StackedResidualConv(units=256, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=512, residuals=self.use_residuals, num_layers=3)(layer)      
-        layer = layers.MaxPooling2D(pool_size=(2,2), padding='same')(layer) 
-        layer = StackedResidualConv(units=512, residuals=self.use_residuals, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(64, num_layers=2)(inputs)              
+        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(256, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(units=256, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)                 
         layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
-        layer = layers.Conv2D(filters=512, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        layer = layers.Conv2D(filters=512, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        layer = layers.Conv2D(filters=512, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
+
         encoder_output = CompressionLayer(units=512)(layer) 
+        decoder_input = DecompressionLayer(units=512)(encoder_output)
         
         # [DECODER SUBMODEL]
-        #----------------------------------------------------------------------   
-        decoder_input = DecompressionLayer(units=512)(encoder_output)            
-        layer = StackedResidualTransposeConv(512, residuals=self.use_residuals, num_layers=3)(decoder_input)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(512, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(256, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=3)(layer)
-        layer = layers.UpSampling2D(size=(2,2))(layer)
-        layer = StackedResidualTransposeConv(128, residuals=self.use_residuals, num_layers=3)(layer)
+        #----------------------------------------------------------------------          
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(decoder_input)       
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(64, num_layers=2)(layer) 
 
-        # Final layer to match the image shape and output channels (RGB)
-        layer = layers.Conv2D(filters=64, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        layer = layers.Conv2D(filters=32, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        layer = layers.Conv2D(filters=3, kernel_size=(1,1), padding='same', dtype=torch.float32)(layer)
-        output = activations.relu(layer, max_value=1.0)
+        output = layers.Dense(3, kernel_initializer='he_uniform')(layer)                      
+        output = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(output)     
+        output = activations.relu(output)   
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        loss = WeightedMeanAbsoluteError(size=self.img_shape)        
+        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)        
+        opt = keras.optimizers.Adam(learning_rate=lr_schedule)
+        loss = WeightedMeanAbsoluteError(size=self.image_shape)        
         metric = [keras.metrics.CosineSimilarity()]
-        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
-
-        if self.jit_compile:
-            model = torch.compile(model, backend=self.jit_backend, mode='default')
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
                 
         if model_summary:
-            model.summary(expand_nested=True)        
+            model.summary(expand_nested=True)   
+
+        if self.jit_compile:
+            model = torch.compile(model, backend=self.jit_backend, mode='default')    
 
         return model
        

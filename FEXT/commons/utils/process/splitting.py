@@ -17,8 +17,7 @@ class TrainValidationSplit:
         self.val_size = int(len(images_path) * validation_size)        
         
     #--------------------------------------------------------------------------
-    def split_train_and_validation(self):    
-
+    def split_train_and_validation(self): 
         shuffled_indices = np.random.permutation(len(self.images_path))     
         train_indices = shuffled_indices[:self.train_size]
         validation_indices = shuffled_indices[self.train_size:]        

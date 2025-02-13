@@ -7,16 +7,15 @@ The FeXT AutoEncoder project is centered around the development, evaluation, and
 Architecture of the VVG16 encoder
 
 ## 2. FeXT AutoEncoder model
-The encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 3x3 and a stride of 1 pixel, with the downstream convolution layers being followed by max pooling operations. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization.
+The encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 2x2 and a stride of 1 pixel, with the downstream convolution layers being followed by max pooling operations. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization.
 
-In contrast, the decoder is responsible for reconstructing the original image from the lower-dimensional encoded representation. This is achieved using transposed 2D convolutions and direct upsampling with 3x3 kernels. The decoder aims to restore the spatial dimensions and pixel details of the original image as faithfully as possible by leveraging the abstract features encoded by the model. A modified Mean Squared Error (MSE) function, incorporating a size-based penalty, is used to prevent the model from converging to suboptimal solutions, such as reconstructing an average-like image that lacks meaningful features (i.e., poor reconstruction)
-
+In contrast, the decoder is responsible for reconstructing the original image from the lower-dimensional encoded representation. This is achieved using transposed 2D convolutions and direct upsampling with 2x2 kernels. The decoder aims to restore the spatial dimensions and pixel details of the original image as faithfully as possible by leveraging the abstract features encoded by the model. A modified Mean Squared Error (MSE) function, incorporating a size-based penalty, is used to prevent the model from converging to suboptimal solutions, such as reconstructing an average-like image that lacks meaningful features (i.e., poor reconstruction)
 
 ## 3. Training dataset
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. The versatility of the FeXT AutoEncoder allows it to be trained on any appropriately preprocessed image dataset, making it adaptable to a wide range of image data and tasks.
 
 ## 4. Installation
-The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run *start_on_windows.bat.* On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, it will automatically download and install the latest Miniconda release from https://docs.anaconda.com/miniconda/. After setting up Anaconda/Miniconda, the installation script will proceed with the installation of all necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.1) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing *setup/install_on_windows.bat*.
+The installation process on Windows has been designed for simplicity and ease of use. To begin, simply run *start_on_windows.bat.* On its first execution, the installation procedure will automatically start with minimal user input required. The script will check if either Anaconda or Miniconda is installed on your system. If neither is found, it will automatically download and install the latest Miniconda release from https://docs.anaconda.com/miniconda/. After setting up Anaconda/Miniconda, the installation script will proceed with the installation of all necessary Python dependencies. This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.4) to enable GPU acceleration. If you'd prefer to handle the installation process separately, you can run the standalone installer by executing *setup/install_on_windows.bat*.
 
 **Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
 
@@ -35,14 +34,14 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 ### 5.1 Navigation menu
 
-**1) Analyze image dataset:** runs *validation/image_dataset_validation.ipynb* to perform data validation using a series of metrics for image statistics. 
+**1) Analyze image dataset:** perform data validation using a series of metrics for image statistics. 
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation. Once the menu is open, you will see different options:
-- **train from scratch:** runs *training/model_training.py* to start training an instance of the autoencoder model from scratch. 
-- **train from checkpoint:** runs *training/train_from_checkpoint.py* to start training a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
-- **model evaluation:** runs *validation/model_evaluation.ipynb* to evaluate the performance of pretrained model checkpoints using different metrics. 
+- **train from scratch:** start training an instance of the autoencoder model from scratch. 
+- **train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
+- **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. 
 
-**3) Encode images:** runs *inference/images_encoding.py* to select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
+**3) Encode images:** select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
 
 **4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to run the developer model project installation, *update project* to pull the last updates from github, and *remove logs* to remove all logs saved in *resources/logs*. 
 
@@ -84,8 +83,6 @@ For customization, you can modify the main configuration parameters using *setti
 
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
-| IMG_SHAPE          | Shape of the input images (height, width, channels)      |
-| RESIDUALS          | Apply residual connections in convolution layers         |
 | JIT_COMPILE        | Apply Just-In_time (JIT) compiler for model optimization |
 | JIT_BACKEND        | Just-In_time (JIT) backend                               |
 

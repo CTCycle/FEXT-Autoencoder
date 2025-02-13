@@ -39,11 +39,12 @@ if __name__ == '__main__':
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     # initialize training device, allows changing device prior to initializing the generators
     #--------------------------------------------------------------------------
-    logger.info('Building autoencoder model and data loaders')     
+    logger.info('Setting device for training operations') 
     trainer = ModelTraining(CONFIG)
     trainer.set_device()   
 
     # create the tf.datasets using the previously initialized generators 
+    logger.info('Building model data loaders using prefetching and parallel processing') 
     builder = TensorDatasetBuilder(CONFIG)   
     train_dataset, validation_dataset = builder.build_model_dataloader(train_data, validation_data)           
     
@@ -54,7 +55,8 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     log_training_report(train_data, validation_data, CONFIG)
 
-    # build the autoencoder model     
+    # build the autoencoder model 
+    logger.info('Building FeXT AutoEncoder model based on given configurations')      
     autoencoder = FeXTAutoEncoder(CONFIG)
     model = autoencoder.get_model(model_summary=True)
     
