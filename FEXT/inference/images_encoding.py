@@ -26,11 +26,12 @@ if __name__ == '__main__':
     # selected and load the pretrained model, then print the summary   l
     modelserializer = ModelSerializer()    
     model, configuration, history, checkpoint_path = modelserializer.select_and_load_checkpoint()
-    model.summary(expand_nested=True)  
-    print()    
+    model.summary(expand_nested=True)   
 
     # extract features from images using the encoder output 
     logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
     logger.info(f'{len(images_paths)} images have been found in resources/encoding/images')    
     encoder = ImageEncoding(model, configuration)    
-    encoder.encoder_images(images_paths)
+    encoder.encode_images_features(images_paths)
+    logger.info(f'Extracted images features have been saved as .npy in resources/encoding')
+
