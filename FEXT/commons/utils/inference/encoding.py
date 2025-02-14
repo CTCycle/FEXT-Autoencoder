@@ -23,7 +23,7 @@ class ImageEncoding:
         self.encoder_model = keras.Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encoder_images(self, images_paths):        
+    def encode_images_features(self, images_paths):        
         features = {}
         for pt in tqdm(images_paths):
             try:
@@ -39,9 +39,7 @@ class ImageEncoding:
         structured_data = np.array([(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(ENCODED_PATH, 'extracted_features.npy')
         np.save(file_loc, structured_data)
-
-        logger.debug(f'Extracted img features saved as numpy array at {file_loc}')
-
+        
         return features
 
 

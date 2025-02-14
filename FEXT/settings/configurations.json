@@ -13,14 +13,13 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 10,
-                  "ADDITIONAL_EPOCHS" : 20,
-                  "LEARNING_RATE" : 0.0001,
+    "training" : {"EPOCHS" : 30,
+                  "ADDITIONAL_EPOCHS" : 20,                  
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
                   "SAVE_CHECKPOINTS": false,
-                  "LR_SCHEDULER" : {"INITIAL_LR" : 0.001,
-                                    "CONSTANT_STEPS": 10,
-                                    "DECAY_STEPS" : 5}   
+                  "LR_SCHEDULER" : {"INITIAL_LR" : 0.0005,
+                                    "CONSTANT_STEPS": 40,
+                                    "DECAY_STEPS" : 10}   
                   }    
 }
