@@ -6,7 +6,6 @@ import keras
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from skimage.restoration import estimate_sigma
 from tqdm import tqdm
 
 from FEXT.commons.constants import CONFIG, RESULTS_PATH

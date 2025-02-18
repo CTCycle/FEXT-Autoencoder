@@ -6,7 +6,7 @@ import numpy as np
 import keras
 from datetime import datetime
 
-from FEXT.commons.utils.learning.metrics import WeightedMeanAbsoluteError
+from FEXT.commons.utils.learning.metrics import PenalizedMeanAbsoluteError
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
@@ -144,7 +144,7 @@ class ModelSerializer:
         
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):
-        custom_objects = {'WeightedMeanAbsoluteError': WeightedMeanAbsoluteError} 
+        custom_objects = {'PenalizedMeanAbsoluteError': PenalizedMeanAbsoluteError} 
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path, custom_objects=custom_objects) 

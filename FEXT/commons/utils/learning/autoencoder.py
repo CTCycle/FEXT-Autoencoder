@@ -1,9 +1,9 @@
 import keras
-from keras import layers, activations, Model
+from keras import layers, activations, metrics, losses, Model
 import torch
 
 from FEXT.commons.utils.learning.scheduler import LRScheduler
-from FEXT.commons.utils.learning.metrics import WeightedMeanAbsoluteError
+from FEXT.commons.utils.learning.metrics import PenalizedMeanAbsoluteError
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
 from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransconvolutiveUpsampling
 
@@ -37,35 +37,36 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = ResidualConvolutivePooling(64, num_layers=2)(inputs)              
+        layer = ResidualConvolutivePooling(128, num_layers=3)(inputs)              
         layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
         layer = ResidualConvolutivePooling(256, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=256, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)                 
+        layer = ResidualConvolutivePooling(units=256, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=4)(layer)                 
         layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
 
+        # [BOTTLENECK SUBMODEL]
+        #--------------------------------------------------------------------
         encoder_output = CompressionLayer(units=512)(layer) 
         decoder_input = DecompressionLayer(units=512)(encoder_output)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(decoder_input)       
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=4)(decoder_input)       
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=4)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=4)(layer)       
         layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
         layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(64, num_layers=2)(layer) 
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer) 
 
-        output = layers.Dense(3, kernel_initializer='he_uniform')(layer)                      
-        output = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(output)     
-        output = activations.relu(output)   
+        output = layers.Dense(3, kernel_initializer='he_uniform')(layer)        
+        output = activations.relu(output, max_value=1.0)   
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)        
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
-        loss = WeightedMeanAbsoluteError(size=self.image_shape)        
+        loss = PenalizedMeanAbsoluteError(size=self.image_shape)        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
                 
