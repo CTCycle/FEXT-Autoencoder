@@ -109,24 +109,25 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
 
 # [LOSS FUNCTION]
 ###############################################################################
-class WeightedMeanAbsoluteError(keras.losses.Loss):    
+class PenalizedMeanAbsoluteError(keras.losses.Loss):    
     
-    def __init__(self, name='WeightedMeanAbsoluteError', size=(128, 128), **kwargs):        
-        super(WeightedMeanAbsoluteError, self).__init__(name=name, **kwargs)
+    def __init__(self, name='PenalizedMeanAbsoluteError', size=(128, 128), **kwargs):        
+        super(PenalizedMeanAbsoluteError, self).__init__(name=name, **kwargs)
         self.loss = keras.losses.MeanAbsoluteError(reduction=None)
         self.size = size
         
     #--------------------------------------------------------------------------    
     def call(self, y_true, y_pred):
         loss = self.loss(y_true, y_pred)
-        penalty_factor = keras.ops.power((self.size[0] * self.size[1] / 255), 1/3)
-        loss = loss * penalty_factor       
+        penalty_factor = keras.ops.power(
+            (self.size[0] * self.size[1] / 255), 1/3)
+        loss = loss + penalty_factor       
 
         return loss
     
     #--------------------------------------------------------------------------    
     def get_config(self):
-        base_config = super(WeightedMeanAbsoluteError, self).get_config()
+        base_config = super(PenalizedMeanAbsoluteError, self).get_config()
         return {**base_config, 'name': self.name}
     
     @classmethod

@@ -1,7 +1,7 @@
 import os
+from datetime import datetime
 import logging
 import logging.config
-from datetime import datetime
 
 from FEXT.commons.constants import LOGS_PATH
 
