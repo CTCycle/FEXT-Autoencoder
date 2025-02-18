@@ -40,7 +40,7 @@ class FeXTAutoEncoder:
         layer = ResidualConvolutivePooling(128, num_layers=3)(inputs)              
         layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
         layer = ResidualConvolutivePooling(256, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=256, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(units=256, num_layers=3)(layer)        
         layer = ResidualConvolutivePooling(units=512, num_layers=4)(layer)        
         layer = ResidualConvolutivePooling(units=512, num_layers=4)(layer)                 
         layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
@@ -54,7 +54,7 @@ class FeXTAutoEncoder:
         #----------------------------------------------------------------------          
         layer = ResidualTransconvolutiveUpsampling(512, num_layers=4)(decoder_input)       
         layer = ResidualTransconvolutiveUpsampling(512, num_layers=4)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=4)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
         layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
         layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer)       
         layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer) 
@@ -66,7 +66,7 @@ class FeXTAutoEncoder:
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)        
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
-        loss = losses.MeanAbsoluteError()        
+        loss = losses.MeanSquaredError()        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
                 
