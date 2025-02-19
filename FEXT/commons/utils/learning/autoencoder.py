@@ -62,9 +62,8 @@ class FeXTAutoEncoder:
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)
-        # using fixed initial LR sinc ethe scheduler must be adjusted        
-        opt = keras.optimizers.AdamW(learning_rate=self.initial_lr)
+        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)            
+        opt = keras.optimizers.AdamW(learning_rate=lr_schedule)
         loss = losses.MeanAbsoluteError()        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        

@@ -22,8 +22,7 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
         global_step = keras.ops.cast(step, np.float32)
         constant_steps = keras.ops.cast(self.constant_steps, np.float32)
         decay_steps = keras.ops.cast(self.decay_steps, np.float32)           
-        constant_lr = self.initial_lr        
-        # Decay phase: linear decay from post_warmup_lr to 0
+        constant_lr = self.initial_lr       
         # Calculate progress in the decay phase: 0.0 at the start, 1.0 at the end.
         decay_progress = (global_step - constant_steps) / decay_steps
         decayed_lr = self.initial_lr * (1.0 - decay_progress)
@@ -46,4 +45,3 @@ class LRScheduler(keras.optimizers.schedules.LearningRateSchedule):
     def from_config(cls, config):
         return cls(**config)
     
-      
