@@ -16,9 +16,9 @@ class CompressionLayer(layers.Layer):
         self.units = units
         self.dropout_rate = dropout_rate
         self.dense1 = layers.Dense(
-            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-5))
+            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-6))
         self.dense2 = layers.Dense(
-            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-5))
+            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-6))
         self.batch_norm1 = layers.BatchNormalization()
         self.batch_norm2 = layers.BatchNormalization()
         self.dropout = layers.Dropout(dropout_rate)
@@ -29,12 +29,12 @@ class CompressionLayer(layers.Layer):
         sequence_dim = height * width
         reshaped = keras.ops.reshape(inputs, (batch_size, sequence_dim, channels))
         layer = self.dense1(reshaped)
-        layer = self.batch_norm1(layer, training=training)
         layer = keras.activations.relu(layer)
+        layer = self.batch_norm1(layer, training=training)        
         layer = self.dropout(layer, training=training)
-        layer = self.dense2(layer)
-        layer = self.batch_norm2(layer, training=training)
-        output = keras.activations.relu(layer)
+        layer = self.dense2(layer)        
+        layer = keras.activations.relu(layer)
+        output = self.batch_norm2(layer, training=training)
         return output
 
     # serialize layer for saving  
