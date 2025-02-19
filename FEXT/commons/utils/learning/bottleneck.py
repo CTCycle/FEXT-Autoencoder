@@ -15,10 +15,8 @@ class CompressionLayer(layers.Layer):
         super(CompressionLayer, self).__init__(**kwargs)
         self.units = units
         self.dropout_rate = dropout_rate
-        self.dense1 = layers.Dense(
-            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-6))
-        self.dense2 = layers.Dense(
-            units, kernel_initializer='he_uniform', kernel_regularizer=keras.regularizers.l2(1e-6))
+        self.dense1 = layers.Dense(units, kernel_initializer='he_uniform')
+        self.dense2 = layers.Dense(units, kernel_initializer='he_uniform')
         self.batch_norm1 = layers.BatchNormalization()
         self.batch_norm2 = layers.BatchNormalization()
         self.dropout = layers.Dropout(dropout_rate)

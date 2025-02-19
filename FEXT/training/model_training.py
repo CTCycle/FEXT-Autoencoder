@@ -16,7 +16,6 @@ from FEXT.commons.utils.validation.reports import log_training_report
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
 from FEXT.commons.logger import logger
 
-
 # [RUN MAIN]
 ###############################################################################
 if __name__ == '__main__':

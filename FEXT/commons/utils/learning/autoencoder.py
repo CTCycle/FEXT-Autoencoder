@@ -66,7 +66,7 @@ class FeXTAutoEncoder:
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)        
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
-        loss = losses.MeanSquaredError()        
+        loss = losses.MeanAbsoluteError()        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
                 
