@@ -11,23 +11,22 @@ class ResidualConvolutivePooling(layers.Layer):
     def __init__(self, units, num_layers, **kwargs):
         super(ResidualConvolutivePooling, self).__init__(**kwargs)
         self.units = units
-        self.num_layers = num_layers        
-        self.conv_layer = layers.Conv2D(units, kernel_size=(2,2), padding='same') 
+        self.num_layers = num_layers         
         self.pooling = layers.MaxPooling2D(pool_size=(2,2), padding='same')      
-        self.conv_layers = []             
-        for _ in range(num_layers):  
-            self.conv_layers.append(layers.Conv2D(units, kernel_size=(2,2), padding='same'))            
+        self.conv_layers = [
+            layers.Conv2D(units, kernel_size=(2,2), padding='same') 
+            for x in range(num_layers)]                    
 
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None): 
-        inputs = self.conv_layer(inputs)       
+        inputs = keras.ops.mean(inputs, axis=-1, keepdims=True)
         layer = inputs        
         for conv in self.conv_layers:                       
             layer = conv(layer)
             layer = activations.relu(layer)
+            layer = layers.Add()([layer, inputs])
 
-        layer = layers.Add()([layer, inputs])
         output = self.pooling(layer) 
         
         return output
@@ -55,23 +54,22 @@ class ResidualTransconvolutiveUpsampling(layers.Layer):
     def __init__(self, units, num_layers, **kwargs):
         super(ResidualTransconvolutiveUpsampling, self).__init__(**kwargs)
         self.units = units
-        self.num_layers = num_layers
-        self.conv_layer = layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same')      
+        self.num_layers = num_layers              
         self.upsampling = layers.UpSampling2D(size=(2,2)) 
-        self.conv_layers = []           
-        for _ in range(num_layers):  
-            self.conv_layers.append(layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same'))
+        self.conv_layers = [
+            layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same') 
+            for x in range(num_layers)]
            
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None):               
-        inputs = self.conv_layer(inputs)       
+        inputs = keras.ops.mean(inputs, axis=-1, keepdims=True)   
         layer = inputs         
         for conv in self.conv_layers:           
             layer = conv(layer)   
-            layer = activations.relu(layer) 
-                    
-        layer = layers.Add()([layer, inputs])
+            layer = activations.relu(layer)                     
+            layer = layers.Add()([layer, inputs])
+            
         output = self.upsampling(layer)  
         
         return output
