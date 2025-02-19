@@ -13,26 +13,22 @@ class ResidualConvolutivePooling(layers.Layer):
         self.units = units
         self.num_layers = num_layers   
         
+        self.conv_layer = layers.Conv2D(units, kernel_size=(2,2), padding='same') 
         self.pooling = layers.MaxPooling2D(pool_size=(2,2), padding='same')      
-        self.conv_layers = []
-        self.batch_norm_layers = []        
+        self.conv_layers = []             
         for _ in range(num_layers - 1):  
-            self.conv_layers.append(layers.Conv2D(units, kernel_size=(2,2), padding='same'))
-            self.batch_norm_layers.append(layers.BatchNormalization())
+            self.conv_layers.append(layers.Conv2D(units, kernel_size=(2,2), padding='same'))            
 
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
-    def call(self, inputs, training=None):
-        
-        mean_input = keras.ops.mean(inputs, axis=-1, keepdims=True)         
-        layer = inputs
-        for conv, batch_norm in zip(self.conv_layers, self.batch_norm_layers):
-            layer = batch_norm(layer, training=training)
-            layer = activations.relu(layer)
+    def call(self, inputs, training=None): 
+        inputs = self.conv_layer(inputs)       
+        layer = inputs        
+        for conv in self.conv_layers:                       
             layer = conv(layer)
             layer = activations.relu(layer)
-            layer = layers.Add()([layer, mean_input])   
 
+        layer = layers.Add()([layer, inputs])
         output = self.pooling(layer) 
         
         return output
@@ -60,29 +56,25 @@ class ResidualTransconvolutiveUpsampling(layers.Layer):
     def __init__(self, units, num_layers, **kwargs):
         super(ResidualTransconvolutiveUpsampling, self).__init__(**kwargs)
         self.units = units
-        self.num_layers = num_layers        
-        self.upsampling = layers.UpSampling2D(size=(2,2))
+        self.num_layers = num_layers   
 
-        # Dynamically create additional transposed convolutional layers and batch normalization layers
-        self.conv_layers = []
-        self.batch_norm_layers = []        
+        self.conv_layer = layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same')      
+        self.upsampling = layers.UpSampling2D(size=(2,2))
+ 
+        self.conv_layers = []           
         for _ in range(num_layers - 1):  
             self.conv_layers.append(layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same'))
-            self.batch_norm_layers.append(layers.BatchNormalization())
-
+           
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
-    def call(self, inputs, training=None):       
-        mean_input = keras.ops.mean(inputs, axis=-1, keepdims=True)       
-        # Pass through dynamically created transposed convolutional and batch norm layers
-        layer = inputs
-        for conv, batch_norm in zip(self.conv_layers, self.batch_norm_layers):
-            layer = batch_norm(layer, training=training)
-            layer = activations.relu(layer)
-            layer = conv(layer)
-            layer = activations.relu(layer)
-            layer = layers.Add()([layer, mean_input])   
-
+    def call(self, inputs, training=None):               
+        inputs = self.conv_layer(inputs)       
+        layer = inputs         
+        for conv in self.conv_layers:           
+            layer = conv(layer)   
+            layer = activations.relu(layer) 
+                    
+        layer = layers.Add()([layer, inputs])
         output = self.upsampling(layer)  
         
         return output
