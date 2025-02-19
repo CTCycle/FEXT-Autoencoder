@@ -19,12 +19,13 @@ class DatasetGenerator:
     #--------------------------------------------------------------------------
     def load_image(self, path):        
         image = tf.io.read_file(path)
-        rgb_image = tf.image.decode_image(image, channels=self.num_channels, expand_animations=False)        
+        rgb_image = tf.image.decode_image(
+            image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)
-        rgb_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image       
-        rgb_image = rgb_image/255.0 
+        augmented_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image       
+        rgb_image = augmented_image/255.0 
         
-        return rgb_image, rgb_image         
+        return augmented_image, rgb_image         
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------

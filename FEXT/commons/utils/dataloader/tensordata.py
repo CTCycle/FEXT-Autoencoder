@@ -10,9 +10,10 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class TensorDatasetBuilder:
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, shuffle=True):
         self.generator = DatasetGenerator(configuration) 
-        self.configuration = configuration    
+        self.configuration = configuration
+        self.shuffle = shuffle            
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
@@ -23,7 +24,7 @@ class TensorDatasetBuilder:
         dataset = dataset.map(self.generator.load_image, num_parallel_calls=buffer_size)        
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=buffer_size)
-        dataset = dataset.shuffle(buffer_size=num_samples)
+        dataset = dataset.shuffle(buffer_size=num_samples) if self.shuffle else dataset 
 
         return dataset         
       

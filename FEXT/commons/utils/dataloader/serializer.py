@@ -152,11 +152,9 @@ class ModelSerializer:
         return model       
             
     #-------------------------------------------------------------------------- 
-    def select_and_load_checkpoint(self):
-        
+    def select_and_load_checkpoint(self):        
         # look into checkpoint folder to get pretrained model names      
         model_folders = self.scan_checkpoints_folder()
-
         # quit the script if no pretrained models are found 
         if len(model_folders) == 0:
             logger.error('No pretrained model checkpoints in resources')

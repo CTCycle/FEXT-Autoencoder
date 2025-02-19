@@ -1,10 +1,8 @@
 import keras
-from keras import activations, layers
+from keras import layers
 import torch
 
-from FEXT.commons.constants import CONFIG
-
-   
+from FEXT.commons.constants import CONFIG   
     
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
@@ -33,6 +31,7 @@ class CompressionLayer(layers.Layer):
         layer = self.dense2(layer)        
         layer = keras.activations.relu(layer)
         output = self.batch_norm2(layer, training=training)
+
         return output
 
     # serialize layer for saving  
@@ -64,18 +63,18 @@ class DecompressionLayer(layers.Layer):
         self.batch_norm2 = layers.BatchNormalization()
 
     #-------------------------------------------------------------------------- 
-    def call(self, inputs, training=None):
-        
+    def call(self, inputs, training=None):        
         batch_size, sequence_dim, channels = keras.ops.shape(inputs)        
         original_dim = keras.ops.sqrt(sequence_dim)
-        original_dim = keras.ops.cast(original_dim, torch.int32)        
-        layer = self.dense1(inputs)
-        layer = self.batch_norm1(layer, training=training)
-        layer = keras.activations.relu(layer)        
+        original_dim = keras.ops.cast(original_dim, dtype=torch.int32)        
+        layer = self.dense1(inputs)        
+        layer = keras.activations.relu(layer)  
+        layer = self.batch_norm1(layer, training=training)      
         layer = self.dense2(layer)
-        layer = self.batch_norm2(layer, training=training)      
         layer = keras.activations.relu(layer)
-        output = keras.ops.reshape(layer, (batch_size, original_dim, original_dim, channels))
+        layer = self.batch_norm2(layer, training=training)        
+        output = keras.ops.reshape(
+            layer, (batch_size, original_dim, original_dim, channels))
         
         return output
 

@@ -23,8 +23,7 @@ class FeXTAutoEncoder:
         self.scheduler_config = configuration["training"]["LR_SCHEDULER"]
         self.initial_lr = self.scheduler_config["INITIAL_LR"]
         self.constant_lr_steps = self.scheduler_config["CONSTANT_STEPS"]       
-        self.decay_steps = self.scheduler_config["DECAY_STEPS"]             
-           
+        self.decay_steps = self.scheduler_config["DECAY_STEPS"]           
         self.configuration = configuration       
 
     # build model given the architecture
@@ -37,13 +36,12 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = ResidualConvolutivePooling(128, num_layers=3)(inputs)              
-        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(256, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=256, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=3)(layer)                 
-        layer = layers.SpatialDropout2D(rate=0.2, seed=self.seed)(layer)
+        layer = ResidualConvolutivePooling(64, num_layers=3)(inputs)              
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(units=128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(units=256, num_layers=5)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=5)(layer)        
 
         # [BOTTLENECK SUBMODEL]
         #--------------------------------------------------------------------
@@ -52,20 +50,21 @@ class FeXTAutoEncoder:
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(decoder_input)       
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=3)(layer) 
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=5)(decoder_input)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=5)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(64, num_layers=3)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(64, num_layers=3)(layer) 
 
         output = layers.Dense(3, kernel_initializer='he_uniform')(layer)        
         output = activations.relu(output, max_value=1.0)   
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)        
-        opt = keras.optimizers.Adam(learning_rate=lr_schedule)
+        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)
+        # using fixed initial LR sinc ethe scheduler must be adjusted        
+        opt = keras.optimizers.AdamW(learning_rate=self.initial_lr)
         loss = losses.MeanAbsoluteError()        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
