@@ -34,9 +34,9 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 **Environmental variables** are stored in *resources/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *resources/variables* directory.
 
-**NICEGUI_PORT** – Specifies the port on which the NiceGUI application runs. The default is 8080
+**KERAS_BACKEND** – Sets the backend for Keras, default is PyTorch.
 
-**NICEGUI_HOST** – Defines the host address for the NiceGUI server. (0.0.0.0 allows the application to be accessible from any network interface).
+**TF_CPP_MIN_LOG_LEVEL** – Controls TensorFlow logging verbosity. Setting it to 1 reduces log messages, showing only warnings and errors.
 
 ### 5.1 Navigation menu
 
