@@ -36,12 +36,12 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = ResidualConvolutivePooling(64, num_layers=3)(inputs)              
-        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(units=128, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(units=256, num_layers=5)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=5)(layer)        
+        layer = ResidualConvolutivePooling(64, num_layers=4)(inputs)              
+        layer = ResidualConvolutivePooling(64, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=5)(layer)        
+        layer = ResidualConvolutivePooling(units=128, num_layers=5)(layer)        
+        layer = ResidualConvolutivePooling(units=256, num_layers=6)(layer)        
+        layer = ResidualConvolutivePooling(units=512, num_layers=6)(layer)        
 
         # [BOTTLENECK SUBMODEL]
         #--------------------------------------------------------------------
@@ -50,12 +50,12 @@ class FeXTAutoEncoder:
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=5)(decoder_input)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=5)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=4)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=4)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(64, num_layers=3)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(64, num_layers=3)(layer) 
+        layer = ResidualTransconvolutiveUpsampling(512, num_layers=6)(decoder_input)       
+        layer = ResidualTransconvolutiveUpsampling(256, num_layers=6)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=5)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(128, num_layers=5)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(64, num_layers=4)(layer)       
+        layer = ResidualTransconvolutiveUpsampling(64, num_layers=4)(layer) 
 
         output = layers.Dense(3, kernel_initializer='he_uniform')(layer)        
         output = activations.relu(output, max_value=1.0)   
