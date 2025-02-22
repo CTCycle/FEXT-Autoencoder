@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.6,
+    "dataset" : {"SAMPLE_SIZE" : 0.8,
                  "VALIDATION_SIZE" : 0.1,                 
                  "IMG_AUGMENT" : true,                 
                  "SPLIT_SEED" : 76},
@@ -18,8 +18,8 @@
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
                   "SAVE_CHECKPOINTS": false,
-                  "LR_SCHEDULER" : {"INITIAL_LR" : 0.0005,
-                                    "CONSTANT_STEPS": 50000,
+                  "LR_SCHEDULER" : {"INITIAL_LR" : 0.0001,
+                                    "CONSTANT_STEPS": 40000,
                                     "DECAY_STEPS" : 2000}   
                   }    
 }
