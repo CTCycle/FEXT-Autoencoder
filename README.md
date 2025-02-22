@@ -32,6 +32,12 @@ This project leverages Just-In-Time model compilation through `torch.compile`, e
 ## 5. How to use
 On Windows, run *start_on_windows.bat* to launch the main navigation menu and browse through the various options. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
+**Environmental variables** are stored in *resources/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *resources/variables* directory.
+
+**NICEGUI_PORT** – Specifies the port on which the NiceGUI application runs. The default is 8080
+
+**NICEGUI_HOST** – Defines the host address for the NiceGUI server. (0.0.0.0 allows the application to be accessible from any network interface).
+
 ### 5.1 Navigation menu
 
 **1) Analyze image dataset:** perform data validation using a series of metrics for image statistics. 
