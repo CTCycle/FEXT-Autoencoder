@@ -135,7 +135,6 @@ class ModelSerializer:
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
-
         logger.debug(f'Plotting model architecture graph at {path}')
         plot_path = os.path.join(path, 'model_layout.png')       
         keras.utils.plot_model(model, to_file=plot_path, show_shapes=True, 
@@ -144,10 +143,10 @@ class ModelSerializer:
         
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):
-        custom_objects = {'PenalizedMeanAbsoluteError': PenalizedMeanAbsoluteError} 
+        #custom_objects = {'PenalizedMeanAbsoluteError': PenalizedMeanAbsoluteError} 
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
-        model = keras.models.load_model(model_path, custom_objects=custom_objects) 
+        model = keras.models.load_model(model_path) 
         
         return model       
             

@@ -3,7 +3,6 @@ from keras import layers, activations, metrics, losses, Model
 import torch
 
 from FEXT.commons.utils.learning.scheduler import LRScheduler
-from FEXT.commons.utils.learning.metrics import PenalizedMeanAbsoluteError
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
 from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransconvolutiveUpsampling
 
@@ -45,8 +44,8 @@ class FeXTAutoEncoder:
 
         # [BOTTLENECK SUBMODEL]
         #--------------------------------------------------------------------
-        encoder_output = CompressionLayer(units=512)(layer) 
-        decoder_input = DecompressionLayer(units=512)(encoder_output)
+        encoder_output = CompressionLayer(units=512, dropout_rate=0.2, depth=5)(layer) 
+        decoder_input = DecompressionLayer(units=512, depth=5)(encoder_output)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
@@ -63,7 +62,7 @@ class FeXTAutoEncoder:
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)            
-        opt = keras.optimizers.AdamW(learning_rate=lr_schedule)
+        opt = keras.optimizers.Adam(learning_rate=lr_schedule)
         loss = losses.MeanAbsoluteError()        
         metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        

@@ -13,7 +13,7 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 20,
+    "training" : {"EPOCHS" : 2,
                   "ADDITIONAL_EPOCHS" : 20,                  
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
