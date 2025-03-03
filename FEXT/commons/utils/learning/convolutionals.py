@@ -19,10 +19,10 @@ class ResidualConvolutivePooling(layers.Layer):
 
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
-    def call(self, inputs, training=None): 
-        inputs = keras.ops.mean(inputs, axis=-1, keepdims=True)
-        layer = inputs        
-        for conv in self.conv_layers:                       
+    def call(self, inputs, training=None):          
+        inputs = self.conv_layers[0](inputs)
+        layer = inputs      
+        for conv in self.conv_layers[1:]:                 
             layer = conv(layer)
             layer = activations.relu(layer)
             layer = layers.Add()([layer, inputs])
@@ -54,7 +54,7 @@ class ResidualTransconvolutiveUpsampling(layers.Layer):
     def __init__(self, units, num_layers, **kwargs):
         super(ResidualTransconvolutiveUpsampling, self).__init__(**kwargs)
         self.units = units
-        self.num_layers = num_layers              
+        self.num_layers = num_layers                
         self.upsampling = layers.UpSampling2D(size=(2,2)) 
         self.conv_layers = [
             layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same') 
@@ -63,11 +63,11 @@ class ResidualTransconvolutiveUpsampling(layers.Layer):
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None):               
-        inputs = keras.ops.mean(inputs, axis=-1, keepdims=True)   
-        layer = inputs         
-        for conv in self.conv_layers:           
-            layer = conv(layer)   
-            layer = activations.relu(layer)                     
+        inputs = self.conv_layers[0](inputs)
+        layer = inputs      
+        for conv in self.conv_layers[1:]:                       
+            layer = conv(layer)
+            layer = activations.relu(layer)
             layer = layers.Add()([layer, inputs])
             
         output = self.upsampling(layer)  

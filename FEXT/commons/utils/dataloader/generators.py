@@ -22,10 +22,10 @@ class DatasetGenerator:
         rgb_image = tf.image.decode_image(
             image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)
-        augmented_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image       
-        rgb_image = augmented_image/255.0 
+        rgb_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image       
+        rgb_image = rgb_image/255.0 
         
-        return augmented_image, rgb_image         
+        return rgb_image, rgb_image         
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------

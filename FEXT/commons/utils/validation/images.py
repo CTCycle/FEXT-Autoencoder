@@ -43,7 +43,8 @@ class ImageReconstruction:
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, img in enumerate(images):           
             expanded_img = np.expand_dims(img, axis=0)                 
-            reconstructed_image = self.model.predict(expanded_img, verbose=0, batch_size=1)[0]              
+            reconstructed_image = self.model.predict(
+                expanded_img, verbose=0, batch_size=1)[0]              
             real = np.clip(img, 0, 1)
             pred = np.clip(reconstructed_image, 0, 1)          
             axs[i, 0].imshow(real)
@@ -60,13 +61,12 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, images_path : list):
-        self.images_path = images_path
+    def __init__(self):        
         self.validation_path = os.path.join(RESULTS_PATH, 'images_statistics.csv')
 
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity(self):        
-        images = [cv2.imread(path, cv2.IMREAD_GRAYSCALE) for path in self.images_path]
+    def calculate_pixel_intensity(self, images_path : list):        
+        images = [cv2.imread(path, cv2.IMREAD_GRAYSCALE) for path in images_path]
         pixel_intensities = np.concatenate([image.flatten() for image in tqdm(images)], dtype=np.float16)
         plt.figure(figsize=(14, 12)) 
         plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue', label='Dataset')
@@ -77,10 +77,10 @@ class ImageAnalysis:
         plt.tight_layout()  
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self):        
+    def calculate_image_statistics(self, images_path : list):          
         results = []
         for path in tqdm(
-            self.images_path, desc="Processing Images", total=len(self.images_path), ncols=100):                  
+            images_path, desc="Processing Images", total=len(images_path), ncols=100):                  
             img = cv2.imread(path)
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -118,7 +118,8 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})           
         
         stats_dataframe = pd.DataFrame(results)
-        stats_dataframe.to_csv(self.validation_path, index=False, sep=';', encoding='utf-8')
+        stats_dataframe.to_csv(
+            self.validation_path, index=False, sep=';', encoding='utf-8')
         
         return results
     
