@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # 1. [LOAD DATASET]
     #--------------------------------------------------------------------------  
     serializer = DataSerializer(CONFIG)     
-    images_paths = serializer.get_images_path(IMG_DATA_PATH)  
+    images_paths = serializer.get_images_path(IMG_DATA_PATH, sample_size=0.05)  
     logger.info(f'The image dataset is composed of {len(images_paths)} images')  
     
     # 2. [COMPUTE IMAGE STATISTICS]
@@ -29,10 +29,10 @@ if __name__ == '__main__':
     analyzer = ImageAnalysis()
     logger.info('Calculating image statistics and generating dataset report')
     logger.info('Focusing on mean pixel values, pixel standard deviation, image noise ratio')
-    image_statistics, images = analyzer.calculate_image_statistics(images_paths)    
+    image_statistics = analyzer.calculate_image_statistics(images_paths)    
 
     logger.info('Generating the pixel intensity histogram')
-    analyzer.calculate_pixel_intensity(images)  
+    analyzer.calculate_pixel_intensity(images_paths)  
 
     # 3. [COMPARE TRAIN AND TEST DATASETS]
     #--------------------------------------------------------------------------

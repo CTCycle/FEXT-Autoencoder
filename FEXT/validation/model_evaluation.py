@@ -17,7 +17,7 @@ from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.images import ImageReconstruction
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
 from FEXT.commons.utils.validation.reports import evaluation_report
-from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, VALIDATION_PATH
+from FEXT.commons.constants import IMG_DATA_PATH
 from FEXT.commons.logger import logger
 
 # [RUN MAIN]
