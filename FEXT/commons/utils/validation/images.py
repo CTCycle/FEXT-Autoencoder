@@ -139,8 +139,7 @@ class ImageAnalysis:
         
         stats_dataframe = pd.DataFrame(results)
         csv_path = os.path.join(self.statistics_path, 'image_statistics.csv')
-        stats_dataframe.to_csv(
-            self.statistics_path, index=False, sep=';', encoding='utf-8')
+        stats_dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')
         
         return results
     
