@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-from FEXT.commons.constants import CONFIG, RESULTS_PATH
+from FEXT.commons.constants import CONFIG, VALIDATION_PATH
 from FEXT.commons.logger import logger
 
 
@@ -17,10 +17,15 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, model : keras.Model):
+    def __init__(self, model : keras.Model, checkpoint_path : str):
         self.DPI = 400
         self.file_type = 'jpeg'        
-        self.model = model    
+        self.model = model 
+        self.checkpoint_name = os.path.basename(checkpoint_path)
+        self.summary_path = os.path.join(VALIDATION_PATH, 'checkpoints')
+        self.validation_path = os.path.join(self.summary_path, self.checkpoint_name)        
+        os.makedirs(self.summary_path, exist_ok=True) 
+        os.makedirs(self.validation_path, exist_ok=True)  
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
@@ -36,9 +41,13 @@ class ImageReconstruction:
         ax.set_xlabel("Component 1")
         ax.set_ylabel("Component 2")
         ax.set_zlabel("Component 3")
+
+        plt.savefig(
+            os.path.join(self.plot_path, 'PCA.jpeg'), 
+            dpi=400)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, images : list):        
+    def visualize_reconstructed_images(self, images : list, data_name='train'):        
         num_pics = len(images)
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, img in enumerate(images):           
@@ -55,26 +64,37 @@ class ImageReconstruction:
             axs[i, 1].axis('off')
         
         plt.tight_layout()
+        plt.savefig(
+            os.path.join(self.validation_path, f'{data_name}_reconstructed_images.jpeg'), 
+            dpi=400)
                  
 
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self):        
-        self.validation_path = os.path.join(RESULTS_PATH, 'images_statistics.csv')
+    def __init__(self):                
+        self.statistics_path = os.path.join(VALIDATION_PATH, 'dataset')
+        self.plot_path = os.path.join(self.statistics_path, 'figures')
+        os.makedirs(self.statistics_path, exist_ok=True)
+        os.makedirs(self.plot_path, exist_ok=True)
+        self.DPI = 400
 
     #--------------------------------------------------------------------------
     def calculate_pixel_intensity(self, images_path : list):        
-        images = [cv2.imread(path, cv2.IMREAD_GRAYSCALE) for path in images_path]
-        pixel_intensities = np.concatenate([image.flatten() for image in tqdm(images)], dtype=np.float16)
+        images = [cv2.imread(path, cv2.IMREAD_GRAYSCALE) for path in tqdm(images_path)]
+        pixel_intensities = np.concatenate(
+            [image.flatten() for image in tqdm(images)], dtype=np.float16)
         plt.figure(figsize=(14, 12)) 
-        plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue', label='Dataset')
+        plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue')
         plt.title('Pixel Intensity Histogram', fontsize=16)
         plt.xlabel('Pixel Intensity', fontsize=12)
         plt.ylabel('Frequency', fontsize=12)
         plt.legend()
-        plt.tight_layout()  
+        plt.tight_layout() 
+        plt.savefig(
+            os.path.join(self.plot_path, 'pixel_intensity_histogram.jpeg'), 
+            dpi=400)
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list):          
@@ -118,8 +138,9 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})           
         
         stats_dataframe = pd.DataFrame(results)
+        csv_path = os.path.join(self.statistics_path, 'image_statistics.csv')
         stats_dataframe.to_csv(
-            self.validation_path, index=False, sep=';', encoding='utf-8')
+            self.statistics_path, index=False, sep=';', encoding='utf-8')
         
         return results
     

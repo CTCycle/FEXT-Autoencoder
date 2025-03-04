@@ -47,7 +47,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 - **train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
 - **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. 
 
-**3) Encode images:** select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as npy files. 
+**3) Encode images:** select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as .npy files. 
 
 **4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to run the developer model project installation, *update project* to pull the last updates from github, and *remove logs* to remove all logs saved in *resources/logs*. 
 
@@ -101,13 +101,20 @@ For customization, you can modify the main configuration parameters using *setti
 | MIXED_PRECISION    | Whether to use mixed precision training                  |
 | NUM_PROCESSORS     | Number of processors to use for data loading             |
 
+#### LR Scheduler Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| INITIAL_LR         | Initial value of learni rate                             |
+| CONSTANT_STEPS     | Number of steps (batch) to keep the learning rate stable |
+| DECAY_STEPS        | Number of steps (batch) to decay learning rate           |
+
 #### Training Configuration
 
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
 | EPOCHS             | Number of epochs to train the model                      |
 | ADDITIONAL EPOCHS  | Number of epochs to train the model from checkpoint      |
-| LEARNING_RATE      | Learning rate for the optimizer                          |
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
 | SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |

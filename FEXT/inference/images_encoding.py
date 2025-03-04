@@ -1,6 +1,8 @@
-# [SET ML BACKEND]
-import os 
-os.environ["KERAS_BACKEND"] = "torch"
+import os
+
+# [SETTING ENVIRONMENT VARIABLES]
+from FEXT.commons.variables import EnvironmentVariables
+EV = EnvironmentVariables()
 
 # [SETTING WARNINGS]
 import warnings
