@@ -3,7 +3,7 @@ import shutil
 import pandas as pd
 
 from FEXT.commons.utils.dataloader.serializer import ModelSerializer
-from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH, RESULTS_PATH
+from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH, VALIDATION_PATH
 from FEXT.commons.logger import logger
 
 
@@ -15,6 +15,8 @@ class ModelEvaluationSummary:
     def __init__(self, remove_invalid=False):
         self.remove_invalid = remove_invalid
         self.serializer = ModelSerializer()
+        self.summary_path = os.path.join(VALIDATION_PATH, 'checkpoints')
+        os.makedirs(self.summary_path, exist_ok=True)
 
     #---------------------------------------------------------------------------
     def scan_checkpoint_folder(self):
@@ -64,7 +66,7 @@ class ModelEvaluationSummary:
 
         # Define the CSV path
         dataframe = pd.DataFrame(model_parameters)
-        csv_path = os.path.join(RESULTS_PATH, 'summary_checkpoints.csv')        
+        csv_path = os.path.join(self.summary_path, 'checkpoints_summary.csv')     
         dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')        
             
         return dataframe
