@@ -11,7 +11,7 @@ from FEXT.commons.utils.validation.reports import DataAnalysisPDF
 from FEXT.commons.utils.validation.images import ImageAnalysis
 from FEXT.commons.utils.dataloader.serializer import DataSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
-from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, VALIDATION_PATH
+from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
 from FEXT.commons.logger import logger
 
 # [RUN MAIN]
@@ -29,10 +29,10 @@ if __name__ == '__main__':
     analyzer = ImageAnalysis()
     logger.info('Calculating image statistics and generating dataset report')
     logger.info('Focusing on mean pixel values, pixel standard deviation, image noise ratio')
-    image_statistics = analyzer.calculate_image_statistics(images_paths)    
+    image_statistics, images = analyzer.calculate_image_statistics(images_paths)    
 
-    logger.info('Generating pixel intensity histogram')
-    analyzer.calculate_pixel_intensity(images_paths)  
+    logger.info('Generating the pixel intensity histogram')
+    analyzer.calculate_pixel_intensity(images)  
 
     # 3. [COMPARE TRAIN AND TEST DATASETS]
     #--------------------------------------------------------------------------
