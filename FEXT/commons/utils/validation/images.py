@@ -67,6 +67,7 @@ class ImageReconstruction:
         plt.savefig(
             os.path.join(self.validation_path, f'{data_name}_reconstructed_images.jpeg'), 
             dpi=400)
+        plt.close()
                  
 
 # [VALIDATION OF PRETRAINED MODELS]
@@ -82,10 +83,11 @@ class ImageAnalysis:
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list):          
-        results, images = [], []      
+        results= []     
         for path in tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100):                  
             img = cv2.imread(path)
+            
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
                 continue
@@ -125,21 +127,33 @@ class ImageAnalysis:
         csv_path = os.path.join(self.statistics_path, 'image_statistics.csv')
         stats_dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')
         
-        return results, images
+        return results
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity(self, images : list):            
-        pixel_intensities = np.concatenate([image.flatten() for image in tqdm(
-            images, desc="Creating images array", total=len(images), ncols=100)], dtype=np.float16)
-        plt.figure(figsize=(14, 12)) 
-        plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue')
-        plt.title('Pixel Intensity Histogram', fontsize=16)
+    def calculate_pixel_intensity(self, images_path : list):            
+        image_histograms = np.zeros(256, dtype=np.int64)        
+        
+        for path in tqdm(images_path, desc="Processing image histograms", total=len(images_path), ncols=100):            
+            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            if img is None:
+                logger.warning(f"Warning: Unable to load image at {path}.")
+                continue
+
+            # Calculate histogram for grayscale values [0, 255]
+            hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
+            image_histograms += hist.astype(np.int64)
+
+        # Plot the combined histogram
+        plt.figure(figsize=(14, 12))
+        plt.bar(np.arange(256),image_histograms, alpha=0.7)
+        plt.title('Combined Pixel Intensity Histogram', fontsize=16)
         plt.xlabel('Pixel Intensity', fontsize=12)
         plt.ylabel('Frequency', fontsize=12)
-        plt.legend()
-        plt.tight_layout() 
+        plt.tight_layout()
         plt.savefig(
             os.path.join(self.plot_path, 'pixel_intensity_histogram.jpeg'), 
-            dpi=400)
-    
+            dpi=self.DPI)
+        plt.close()        
+
+        return image_histograms
 
