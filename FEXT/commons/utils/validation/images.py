@@ -78,29 +78,13 @@ class ImageAnalysis:
         self.plot_path = os.path.join(self.statistics_path, 'figures')
         os.makedirs(self.statistics_path, exist_ok=True)
         os.makedirs(self.plot_path, exist_ok=True)
-        self.DPI = 400
-
-    #--------------------------------------------------------------------------
-    def calculate_pixel_intensity(self, images_path : list):        
-        images = [cv2.imread(path, cv2.IMREAD_GRAYSCALE) for path in tqdm(images_path)]
-        pixel_intensities = np.concatenate(
-            [image.flatten() for image in tqdm(images)], dtype=np.float16)
-        plt.figure(figsize=(14, 12)) 
-        plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue')
-        plt.title('Pixel Intensity Histogram', fontsize=16)
-        plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency', fontsize=12)
-        plt.legend()
-        plt.tight_layout() 
-        plt.savefig(
-            os.path.join(self.plot_path, 'pixel_intensity_histogram.jpeg'), 
-            dpi=400)
+        self.DPI = 400   
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list):          
-        results = []
+        results, images = [], []      
         for path in tqdm(
-            images_path, desc="Processing Images", total=len(images_path), ncols=100):                  
+            images_path, desc="Processing images", total=len(images_path), ncols=100):                  
             img = cv2.imread(path)
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -141,6 +125,21 @@ class ImageAnalysis:
         csv_path = os.path.join(self.statistics_path, 'image_statistics.csv')
         stats_dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')
         
-        return results
+        return results, images
+    
+    #--------------------------------------------------------------------------
+    def calculate_pixel_intensity(self, images : list):            
+        pixel_intensities = np.concatenate([image.flatten() for image in tqdm(
+            images, desc="Creating images array", total=len(images), ncols=100)], dtype=np.float16)
+        plt.figure(figsize=(14, 12)) 
+        plt.hist(pixel_intensities, bins='auto', alpha=0.7, color='blue')
+        plt.title('Pixel Intensity Histogram', fontsize=16)
+        plt.xlabel('Pixel Intensity', fontsize=12)
+        plt.ylabel('Frequency', fontsize=12)
+        plt.legend()
+        plt.tight_layout() 
+        plt.savefig(
+            os.path.join(self.plot_path, 'pixel_intensity_histogram.jpeg'), 
+            dpi=400)
     
 
