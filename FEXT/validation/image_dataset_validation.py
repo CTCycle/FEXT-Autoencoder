@@ -14,6 +14,7 @@ from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
 from FEXT.commons.logger import logger
 
+
 # [RUN MAIN]
 ###############################################################################
 if __name__ == '__main__':
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     
     # 2. [COMPUTE IMAGE STATISTICS]
     #--------------------------------------------------------------------------
-    analyzer = ImageAnalysis()
+    analyzer = ImageAnalysis(CONFIG)
     logger.info('Calculating image statistics and generating dataset report')
     logger.info('Focusing on mean pixel values, pixel standard deviation, image noise ratio')
     image_statistics = analyzer.calculate_image_statistics(images_paths)    

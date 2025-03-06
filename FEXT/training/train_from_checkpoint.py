@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.tensordata import TensorDatasetBuilder
+from FEXT.commons.utils.dataloader.tensordata import TrainingDatasetBuilder
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
@@ -33,7 +33,6 @@ if __name__ == '__main__':
     trainer.set_device()  
 
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
-    # initialize training device, allows changing device prior to initializing the generators
     #-------------------------------------------------------------------------- 
     dataserializer = DataSerializer(configuration)     
     images_path = dataserializer.get_images_path(IMG_DATA_PATH)
@@ -46,8 +45,9 @@ if __name__ == '__main__':
     # initialize the TensorDataSet class with the generator instances
     # create the tf.datasets using the previously initialized generators   
     logger.info('Building data loaders') 
-    builder = TensorDatasetBuilder(configuration)   
-    train_dataset, validation_dataset = builder.build_model_dataloader(train_data, validation_data)           
+    builder = TrainingDatasetBuilder(configuration)   
+    train_dataset, validation_dataset = builder.build_model_dataloader(
+        train_data, validation_data)           
     
     # 3. [TRAINING MODEL]
     # Setting callbacks and training routine for the features extraction model 

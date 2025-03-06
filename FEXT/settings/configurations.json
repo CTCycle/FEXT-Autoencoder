@@ -20,5 +20,8 @@
                   "SAVE_CHECKPOINTS": false,
                   "LR_SCHEDULER" : {"INITIAL_LR" : 0.0001,
                                     "CONSTANT_STEPS": 40000,
-                                    "DECAY_STEPS" : 2000}}    
+                                    "DECAY_STEPS" : 2000}},
+    "validation" : {"BATCH_SIZE" : 20,
+                    "NUM_IMAGES" : 6,
+                    "DPI" : 400}    
 }

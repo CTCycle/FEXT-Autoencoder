@@ -1,14 +1,15 @@
-__pycache__
 FEXT/resources/dataset/*
 FEXT/resources/validation/*
 FEXT/resources/inference/images/*
 FEXT/resources/checkpoints/*
 
+*.log
+*.npy
+
 setup/environment/*
 setup/miniconda/*
 setup/variables/.env
 
+__pycache__
 *.egg-info
-*.log
-*.npy
 !.gitkeep

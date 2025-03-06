@@ -8,24 +8,25 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-from FEXT.commons.constants import CONFIG, VALIDATION_PATH
+from FEXT.commons.constants import VALIDATION_PATH
 from FEXT.commons.logger import logger
 
 
-
-# [VALIDATION OF PRETRAINED MODELS]
+# [IMAGE RECONSTRUCTION]
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, model : keras.Model, checkpoint_path : str):
-        self.DPI = 400
-        self.file_type = 'jpeg'        
-        self.model = model 
+    def __init__(self, configuration : dict, model : keras.Model, checkpoint_path : str):       
         self.checkpoint_name = os.path.basename(checkpoint_path)
         self.summary_path = os.path.join(VALIDATION_PATH, 'checkpoints')
         self.validation_path = os.path.join(self.summary_path, self.checkpoint_name)        
         os.makedirs(self.summary_path, exist_ok=True) 
-        os.makedirs(self.validation_path, exist_ok=True)  
+        os.makedirs(self.validation_path, exist_ok=True)
+        self.model = model  
+        self.configuration = configuration
+        self.num_images = configuration['validation']['NUM_IMAGES']
+        self.DPI = configuration['validation']['DPI']  
+        self.file_type = 'jpeg'    
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
@@ -44,10 +45,10 @@ class ImageReconstruction:
 
         plt.savefig(
             os.path.join(self.plot_path, 'PCA.jpeg'), 
-            dpi=400)
+            dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, images : list, data_name='train'):        
+    def visualize_reconstructed_images(self, images : list, data_name='training'):        
         num_pics = len(images)
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, img in enumerate(images):           
@@ -66,7 +67,7 @@ class ImageReconstruction:
         plt.tight_layout()
         plt.savefig(
             os.path.join(self.validation_path, f'{data_name}_reconstructed_images.jpeg'), 
-            dpi=400)
+            dpi=self.DPI)
         plt.close()
                  
 
@@ -74,20 +75,20 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self):                
+    def __init__(self, configuration):        
         self.statistics_path = os.path.join(VALIDATION_PATH, 'dataset')
         self.plot_path = os.path.join(self.statistics_path, 'figures')
         os.makedirs(self.statistics_path, exist_ok=True)
         os.makedirs(self.plot_path, exist_ok=True)
-        self.DPI = 400   
+        self.configuration = configuration
+        self.DPI = configuration['validation']['DPI']        
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list):          
         results= []     
         for path in tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100):                  
-            img = cv2.imread(path)
-            
+            img = cv2.imread(path)            
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
                 continue
@@ -103,14 +104,12 @@ class ImageAnalysis:
             min_val = np.min(gray)
             max_val = np.max(gray)
             pixel_range = max_val - min_val
-
             # Estimate noise by comparing the image to a blurred version
             blurred = cv2.GaussianBlur(gray, (3, 3), 0)
             noise = gray.astype(np.float32) - blurred.astype(np.float32)
             noise_std = np.std(noise)
             # Define the noise ratio (avoiding division by zero with a small epsilon)
-            noise_ratio = noise_std / (std_val + 1e-9)
-          
+            noise_ratio = noise_std / (std_val + 1e-9)          
             results.append({'name': os.path.basename(path),
                             'height': height,
                             'width': width,
@@ -124,8 +123,10 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})           
         
         stats_dataframe = pd.DataFrame(results)
-        csv_path = os.path.join(self.statistics_path, 'image_statistics.csv')
-        stats_dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')
+        csv_path = os.path.join(
+            self.statistics_path, 'image_statistics.csv')
+        stats_dataframe.to_csv(
+            csv_path, index=False, sep=';', encoding='utf-8')
         
         return results
     

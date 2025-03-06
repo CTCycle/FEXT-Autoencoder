@@ -8,18 +8,19 @@ from FEXT.commons.logger import logger
 
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
-class TensorDatasetBuilder:
+class TrainingDatasetBuilder:
 
-    def __init__(self, configuration, shuffle=True):
+    def __init__(self, configuration, shuffle=True, evaluate=False):
         self.generator = DatasetGenerator(configuration) 
         self.configuration = configuration
-        self.shuffle = shuffle            
+        self.shuffle = shuffle  
+        self.mode = 'training' if evaluate else 'validation'          
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
     def compose_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):
         num_samples = len(images) 
-        batch_size = self.configuration["training"]["BATCH_SIZE"] if batch_size is None else batch_size
+        batch_size = self.configuration[self.mode]["BATCH_SIZE"] if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)                
         dataset = dataset.map(self.generator.load_image, num_parallel_calls=buffer_size)        
         dataset = dataset.batch(batch_size)
@@ -34,6 +35,7 @@ class TensorDatasetBuilder:
         validation_dataset = self.compose_tensor_dataset(validation_data, batch_size)       
 
         return train_dataset, validation_dataset
+    
 
 
 

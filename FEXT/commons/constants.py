@@ -5,7 +5,7 @@ from os.path import join, abspath
 # [PATHS]
 ###############################################################################
 ROOT_DIR = abspath(join(__file__, "../../.."))
-PROJECT_DIR = abspath(join(__file__, "../.."))
+PROJECT_DIR = join(ROOT_DIR, 'FEXT')
 RSC_PATH = join(PROJECT_DIR, 'resources')
 IMG_DATA_PATH = join(RSC_PATH, 'dataset', 'images')
 VALIDATION_PATH = join(RSC_PATH, 'validation')
