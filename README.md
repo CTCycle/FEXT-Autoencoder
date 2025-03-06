@@ -46,7 +46,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 - **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. The average mean squared error and mean average error are calculated for both the training and validation datasets. Random images are sampled from both datasets and reconstructed using a checkpoint encoder, while being visually compared to their original counterpart.   
 
-**3) Encode images:** select a model checkpoint and use it to extract abstract representation of image features in the form of lower-dimension embeddings, which will be saved as .npy files. 
+**3) Encode images:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*. 
 
 **4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to reinstall the project within your environment, *update project* to pull the last updates from github, and *remove logs* to remove all logs saved in *resources/logs*. 
 
@@ -55,16 +55,15 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 ### 5.2 Resources
 This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
 
-- **checkpoints:**  pretrained model checkpoints are stored here, and can be used either for resuming training or performing inference with an already trained model.
+- **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
 
-- **dataset:** This folder contains images used to train the autoencoder model. Ensure your training data is placed here, and that the images format is of valid type (preferably either .jpg or .png).
+- **dataset:** contains images used to train the autoencoder model. Ensure your training data is placed in *dataste/images* and that all images are saved in the correct format (preferably either .jpg or .png).
 
-- **extraction:**
-Contains the subfolder *images* where you place images intended as an input for inference using the pretrained encoder. The resulting lower-dimension projections of the images are saved here as .npy files.
+- **inference:** contains images intended as input for inference using a pretrained checkpoint. The resulting lower-dimension projections of these images are saved here as .npy files.
 
 - **logs:** log files are saved here
 
-- **validation:** Used to save the results of data validation processes. This helps in keeping track of validation metrics and logs.
+- **validation:** here are save the results of data validation processes and the results of the pretrained model evaluation.
 
 ## 6. Configurations
 For customization, you can modify the main configuration parameters using *settings/configurations.json*. 
@@ -117,13 +116,25 @@ For customization, you can modify the main configuration parameters using *setti
 | BATCH_SIZE         | Number of samples per batch                              |
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
 | SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
- 
 
+#### Validation Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| BATCH_SIZE         | Number of samples per batch                              |
+| NUM_IMAGES         | Max number of images to compare during evaluation        |
+
+ 
 **Environmental variables** are stored in *setup/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *setup/variables* directory.
 
 **KERAS_BACKEND** – Sets the backend for Keras, default is PyTorch.
 
 **TF_CPP_MIN_LOG_LEVEL** – Controls TensorFlow logging verbosity. Setting it to 1 reduces log messages, showing only warnings and errors.
+
+| Variable              | Description                                              |
+|-----------------------|----------------------------------------------------------|
+| KERAS_BACKEND         | Sets the backend for Keras, default is PyTorch           |
+| TF_CPP_MIN_LOG_LEVEL  | TensorFlow logging verbosity                             |
 
 
 ## 7. License
