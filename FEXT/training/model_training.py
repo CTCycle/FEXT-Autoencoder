@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.tensordata import TensorDatasetBuilder
+from FEXT.commons.utils.dataloader.tensordata import TrainingDatasetBuilder
 from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
@@ -29,23 +29,22 @@ if __name__ == '__main__':
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = TrainValidationSplit(images_paths, CONFIG)     
-    train_data, validation_data = splitter.split_train_and_validation()   
-
-    # create subfolder for preprocessing data    
-    modelserializer = ModelSerializer()
-    checkpoint_path = modelserializer.create_checkpoint_folder()
+    train_data, validation_data = splitter.split_train_and_validation()     
     
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
-    # initialize training device, allows changing device prior to initializing the generators
-    #--------------------------------------------------------------------------
-    logger.info('Setting device for training operations') 
+    #-------------------------------------------------------------------------- 
+    modelserializer = ModelSerializer()
+    checkpoint_path = modelserializer.create_checkpoint_folder()
+
+    logger.info('Setting device for training operations based on user configurations') 
     trainer = ModelTraining(CONFIG)
     trainer.set_device()   
 
     # create the tf.datasets using the previously initialized generators 
-    logger.info('Building model data loaders using prefetching and parallel processing') 
-    builder = TensorDatasetBuilder(CONFIG)   
-    train_dataset, validation_dataset = builder.build_model_dataloader(train_data, validation_data)           
+    logger.info('Building model data loaders with prefetching and parallel processing') 
+    builder = TrainingDatasetBuilder(CONFIG)   
+    train_dataset, validation_dataset = builder.build_model_dataloader(
+        train_data, validation_data)           
     
     # 3. [TRAINING MODEL]
     # Setting callbacks and training routine for the features extraction model 
@@ -55,7 +54,7 @@ if __name__ == '__main__':
     log_training_report(train_data, validation_data, CONFIG)
 
     # build the autoencoder model 
-    logger.info('Building FeXT AutoEncoder model based on given configurations')      
+    logger.info('Building FeXT AutoEncoder model based on user configurations')      
     autoencoder = FeXTAutoEncoder(CONFIG)
     model = autoencoder.get_model(model_summary=True)
     
@@ -63,6 +62,7 @@ if __name__ == '__main__':
     modelserializer.save_model_plot(model, checkpoint_path)              
 
     # perform training and save model at the end
+    logger.info('Starting FeXT AutoEncoder training') 
     trainer.train_model(model, train_dataset, validation_dataset, checkpoint_path)
 
 

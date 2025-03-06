@@ -19,21 +19,25 @@ from FEXT.commons.logger import logger
 ###############################################################################
 if __name__ == '__main__':
 
-    # 1. [EXTRACT FEATURES FROM IMAGES]
+    # 1. [GET IMAGES]
     #--------------------------------------------------------------------------   
     # select a fraction of data for training
     dataserializer = DataSerializer(CONFIG)
     images_paths = dataserializer.get_images_path(ENCODED_INPUT_PATH)
 
-    # selected and load the pretrained model, then print the summary   l
+    # 2. [LOAD PRETRAINED MODEL]
+    #--------------------------------------------------------------------------
+    # selected and load the pretrained model, then print the summary   
     modelserializer = ModelSerializer()    
     model, configuration, history, checkpoint_path = modelserializer.select_and_load_checkpoint()
     model.summary(expand_nested=True)   
 
+    # 3. [ENCODE IMAGES]
+    #--------------------------------------------------------------------------
     # extract features from images using the encoder output 
     logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
-    logger.info(f'{len(images_paths)} images have been found in resources/encoding/images')    
-    encoder = ImageEncoding(model, configuration)    
+    logger.info(f'{len(images_paths)} images have been found')    
+    encoder = ImageEncoding(model, configuration, checkpoint_path)    
     encoder.encode_images_features(images_paths)
-    logger.info(f'Extracted images features have been saved as .npy in resources/encoding')
+    logger.info('Encoded images have been saved as .npy')
 
