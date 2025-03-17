@@ -53,7 +53,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 **5) Exit:** close the program immediately 
 
 ### 5.2 Resources
-This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here are the key subfolders:
+This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here you can find the following folders:
 
 - **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
 
@@ -99,14 +99,6 @@ For customization, you can modify the main configuration parameters using *setti
 | MIXED_PRECISION    | Whether to use mixed precision training                  |
 | NUM_PROCESSORS     | Number of processors to use for data loading             |
 
-#### LR Scheduler Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| INITIAL_LR         | Initial value of learni rate                             |
-| CONSTANT_STEPS     | Number of steps (batch) to keep the learning rate stable |
-| DECAY_STEPS        | Number of steps (batch) to decay learning rate           |
-
 #### Training Configuration
 
 | Parameter          | Description                                              |
@@ -117,19 +109,24 @@ For customization, you can modify the main configuration parameters using *setti
 | USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
 | SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
 
+#### LR Scheduler Configuration
+
+| Parameter          | Description                                              |
+|--------------------|----------------------------------------------------------|
+| INITIAL_LR         | Initial value of learni rate                             |
+| CONSTANT_STEPS     | Number of steps (batch) to keep the learning rate stable |
+| DECAY_STEPS        | Number of steps (batch) to decay learning rate           |
+
 #### Validation Configuration
 
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
 | BATCH_SIZE         | Number of samples per batch                              |
 | NUM_IMAGES         | Max number of images to compare during evaluation        |
+| DPI                | Resolution of figures from validation                    |
 
  
 **Environmental variables** are stored in *setup/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *setup/variables* directory.
-
-**KERAS_BACKEND** – Sets the backend for Keras, default is PyTorch.
-
-**TF_CPP_MIN_LOG_LEVEL** – Controls TensorFlow logging verbosity. Setting it to 1 reduces log messages, showing only warnings and errors.
 
 | Variable              | Description                                              |
 |-----------------------|----------------------------------------------------------|
