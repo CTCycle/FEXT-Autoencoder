@@ -36,23 +36,24 @@ class ResidualConvolutivePooling(layers.Layer):
     def get_config(self):
         config = super(ResidualConvolutivePooling, self).get_config()
         config.update({'units': self.units,
-                      'num_layers': self.num_layers})
+                       'num_layers': self.num_layers})
         return config
 
     # deserialization method  
     #--------------------------------------------------------------------------    
-    @classmethod
+    @classmethod    
     def from_config(cls, config):
-        return cls(**config)    
+        return cls(**config)
+  
     
     
 # [TRANSPOSE CONVOLUTIONAL BLOCKS]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='ResidualTransconvolutiveUpsampling')
-class ResidualTransconvolutiveUpsampling(layers.Layer):
+@keras.utils.register_keras_serializable(package='CustomLayers', name='ResidualTransConvolutiveUpsampling')
+class ResidualTransConvolutiveUpsampling(layers.Layer):
     
     def __init__(self, units, num_layers, **kwargs):
-        super(ResidualTransconvolutiveUpsampling, self).__init__(**kwargs)
+        super(ResidualTransConvolutiveUpsampling, self).__init__(**kwargs)
         self.units = units
         self.num_layers = num_layers                
         self.upsampling = layers.UpSampling2D(size=(2,2)) 
@@ -77,7 +78,7 @@ class ResidualTransconvolutiveUpsampling(layers.Layer):
     # serialize layer for saving  
     #--------------------------------------------------------------------------    
     def get_config(self):
-        config = super(ResidualTransconvolutiveUpsampling, self).get_config()
+        config = super(ResidualTransConvolutiveUpsampling, self).get_config()
         config.update({'units': self.units,
                        'num_layers': self.num_layers})
         return config

@@ -12,7 +12,7 @@ class DatasetGenerator:
     def __init__(self, configuration):        
         self.img_shape = (128, 128)   
         self.num_channels = 3    
-        self.augmentation = configuration["dataset"]["IMG_AUGMENT"]
+        self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
         self.configuration = configuration         
     
     # load and preprocess a single image

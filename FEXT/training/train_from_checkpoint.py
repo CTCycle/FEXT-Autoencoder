@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------
-    log_training_report(train_data, validation_data, configuration, from_checkpoint=True) 
+    log_training_report(train_data, validation_data, configuration) 
                         
     # resume training from pretrained model    
     trainer.train_model(model, train_dataset, validation_dataset, checkpoint_path,
