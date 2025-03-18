@@ -4,7 +4,7 @@ import torch
 
 from FEXT.commons.utils.learning.scheduler import LRScheduler
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
-from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransconvolutiveUpsampling
+from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
 
        
 # [AUTOENCODER MODEL]
@@ -49,12 +49,12 @@ class FeXTAutoEncoder:
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
-        layer = ResidualTransconvolutiveUpsampling(512, num_layers=6)(decoder_input)       
-        layer = ResidualTransconvolutiveUpsampling(256, num_layers=6)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=5)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(128, num_layers=5)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(64, num_layers=4)(layer)       
-        layer = ResidualTransconvolutiveUpsampling(64, num_layers=4)(layer) 
+        layer = ResidualTransConvolutiveUpsampling(512, num_layers=6)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(256, num_layers=6)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=5)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=5)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=4)(layer) 
 
         output = layers.Dense(3, kernel_initializer='he_uniform')(layer)        
         output = activations.relu(output, max_value=1.0)   

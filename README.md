@@ -40,7 +40,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation.
 
-- **train from scratch:** start training an instance of the autoencoder model from scratch.
+- **train from scratch:** start training an instance of the autoencoder model from scratch. 
 
 - **train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
 
@@ -80,7 +80,7 @@ For customization, you can modify the main configuration parameters using *setti
 |--------------------|----------------------------------------------------------|
 | SAMPLE_SIZE        | Number of samples to use from the dataset                |
 | VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
-| IMG_AUGMENT        | Whether to apply data augmentation to images             |
+| IMG_AUGMENTATION   | Whether to apply data augmentation to images             |
 | SPLIT_SEED         | Seed for random splitting of the dataset                 |
 
 #### Model Configuration

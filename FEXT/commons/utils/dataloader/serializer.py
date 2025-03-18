@@ -6,8 +6,7 @@ import numpy as np
 import keras
 from datetime import datetime
 
-from FEXT.commons.utils.learning.metrics import PenalizedMeanAbsoluteError
-from FEXT.commons.constants import CONFIG, IMG_DATA_PATH, CHECKPOINT_PATH
+from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -42,8 +41,8 @@ class DataSerializer:
         self.num_channels = self.img_shape[-1]                
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels == 3 else cv2.COLOR_BGR2GRAY 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
-        self.seed = configuration['SEED']        
 
+        self.seed = configuration['SEED']   
         self.parameters = configuration["dataset"]
         self.configuration = configuration
 
@@ -65,7 +64,8 @@ class DataSerializer:
     def load_image(self, path, normalization=True):       
         image = cv2.imread(path)          
         image = cv2.cvtColor(image, self.color_encoding)
-        image = np.asarray(cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)            
+        image = np.asarray(
+            cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)            
         if normalization:
             image = image/255.0       
 
@@ -142,8 +142,7 @@ class ModelSerializer:
                     expand_nested=True, rankdir='TB', dpi=400)
         
     #--------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint_name):
-        #custom_objects = {'PenalizedMeanAbsoluteError': PenalizedMeanAbsoluteError} 
+    def load_checkpoint(self, checkpoint_name):        
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path) 
@@ -162,7 +161,8 @@ class ModelSerializer:
         # select model if multiple checkpoints are available
         if len(model_folders) > 1:
             selection_index = checkpoint_selection_menu(model_folders)                    
-            checkpoint_path = os.path.join(CHECKPOINT_PATH, model_folders[selection_index-1])
+            checkpoint_path = os.path.join(
+                CHECKPOINT_PATH, model_folders[selection_index-1])
 
         # load directly the pretrained model if only one is available 
         elif len(model_folders) == 1:
