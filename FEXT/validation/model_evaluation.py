@@ -47,32 +47,35 @@ if __name__ == '__main__':
     images_path = dataserializer.get_images_path(IMG_DATA_PATH)
 
     splitter = TrainValidationSplit(images_path, configuration)     
-    train_data, validation_data = splitter.split_train_and_validation()    
-
-    builder = TrainingDatasetBuilder(CONFIG, evaluate=True)        
-    train_dataset, validation_dataset = builder.build_model_dataloader(
-        train_data, validation_data)    
+    train_data, validation_data = splitter.split_train_and_validation() 
 
     # 4. [EVALUATE ON TRAIN AND VALIDATION]
-    #--------------------------------------------------------------------------   
+    #--------------------------------------------------------------------------  
+    # use tf.data.Dataset to build the model dataloader with a larger batch size
+    # the dataset is built on top of the training and validation data
+    builder = TrainingDatasetBuilder(CONFIG, evaluate=True)        
+    train_dataset, validation_dataset = builder.build_model_dataloader(
+        train_data, validation_data)
+
+    # evaluate model performance over the training and validation dataset    
     evaluation_report(model, train_dataset, validation_dataset) 
 
     # 5. [COMPARE RECONTRUCTED IMAGES]
     #--------------------------------------------------------------------------
     validator = ImageReconstruction(CONFIG, model, checkpoint_path)
-    train_images_batch = [
+    train_images = [
         dataserializer.load_image(path) for path in 
         random.sample(train_data, validator.num_images)]
-    validation_images_batch = [
+    validation_images = [
         dataserializer.load_image(path) for path in 
         random.sample(validation_data, validator.num_images)]
     
-    logger.info('Comparing reconstructed images and original input from training dataset')
-    validator.visualize_reconstructed_images(
-        train_images_batch, data_name='training')
-    logger.info('Comparing reconstructed images and original input from validation dataset')
-    validator.visualize_reconstructed_images(
-        validation_images_batch, data_name='validation')
+    logger.info(
+        f'Comparing {validator.num_images} reconstructed images to inputs from training dataset')
+    validator.visualize_reconstructed_images(train_images, data_name='training')
+    logger.info(
+        f'Comparing {validator.num_images} reconstructed images to inputs from validation dataset')
+    validator.visualize_reconstructed_images(validation_images, data_name='validation')
 
     # 6. [INITIALIZE PDF REPORT]
     #--------------------------------------------------------------------------
