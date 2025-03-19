@@ -12,7 +12,8 @@ from FEXT.commons.logger import logger
 
 ###############################################################################
 def checkpoint_selection_menu(models_list):
-
+    # display an interactive menu to select a pretrained model from a numbered list
+    # uses all checkpoints found in resources/checkpoints
     index_list = [idx + 1 for idx, item in enumerate(models_list)]     
     print('Currently available pretrained models:')             
     for i, directory in enumerate(models_list):
@@ -40,14 +41,15 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]                
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels == 3 else cv2.COLOR_BGR2GRAY 
-        self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.gif'}
-
+        self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}
         self.seed = configuration['SEED']   
         self.parameters = configuration["dataset"]
         self.configuration = configuration
 
+    # get images path from a given directory 
     #--------------------------------------------------------------------------
-    def get_images_path(self, path, sample_size=None):   
+    def get_images_path(self, path, sample_size=None): 
+        # get sample size reduction from configurations if not directly provided
         sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
@@ -55,6 +57,7 @@ class DataSerializer:
             if sample_size is not None:
                 files = files[:int(sample_size*len(files))]           
             for file in files:
+                # only consider files with valid image extensions
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
 

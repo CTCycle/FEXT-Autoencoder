@@ -36,7 +36,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 ### 5.1 Navigation menu
 
-**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. Images statistics such as mean pixel values, standard deviation and noise ratio are reported in a detailed summary saved in *resources/validation/dataset/image_statistics.csv*. The average pixel distribution of the dataset is reported in *resources/validation/figures*.  
+**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in *resources/validation/dataset*. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. Then, the average pixel distribution is calculated and saved into *resources/validation/figures*.  
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation.
 
