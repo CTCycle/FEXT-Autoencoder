@@ -2,21 +2,24 @@ import os
 import shutil
 import pandas as pd
 
-from FEXT.commons.utils.dataloader.serializer import ModelSerializer
-from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH, VALIDATION_PATH
+from FEXT.commons.utils.data.database import FEXTDatabase
+from FEXT.commons.utils.data.serializer import ModelSerializer
+from FEXT.commons.constants import DATA_PATH, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
-
 
 
 # [LOAD MODEL]
 ################################################################################
 class ModelEvaluationSummary:
 
-    def __init__(self, remove_invalid=False):
+    def __init__(self, configuration, remove_invalid=False):
         self.remove_invalid = remove_invalid
         self.serializer = ModelSerializer()
-        self.summary_path = os.path.join(VALIDATION_PATH, 'checkpoints')
-        os.makedirs(self.summary_path, exist_ok=True)
+
+        self.csv_kwargs = {'index': 'false', 'sep': ';', 'encoding': 'utf-8'}
+        self.database = FEXTDatabase(configuration)
+        self.save_as_csv = configuration["dataset"]["SAVE_CSV"]
+        self.configurations = configuration
 
     #---------------------------------------------------------------------------
     def scan_checkpoint_folder(self):
@@ -54,7 +57,9 @@ class ModelEvaluationSummary:
                            'Batch size': configuration["training"].get("BATCH_SIZE", 'NA'),           
                            'Split seed': configuration["dataset"].get("SPLIT_SEED", 'NA'),
                            'Image augmentation': configuration["dataset"].get("IMG_AUGMENTATION", 'NA'),
-                           'Image shape': (224, 224, 3),                            
+                           'Image height': 224,
+                           'Image width': 224,
+                           'Image channels': 3,                          
                            'JIT Compile': configuration["model"].get("JIT_COMPILE", 'NA'),
                            'JIT Backend': configuration["model"].get("JIT_BACKEND", 'NA'),
                            'Device': configuration["device"].get("DEVICE", 'NA'),
@@ -67,10 +72,13 @@ class ModelEvaluationSummary:
 
             model_parameters.append(chkp_config)
 
-        # Define the CSV path
         dataframe = pd.DataFrame(model_parameters)
-        csv_path = os.path.join(self.summary_path, 'checkpoints_summary.csv')     
-        dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')        
+        if self.save_as_csv:
+            logger.info('Export to CSV requested. Now saving checkpoint summary to CSV file')             
+            csv_path = os.path.join(DATA_PATH, 'checkpoints_summary.csv')     
+            dataframe.to_csv(csv_path, index=False, sep=';', encoding='utf-8')
+
+        self.database.save_checkpoints_summary(dataframe)        
             
         return dataframe
     

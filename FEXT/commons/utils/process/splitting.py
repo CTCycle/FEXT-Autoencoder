@@ -1,5 +1,7 @@
 import numpy as np
 
+from FEXT.commons.constants import CONFIG
+from FEXT.commons.logger import logger
 
 # [DATA SPLITTING]
 ###############################################################################

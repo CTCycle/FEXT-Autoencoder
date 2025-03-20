@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-from FEXT.commons.constants import VALIDATION_PATH
+from FEXT.commons.utils.data.database import FEXTDatabase
+from FEXT.commons.constants import DATA_PATH, VALIDATION_PATH
 from FEXT.commons.logger import logger
 
 
@@ -17,11 +18,10 @@ from FEXT.commons.logger import logger
 class ImageReconstruction:
 
     def __init__(self, configuration : dict, model : keras.Model, checkpoint_path : str):       
-        self.checkpoint_name = os.path.basename(checkpoint_path)
-        self.summary_path = os.path.join(VALIDATION_PATH, 'checkpoints')
-        self.validation_path = os.path.join(self.summary_path, self.checkpoint_name)        
-        os.makedirs(self.summary_path, exist_ok=True) 
+        self.checkpoint_name = os.path.basename(checkpoint_path)        
+        self.validation_path = os.path.join(VALIDATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
+
         self.model = model  
         self.configuration = configuration
         self.num_images = configuration['validation']['NUM_IMAGES']
@@ -75,12 +75,11 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):        
-        self.statistics_path = os.path.join(VALIDATION_PATH, 'dataset')
-        self.plot_path = os.path.join(self.statistics_path, 'figures')
-        os.makedirs(self.statistics_path, exist_ok=True)
-        os.makedirs(self.plot_path, exist_ok=True)
-        self.configuration = configuration
+    def __init__(self, configuration): 
+        self.csv_kwargs = {'index': 'false', 'sep': ';', 'encoding': 'utf-8'}
+        self.database = FEXTDatabase(configuration)
+        self.configuration = configuration        
+        self.save_as_csv = self.configuration["dataset"]["SAVE_CSV"]
         self.DPI = configuration['validation']['DPI']        
         
     #--------------------------------------------------------------------------
@@ -120,20 +119,21 @@ class ImageAnalysis:
                             'max': max_val,
                             'pixel_range': pixel_range,
                             'noise_std': noise_std,
-                            'noise_ratio': noise_ratio})           
+                            'noise_ratio': noise_ratio})    
+
+        stats_dataframe = pd.DataFrame(results)        
+        if self.save_as_csv:
+            logger.info('Export to CSV requested. Now savingimage statistics to CSV file')            
+            csv_path = os.path.join(DATA_PATH, 'image_statistics.csv')
+            stats_dataframe.to_csv(csv_path, **self.csv_kwargs)        
+
+        self.database.save_image_statistics(stats_dataframe)
         
-        stats_dataframe = pd.DataFrame(results)
-        csv_path = os.path.join(
-            self.statistics_path, 'image_statistics.csv')
-        stats_dataframe.to_csv(
-            csv_path, index=False, sep=';', encoding='utf-8')
-        
-        return results
+        return stats_dataframe
     
     #--------------------------------------------------------------------------
     def calculate_pixel_intensity(self, images_path : list):            
         image_histograms = np.zeros(256, dtype=np.int64)        
-        
         for path in tqdm(images_path, desc="Processing image histograms", total=len(images_path), ncols=100):            
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
@@ -152,7 +152,7 @@ class ImageAnalysis:
         plt.ylabel('Frequency', fontsize=12)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.plot_path, 'pixel_intensity_histogram.jpeg'), 
+            os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram.jpeg'), 
             dpi=self.DPI)
         plt.close()        
 
