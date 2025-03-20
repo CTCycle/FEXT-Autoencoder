@@ -1,5 +1,5 @@
 FEXT/resources/database/images/*
-FEXT/resources/database/validation/*
+
 FEXT/resources/inference/images/*
 FEXT/resources/checkpoints/*
 
