@@ -44,7 +44,7 @@ class ImageReconstruction:
         ax.set_zlabel("Component 3")
 
         plt.savefig(
-            os.path.join(self.plot_path, 'PCA.jpeg'), 
+            os.path.join(self.validation_path, 'PCA.jpeg'), 
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
