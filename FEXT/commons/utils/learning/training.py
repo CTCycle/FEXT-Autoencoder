@@ -2,7 +2,7 @@ import keras
 import torch
 
 from FEXT.commons.utils.learning.callbacks import callbacks_handler
-from FEXT.commons.utils.dataloader.serializer import ModelSerializer
+from FEXT.commons.utils.data.serializer import ModelSerializer
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
 
@@ -56,7 +56,8 @@ class ModelTraining:
             from_epoch = history['total_epochs']           
        
         # add all callbacks to the callback list
-        RTH_callback, callbacks_list = callbacks_handler(self.configuration, checkpoint_path, history)       
+        RTH_callback, callbacks_list = callbacks_handler(
+            self.configuration, checkpoint_path, history)       
         
         # run model fit using keras API method.             
         training = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
@@ -68,7 +69,8 @@ class ModelTraining:
                    'total_epochs' : epochs}
         
         serializer.save_pretrained_model(model, checkpoint_path)       
-        serializer.save_session_configuration(checkpoint_path, history, self.configuration)
+        serializer.save_session_configuration(
+            checkpoint_path, history, self.configuration)
 
         
 

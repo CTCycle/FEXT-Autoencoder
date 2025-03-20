@@ -9,9 +9,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
+from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.inference.encoding import ImageEncoding
-from FEXT.commons.constants import CONFIG, ENCODED_INPUT_PATH
+from FEXT.commons.constants import CONFIG, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------   
     # select a fraction of data for training
     dataserializer = DataSerializer(CONFIG)
-    images_paths = dataserializer.get_images_path(ENCODED_INPUT_PATH)
+    images_paths = dataserializer.get_images_path(INFERENCE_INPUT_PATH)
 
     # 2. [LOAD PRETRAINED MODEL]
     #--------------------------------------------------------------------------
@@ -33,10 +33,10 @@ if __name__ == '__main__':
     model.summary(expand_nested=True)   
 
     # 3. [ENCODE IMAGES]
-    #--------------------------------------------------------------------------
-    # extract features from images using the encoder output 
-    logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
-    logger.info(f'{len(images_paths)} images have been found')    
+    #--------------------------------------------------------------------------    
+    logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')    
+    logger.info(f'{len(images_paths)} images have been found') 
+    # extract features from images using the encoder output    
     encoder = ImageEncoding(model, configuration, checkpoint_path)    
     encoder.encode_images_features(images_paths)
     logger.info('Encoded images have been saved as .npy')

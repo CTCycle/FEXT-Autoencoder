@@ -3,8 +3,8 @@ import numpy as np
 import keras
 from tqdm import tqdm
 
-from FEXT.commons.utils.dataloader.serializer import DataSerializer
-from FEXT.commons.constants import ENCODED_PATH
+from FEXT.commons.utils.data.serializer import DataSerializer
+from FEXT.commons.constants import INFERENCE_PATH
 from FEXT.commons.logger import logger
 
 
@@ -42,7 +42,7 @@ class ImageEncoding:
         structured_data = np.array(
             [(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(
-            ENCODED_PATH, f'encoded_images_{self.checkpoint_name}.npy')
+            INFERENCE_PATH, f'encoded_images_{self.checkpoint_name}.npy')
         np.save(file_loc, structured_data)
         
         return features

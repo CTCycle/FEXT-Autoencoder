@@ -7,12 +7,12 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.dataloader.tensordata import TrainingDatasetBuilder
-from FEXT.commons.utils.dataloader.serializer import DataSerializer, ModelSerializer
+from FEXT.commons.utils.data.tensordata import TrainingDatasetBuilder
+from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.process.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.validation.reports import log_training_report
-from FEXT.commons.constants import CONFIG, IMG_DATA_PATH
+from FEXT.commons.constants import CONFIG, IMG_PATH
 from FEXT.commons.logger import logger
 
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
     #-------------------------------------------------------------------------- 
     dataserializer = DataSerializer(configuration)     
-    images_path = dataserializer.get_images_path(IMG_DATA_PATH)
+    images_path = dataserializer.get_images_path(IMG_PATH)
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
@@ -57,6 +57,7 @@ if __name__ == '__main__':
     log_training_report(train_data, validation_data, configuration) 
                         
     # resume training from pretrained model    
+    logger.info('Resuming FeXT AutoEncoder training from checkpoint') 
     trainer.train_model(model, train_dataset, validation_dataset, checkpoint_path,
                         from_checkpoint=True)
 

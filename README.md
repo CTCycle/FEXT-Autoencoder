@@ -53,17 +53,15 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 **5) Exit:** close the program immediately 
 
 ### 5.2 Resources
-This folder is used to organize data and results for various stages of the project, including data validation, model training, and evaluation. Here you can find the following folders:
+This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. The directory structure includes the following folders:
 
 - **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
 
-- **dataset:** contains images used to train the autoencoder model. Ensure your training data is placed in *dataste/images* and that all images are saved in the correct format (preferably either .jpg or .png).
+- **database:** contains images used to train the autoencoder model and the main database. Ensure your training data is placed in *database/images* and that all images are saved in the correct format (preferably either .jpg or .png). Graphic validation results are saved in *database/validation*. 
 
 - **inference:** contains images intended as input for inference using a pretrained checkpoint. The resulting lower-dimension projections of these images are saved here as .npy files.
 
 - **logs:** log files are saved here
-
-- **validation:** here are save the results of data validation processes and the results of the pretrained model evaluation.
 
 ## 6. Configurations
 For customization, you can modify the main configuration parameters using *settings/configurations.json*. 
@@ -82,6 +80,7 @@ For customization, you can modify the main configuration parameters using *setti
 | VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
 | IMG_AUGMENTATION   | Whether to apply data augmentation to images             |
 | SPLIT_SEED         | Seed for random splitting of the dataset                 |
+| SAVE_CSV           | Save preprocessed data as .csv file                      |
 
 #### Model Configuration
 

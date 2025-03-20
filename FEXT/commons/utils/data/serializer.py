@@ -6,6 +6,7 @@ import numpy as np
 import keras
 from datetime import datetime
 
+from FEXT.commons.utils.learning.scheduler import LRScheduler
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
@@ -74,6 +75,8 @@ class DataSerializer:
 
         return image       
     
+       
+    
     
 # [MODEL SERIALIZATION]
 ###############################################################################
@@ -126,11 +129,13 @@ class ModelSerializer:
 
     #--------------------------------------------------------------------------
     def load_session_configuration(self, path):
-        config_path = os.path.join(path, 'configurations', 'configurations.json')        
+        config_path = os.path.join(
+            path, 'configurations', 'configurations.json')        
         with open(config_path, 'r') as f:
             configurations = json.load(f)        
 
-        history_path = os.path.join(path, 'configurations', 'session_history.json')
+        history_path = os.path.join(
+            path, 'configurations', 'session_history.json')
         with open(history_path, 'r') as f:
             history = json.load(f)
 
@@ -145,10 +150,11 @@ class ModelSerializer:
                     expand_nested=True, rankdir='TB', dpi=400)
         
     #--------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint_name):        
+    def load_checkpoint(self, checkpoint_name):
+        custom_objects = {'LRScheduler': LRScheduler}                
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
-        model = keras.models.load_model(model_path) 
+        model = keras.models.load_model(model_path, custom_objects=custom_objects) 
         
         return model       
             

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from FEXT.commons.utils.dataloader.generators import DatasetGenerator
+from FEXT.commons.utils.data.generators import DatasetGenerator
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
     
