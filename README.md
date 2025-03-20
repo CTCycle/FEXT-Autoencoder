@@ -36,7 +36,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 ### 5.1 Navigation menu
 
-**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in *resources/validation/dataset*. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. Then, the average pixel distribution is calculated and saved into *resources/validation/figures*.  
+**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in the image statistics table of the database. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. Then, the average pixel distribution is calculated and saved into *resources/database/validation*.  
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation.
 
@@ -57,7 +57,7 @@ This folder organizes data and results across various stages of the project, suc
 
 - **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
 
-- **database:** contains images used to train the autoencoder model and the main database. Ensure your training data is placed in *database/images* and that all images are saved in the correct format (preferably either .jpg or .png). Graphic validation results are saved in *database/validation*. 
+- **database:** Processed data and validation results will be stored centrally within the main database *FEXT_database.db*. All associated metadata will be promptly stored in *database/metadata*. For image training data, ensure all image files are placed in *database/images*, adhering to specified formats (.jpeg or .png). Graphical validation outputs will be saved separately within *database/validation*.
 
 - **inference:** contains images intended as input for inference using a pretrained checkpoint. The resulting lower-dimension projections of these images are saved here as .npy files.
 
