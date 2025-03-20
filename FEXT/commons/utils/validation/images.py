@@ -76,7 +76,7 @@ class ImageReconstruction:
 class ImageAnalysis:
 
     def __init__(self, configuration): 
-        self.csv_kwargs = {'index': 'false', 'sep': ';', 'encoding': 'utf-8'}
+        self.csv_kwargs = {'index': 'False', 'sep': ';', 'encoding': 'utf-8'}
         self.database = FEXTDatabase(configuration)
         self.configuration = configuration        
         self.save_as_csv = self.configuration["dataset"]["SAVE_CSV"]
