@@ -32,7 +32,7 @@ if __name__ == '__main__':
     image_statistics = analyzer.calculate_image_statistics(images_paths)    
 
     logger.info('Generating the pixel intensity histogram')
-    analyzer.calculate_pixel_intensity(images_paths)  
+    analyzer.calculate_pixel_intensity_distribution(images_paths)  
 
     # 3. [COMPARE TRAIN AND TEST DATASETS]
     #--------------------------------------------------------------------------

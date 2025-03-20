@@ -73,9 +73,7 @@ class DataSerializer:
         if normalization:
             image = image/255.0       
 
-        return image       
-    
-       
+        return image        
     
     
 # [MODEL SERIALIZATION]

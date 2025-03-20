@@ -42,7 +42,6 @@ class ImageReconstruction:
         ax.set_xlabel("Component 1")
         ax.set_ylabel("Component 2")
         ax.set_zlabel("Component 3")
-
         plt.savefig(
             os.path.join(self.validation_path, 'PCA.jpeg'), 
             dpi=self.DPI)
@@ -121,18 +120,18 @@ class ImageAnalysis:
                             'noise_std': noise_std,
                             'noise_ratio': noise_ratio})    
 
-        stats_dataframe = pd.DataFrame(results)        
+        stats_dataframe = pd.DataFrame(results) 
+        self.database.save_image_statistics(stats_dataframe)
+
         if self.save_as_csv:
             logger.info('Export to CSV requested. Now savingimage statistics to CSV file')            
             csv_path = os.path.join(DATA_PATH, 'image_statistics.csv')
-            stats_dataframe.to_csv(csv_path, **self.csv_kwargs)        
-
-        self.database.save_image_statistics(stats_dataframe)
+            stats_dataframe.to_csv(csv_path, **self.csv_kwargs)
         
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity(self, images_path : list):            
+    def calculate_pixel_intensity_distribution(self, images_path : list):            
         image_histograms = np.zeros(256, dtype=np.int64)        
         for path in tqdm(images_path, desc="Processing image histograms", total=len(images_path), ncols=100):            
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
@@ -157,4 +156,46 @@ class ImageAnalysis:
         plt.close()        
 
         return image_histograms
+    
+    #--------------------------------------------------------------------------
+    def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list):
+        # Initialize histograms for training and validation images
+        train_hist = np.zeros(256, dtype=np.int64)
+        val_hist = np.zeros(256, dtype=np.int64)
+
+        # Process training images
+        for path in tqdm(train_images_path, desc="Processing training images", total=len(train_images_path), ncols=100):
+            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            if img is None:
+                logger.warning(f"Warning: Unable to load training image at {path}.")
+                continue
+            hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
+            train_hist += hist.astype(np.int64)
+
+        # Process validation images
+        for path in tqdm(val_images_path, desc="Processing validation images", total=len(val_images_path), ncols=100):
+            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            if img is None:
+                logger.warning(f"Warning: Unable to load validation image at {path}.")
+                continue
+            hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
+            val_hist += hist.astype(np.int64)
+
+        # Plot the histograms overlapped
+        plt.figure(figsize=(14, 12))
+        # Offset the positions slightly so that the bars don't completely overlap
+        x = np.arange(256)
+        width = 0.4  # width of each bar
+        plt.bar(x - width/2, train_hist, width=width, label='Train', alpha=0.7)
+        plt.bar(x + width/2, val_hist, width=width, label='Validation', alpha=0.7)
+        plt.title('Pixel Intensity Histogram Comparison', fontsize=16)
+        plt.xlabel('Pixel Intensity', fontsize=12)
+        plt.ylabel('Frequency', fontsize=12)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
+                    dpi=self.DPI)
+        plt.close()
+
+        return train_hist, val_hist
 

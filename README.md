@@ -53,7 +53,9 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 **5) Exit:** close the program immediately 
 
 ### 5.2 Resources
-This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. The directory structure includes the following folders:
+This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. By default, all data is stored within an SQLite database; however, users have the option to export data into separate CSV files if desired. To visualize and interact with SQLite database files, we recommend downloading and installing the DB Browser for SQLite, available at: https://sqlitebrowser.org/dl/.
+
+The directory structure includes the following folders:
 
 - **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
 
@@ -62,6 +64,8 @@ This folder organizes data and results across various stages of the project, suc
 - **inference:** contains images intended as input for inference using a pretrained checkpoint. The resulting lower-dimension projections of these images are saved here as .npy files.
 
 - **logs:** log files are saved here
+
+- **templates:** reference template files can be found here
 
 ## 6. Configurations
 For customization, you can modify the main configuration parameters using *settings/configurations.json*. 

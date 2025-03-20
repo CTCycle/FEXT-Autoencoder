@@ -1,4 +1,4 @@
-FEXT/resources/database/*
+FEXT/resources/database/images/*
 FEXT/resources/inference/images/*
 FEXT/resources/checkpoints/*
 
