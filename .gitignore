@@ -8,6 +8,7 @@ setup/miniconda/*
 setup/variables/.env
 
 __pycache__
+*.db
 *.log
 *.npy
 *.egg-info
