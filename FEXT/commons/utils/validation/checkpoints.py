@@ -78,7 +78,7 @@ class ModelEvaluationSummary:
         if self.save_as_csv:
             logger.info('Export to CSV requested. Now saving checkpoint summary to CSV file')             
             csv_path = os.path.join(DATA_PATH, 'checkpoints_summary.csv')     
-            dataframe.to_csv(csv_path, **self.csv_kwargs)        
+            dataframe.to_csv(csv_path, index=False, **self.csv_kwargs)        
             
         return dataframe
     

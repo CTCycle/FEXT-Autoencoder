@@ -53,7 +53,7 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 **5) Exit:** close the program immediately 
 
 ### 5.2 Resources
-This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. By default, all data is stored within an SQLite database; however, users have the option to export data into separate CSV files if desired. To visualize and interact with SQLite database files, we recommend downloading and installing the DB Browser for SQLite, available at: https://sqlitebrowser.org/dl/.
+This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. By default, all data is stored within an SQLite database. To visualize and interact with SQLite database files, we recommend downloading and installing the DB Browser for SQLite, available at: https://sqlitebrowser.org/dl/.
 
 The directory structure includes the following folders:
 
@@ -84,7 +84,6 @@ For customization, you can modify the main configuration parameters using *setti
 | VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
 | IMG_AUGMENTATION   | Whether to apply data augmentation to images             |
 | SPLIT_SEED         | Seed for random splitting of the dataset                 |
-| SAVE_CSV           | Save preprocessed data as .csv file                      |
 
 #### Model Configuration
 

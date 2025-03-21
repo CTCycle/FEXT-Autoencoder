@@ -87,7 +87,8 @@ class ModelSerializer:
     #--------------------------------------------------------------------------
     def create_checkpoint_folder(self):   
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
-        checkpoint_path = os.path.join(CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
+        checkpoint_path = os.path.join(
+            CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
         os.makedirs(checkpoint_path, exist_ok=True)        
         os.makedirs(os.path.join(checkpoint_path, 'data'), exist_ok=True)
         logger.debug(f'Created checkpoint folder at {checkpoint_path}')
@@ -104,17 +105,17 @@ class ModelSerializer:
     def save_session_configuration(self, path, history : dict, configurations : dict):         
         os.makedirs(os.path.join(path, 'configurations'), exist_ok=True)        
         config_path = os.path.join(path, 'configurations', 'configurations.json')
-        history_path = os.path.join(path, 'configurations', 'session_history.json')        
+        history_path = os.path.join(path, 'configurations', 'session_history.json')
 
         # Save training and model configurations
         with open(config_path, 'w') as f:
-            json.dump(configurations, f)       
-
+            json.dump(configurations, f)
+            
         # Save session history
         with open(history_path, 'w') as f:
             json.dump(history, f)
 
-        logger.debug(f'Model configuration and session history have been saved at {path}') 
+        logger.debug(f'Model configuration and session history saved for {os.path.basename(path)}') 
 
     #-------------------------------------------------------------------------- 
     def scan_checkpoints_folder(self):
@@ -143,9 +144,9 @@ class ModelSerializer:
     def save_model_plot(self, model, path):
         logger.debug(f'Plotting model architecture graph at {path}')
         plot_path = os.path.join(path, 'model_layout.png')       
-        keras.utils.plot_model(model, to_file=plot_path, show_shapes=True, 
-                    show_layer_names=True, show_layer_activations=True, 
-                    expand_nested=True, rankdir='TB', dpi=400)
+        keras.utils.plot_model(
+            model, to_file=plot_path, show_shapes=True, show_layer_names=True, 
+            show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)
         
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):

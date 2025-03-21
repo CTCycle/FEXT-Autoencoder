@@ -3,8 +3,7 @@
     "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_AUGMENTATION" : true,                 
-                 "SPLIT_SEED" : 76,
-                 "SAVE_CSV" : false},
+                 "SPLIT_SEED" : 76},
 
     "model" : {"JIT_COMPILE" : false,
                "JIT_BACKEND" : "inductor"},

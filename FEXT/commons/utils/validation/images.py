@@ -126,7 +126,7 @@ class ImageAnalysis:
         if self.save_as_csv:
             logger.info('Export to CSV requested. Now savingimage statistics to CSV file')            
             csv_path = os.path.join(DATA_PATH, 'image_statistics.csv')
-            stats_dataframe.to_csv(csv_path, **self.csv_kwargs)
+            stats_dataframe.to_csv(csv_path, index=False, **self.csv_kwargs)
         
         return stats_dataframe
     
