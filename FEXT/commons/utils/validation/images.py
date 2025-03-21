@@ -74,12 +74,10 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration): 
-        self.csv_kwargs = {'index': 'False', 'sep': ';', 'encoding': 'utf-8'}
-        self.database = FEXTDatabase(configuration)
-        self.configuration = configuration        
-        self.save_as_csv = self.configuration["dataset"]["SAVE_CSV"]
-        self.DPI = configuration['validation']['DPI']        
+    def __init__(self, configuration):                          
+        self.DPI = configuration['validation']['DPI']  
+        self.configuration = configuration 
+        self.database = FEXTDatabase(configuration)       
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list):          
@@ -121,12 +119,7 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})    
 
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics(stats_dataframe)
-
-        if self.save_as_csv:
-            logger.info('Export to CSV requested. Now savingimage statistics to CSV file')            
-            csv_path = os.path.join(DATA_PATH, 'image_statistics.csv')
-            stats_dataframe.to_csv(csv_path, index=False, **self.csv_kwargs)
+        self.database.save_image_statistics(stats_dataframe)       
         
         return stats_dataframe
     
