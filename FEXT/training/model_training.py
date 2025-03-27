@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # create the tf.datasets using the previously initialized generators 
     logger.info('Building model data loaders with prefetching and parallel processing') 
     builder = TrainingDataLoader(CONFIG)   
-    train_dataset, validation_dataset = builder.build_model_dataloader(
+    train_dataset, validation_dataset = builder.build_training_dataloader(
         train_data, validation_data)           
     
     # 3. [TRAINING MODEL]

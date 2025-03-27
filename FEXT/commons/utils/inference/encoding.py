@@ -3,7 +3,7 @@ import numpy as np
 import keras
 from tqdm import tqdm
 
-from FEXT.commons.utils.data.serializer import DataSerializer
+from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.constants import INFERENCE_PATH
 from FEXT.commons.logger import logger
 
@@ -14,7 +14,7 @@ class ImageEncoding:
     
     def __init__(self, model : keras.Model, configuration : dict, checkpoint_path : str):       
         keras.utils.set_random_seed(configuration["SEED"])  
-        self.dataserializer = DataSerializer(configuration)
+        self.dataloader = InferenceDataLoader(configuration)
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.configuration = configuration
         self.model = model 
@@ -30,7 +30,7 @@ class ImageEncoding:
         for pt in tqdm(images_paths, desc='Encoding images', total=len(images_paths)):
             image_name = os.path.basename(pt)
             try:
-                image = self.dataserializer.load_image(pt)
+                image = self.dataloader.load_image(pt)
                 image = np.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
