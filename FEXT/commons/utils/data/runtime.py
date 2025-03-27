@@ -6,25 +6,21 @@ from FEXT.commons.logger import logger
              
 
 ###############################################################################
-class TrainingDataLoaderProcessor:
+class DataLoaderProcessor:
 
-    def __init__(self, configuration):
-        # set the input image shape as a fixed parameter         
+    def __init__(self, configuration):                
         self.img_shape = (128, 128)   
-        self.num_channels = 3 # RGB images   
+        self.num_channels = 3   
         self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
         self.configuration = configuration  
 
     # load and preprocess a single image
     #--------------------------------------------------------------------------
     def load_image(self, path, normalize=True): 
-        # load images using tensorflow IO operations for efficiency       
-        image = tf.io.read_file(path) # read image file
-        # decode image as RGB and resize it to image input shae
+        image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
-            image, channels=self.num_channels, expand_animations=False)        
-        rgb_image = tf.image.resize(rgb_image, self.img_shape)        
-        # normalize image to [0, 1] range     
+            image, channels=3, expand_animations=False)        
+        rgb_image = tf.image.resize(rgb_image, self.img_shape)             
         rgb_image = rgb_image/255.0 if normalize else rgb_image 
         
         return rgb_image, rgb_image       
@@ -32,18 +28,18 @@ class TrainingDataLoaderProcessor:
     # load and preprocess a single image
     #--------------------------------------------------------------------------
     def load_and_process_image(self, path): 
-        # load images using tensorflow IO operations for efficiency       
-        image = tf.io.read_file(path) # read image file
-        # decode image as RGB and resize it to image input shae
-        rgb_image = tf.image.decode_image(
-            image, channels=self.num_channels, expand_animations=False)        
-        rgb_image = tf.image.resize(rgb_image, self.img_shape)
-        # apply image augmentation if requested
-        rgb_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image  
-        # normalize image to [0, 1] range     
-        rgb_image = rgb_image/255.0 
+        rgb_image = self.load_image(path)
+        rgb_image = self.image_normalization(rgb_image)
+        rgb_image = self.image_augmentation(rgb_image) if self.augmentation else rgb_image        
         
-        return rgb_image, rgb_image         
+        return rgb_image, rgb_image 
+
+    # define method perform data augmentation    
+    #--------------------------------------------------------------------------
+    def image_normalization(self, image):
+        normalize_image = image/255.0        
+                
+        return normalize_image         
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------
