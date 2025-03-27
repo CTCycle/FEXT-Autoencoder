@@ -1,8 +1,6 @@
 import keras
 from keras import activations, layers
 
-from FEXT.commons.constants import CONFIG
-
 # [CONVOLUTIONAL BLOCKS]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='ResidualConvolutivePooling')
@@ -15,15 +13,17 @@ class ResidualConvolutivePooling(layers.Layer):
         self.pooling = layers.MaxPooling2D(pool_size=(2,2), padding='same')      
         self.conv_layers = [
             layers.Conv2D(units, kernel_size=(2,2), padding='same') 
-            for x in range(num_layers)]                    
+            for x in range(num_layers)]  
+        self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]                  
 
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None):          
-        inputs = self.conv_layers[0](inputs)
-        layer = inputs      
-        for conv in self.conv_layers[1:]:                 
+        inputs = self.conv_layers[0](inputs)        
+        layer = self.bn_layers[0](inputs, training=training)  
+        for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):                 
             layer = conv(layer)
+            layer = bn(layer, training=training)
             layer = activations.relu(layer)
             layer = layers.Add()([layer, inputs])
 
@@ -60,14 +60,16 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
         self.conv_layers = [
             layers.Conv2DTranspose(units, kernel_size=(3,3), padding='same') 
             for x in range(num_layers)]
+        self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]        
            
     # implement forward pass through call method  
     #--------------------------------------------------------------------------    
     def call(self, inputs, training=None):               
-        inputs = self.conv_layers[0](inputs)
-        layer = inputs      
-        for conv in self.conv_layers[1:]:                       
+        inputs = self.conv_layers[0](inputs)        
+        layer = self.bn_layers[0](inputs, training=training)    
+        for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):                 
             layer = conv(layer)
+            layer = bn(layer, training=training)
             layer = activations.relu(layer)
             layer = layers.Add()([layer, inputs])
             

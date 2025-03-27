@@ -7,9 +7,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.data.tensordata import TrainingDatasetBuilder
+from FEXT.commons.utils.data.loader import TrainingDataLoader
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.commons.utils.process.splitting import TrainValidationSplit
+from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.validation.reports import log_training_report
@@ -42,12 +42,12 @@ if __name__ == '__main__':
 
     # create the tf.datasets using the previously initialized generators 
     logger.info('Building model data loaders with prefetching and parallel processing') 
-    builder = TrainingDatasetBuilder(CONFIG)   
+    builder = TrainingDataLoader(CONFIG)   
     train_dataset, validation_dataset = builder.build_model_dataloader(
         train_data, validation_data)           
     
     # 3. [TRAINING MODEL]
-    # Setting callbacks and training routine for the features extraction model 
+    # Setting callbacks and training routine for the machine learning model 
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 
     #--------------------------------------------------------------------------

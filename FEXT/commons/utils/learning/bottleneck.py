@@ -2,33 +2,34 @@ import keras
 from keras import layers
 import torch
 
-from FEXT.commons.constants import CONFIG   
     
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
 @keras.utils.register_keras_serializable(package='CustomLayers', name='CompressionLayer')
 class CompressionLayer(layers.Layer):
     
-    def __init__(self, units, dropout_rate=0.2, depth=4, **kwargs):
+    def __init__(self, units, dropout_rate=0.2, num_layers=4, seed=42, **kwargs):
         super(CompressionLayer, self).__init__(**kwargs)
         self.units = units
         self.dropout_rate = dropout_rate
-        self.depth = depth
+        self.num_layers = num_layers
+        self.seed = seed
         self.dense_layers = [
-            layers.Dense(units, kernel_initializer='he_uniform') for _ in range(depth)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(depth)]        
-        self.dropout = layers.Dropout(dropout_rate)
+            layers.Dense(units, kernel_initializer='he_uniform') for _ in range(num_layers)]
+        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]        
+        self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
     #--------------------------------------------------------------------------
     def call(self, inputs, training=None):
         batch_size, height, width, channels = keras.ops.shape(inputs)
         sequence_dim = height * width
-        reshaped = keras.ops.reshape(inputs, (batch_size, sequence_dim, channels))
-        layer = reshaped
+        reshaped = keras.ops.reshape(
+            inputs, (batch_size, sequence_dim, channels))
+        layer = self.dropout(reshaped, training=training)  
         for dense, batch_norm in zip(self.dense_layers, self.batch_norm_layers):
-            layer = dense(layer)    
-            layer = keras.activations.relu(layer)
-            layer = batch_norm(layer, training=training)        
+            layer = dense(layer)
+            layer = batch_norm(layer, training=training)     
+            layer = keras.activations.relu(layer)                   
 
         return layer
 
@@ -38,7 +39,8 @@ class CompressionLayer(layers.Layer):
         config = super(CompressionLayer, self).get_config()
         config.update({'units': self.units,
                        'dropout_rate': self.dropout_rate,
-                       'depth': self.depth})
+                       'num_layers': self.num_layers,
+                       'seed': self.seed})
         return config
 
     # deserialization method  
@@ -53,26 +55,28 @@ class CompressionLayer(layers.Layer):
 @keras.utils.register_keras_serializable(package='CustomLayers', name='DecompressionLayer')
 class DecompressionLayer(layers.Layer):
     
-    def __init__(self, units, depth, **kwargs):
+    def __init__(self, units=256, num_layers=3, seed=42, **kwargs):
         super(DecompressionLayer, self).__init__(**kwargs)        
         self.units = units
-        self.depth = depth
+        self.num_layers = num_layers
+        self.seed = seed
         self.dense_layers = [
-            layers.Dense(units, kernel_initializer='he_uniform') for _ in range(depth)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(depth)]        
+            layers.Dense(units, kernel_initializer='he_uniform') 
+            for _ in range(num_layers)]
+        self.batch_norm_layers = [
+            layers.BatchNormalization() for _ in range(num_layers)]        
 
     #-------------------------------------------------------------------------- 
     def call(self, inputs, training=None):        
         batch_size, sequence_dims, channels = keras.ops.shape(inputs)        
         original_dims = keras.ops.sqrt(sequence_dims)
-        original_dims = keras.ops.cast(original_dims, dtype=torch.int32)
-        reshaped = keras.ops.reshape(
-            inputs, (batch_size, original_dims, original_dims, channels))
-        layer = reshaped       
+        original_dims = keras.ops.cast(original_dims, dtype=torch.int32)        
+        layer = keras.ops.reshape(
+            inputs, (batch_size, original_dims, original_dims, channels))     
         for dense, batch_norm in zip(self.dense_layers, self.batch_norm_layers):
-            layer = dense(layer)    
-            layer = keras.activations.relu(layer)
-            layer = batch_norm(layer, training=training)   
+            layer = dense(layer) 
+            layer = batch_norm(layer, training=training)    
+            layer = keras.activations.relu(layer)              
         
         return layer
 
@@ -81,7 +85,8 @@ class DecompressionLayer(layers.Layer):
     def get_config(self):
         config = super(DecompressionLayer, self).get_config()
         config.update({'units': self.units,
-                       'depth': self.depth})
+                       'num_layers': self.num_layers,
+                       'seed': self.seed})
         return config
 
     # deserialization method  

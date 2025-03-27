@@ -4,13 +4,9 @@ import tensorflow as tf
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
              
-        
-# [CUSTOM DATA GENERATOR]
-# This generator is used as a wrapper for preprocessing operations in runtime
-# specific preprocessing operations can be mapped to the tf.data.Dataset
-# to improve efficiency during training
+
 ###############################################################################
-class DatasetGenerator:
+class TrainingDataLoaderProcessor:
 
     def __init__(self, configuration):
         # set the input image shape as a fixed parameter         
@@ -21,7 +17,7 @@ class DatasetGenerator:
     
     # load and preprocess a single image
     #--------------------------------------------------------------------------
-    def load_image(self, path): 
+    def load_and_process_image(self, path): 
         # load images using tensorflow IO operations for efficiency       
         image = tf.io.read_file(path) # read image file
         # decode image as RGB and resize it to image input shae
@@ -39,10 +35,14 @@ class DatasetGenerator:
     #--------------------------------------------------------------------------
     def image_augmentation(self, image):
         # perform random image augmentations such as flip, brightness, contrast          
-        augmentations = {"flip_left_right": (lambda img: tf.image.random_flip_left_right(img), 0.5),
-                         "flip_up_down": (lambda img: tf.image.random_flip_up_down(img), 0.5),                        
-                         "brightness": (lambda img: tf.image.random_brightness(img, max_delta=0.2), 0.25),
-                         "contrast": (lambda img: tf.image.random_contrast(img, lower=0.7, upper=1.3), 0.35)}    
+        augmentations = {"flip_left_right": (
+            lambda img: tf.image.random_flip_left_right(img), 0.5),
+                         "flip_up_down": (
+            lambda img: tf.image.random_flip_up_down(img), 0.5),                        
+                         "brightness": (
+            lambda img: tf.image.random_brightness(img, max_delta=0.2), 0.25),
+                         "contrast": (
+            lambda img: tf.image.random_contrast(img, lower=0.7, upper=1.3), 0.35)}    
         
         for _, (func, prob) in augmentations.items():
             if np.random.rand() <= prob:

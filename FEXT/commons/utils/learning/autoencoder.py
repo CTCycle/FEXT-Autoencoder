@@ -44,8 +44,8 @@ class FeXTAutoEncoder:
 
         # [BOTTLENECK SUBMODEL]
         #--------------------------------------------------------------------
-        encoder_output = CompressionLayer(units=512, dropout_rate=0.2, depth=5)(layer) 
-        decoder_input = DecompressionLayer(units=512, depth=5)(encoder_output)
+        encoder_output = CompressionLayer(units=512, dropout_rate=0.2, num_layers=5)(layer) 
+        decoder_input = DecompressionLayer(units=512, num_layers=5)(encoder_output)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
@@ -56,12 +56,14 @@ class FeXTAutoEncoder:
         layer = ResidualTransConvolutiveUpsampling(64, num_layers=4)(layer)       
         layer = ResidualTransConvolutiveUpsampling(64, num_layers=4)(layer) 
 
-        output = layers.Dense(3, kernel_initializer='he_uniform')(layer)        
+        output = layers.Dense(3, kernel_initializer='he_uniform')(layer) 
+        output = layers.BatchNormalization()(output)       
         output = activations.relu(output, max_value=1.0)   
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        lr_schedule = LRScheduler(self.initial_lr, self.constant_lr_steps, self.decay_steps)            
+        lr_schedule = LRScheduler(
+            self.initial_lr, self.constant_lr_steps, self.decay_steps)            
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
         loss = losses.MeanAbsoluteError()        
         metric = [metrics.CosineSimilarity()]

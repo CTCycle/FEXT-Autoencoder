@@ -9,7 +9,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 # [IMPORT CUSTOM MODULES]
 from FEXT.commons.utils.validation.images import ImageAnalysis
 from FEXT.commons.utils.data.serializer import DataSerializer
-from FEXT.commons.utils.process.splitting import TrainValidationSplit
+from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.constants import CONFIG, IMG_PATH
 from FEXT.commons.logger import logger
 
