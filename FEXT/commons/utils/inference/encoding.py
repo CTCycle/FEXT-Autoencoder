@@ -30,7 +30,7 @@ class ImageEncoding:
         for pt in tqdm(images_paths, desc='Encoding images', total=len(images_paths)):
             image_name = os.path.basename(pt)
             try:
-                image = self.dataloader.load_image(pt)
+                image = self.dataloader.load_image_as_array(pt)
                 image = np.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
