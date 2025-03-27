@@ -9,7 +9,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.data.loader import TrainingDataLoader
+from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.inference.encoding import ImageEncoding
@@ -52,9 +52,9 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------  
     # use tf.data.Dataset to build the model dataloader with a larger batch size
     # the dataset is built on top of the training and validation data
-    builder = TrainingDataLoader(CONFIG, evaluate=True)        
-    train_dataset, validation_dataset = builder.build_model_dataloader(
-        train_data, validation_data)
+    loader = InferenceDataLoader(CONFIG)        
+    train_dataset = loader.build_inference_dataloader(train_data)
+    validation_dataset = loader.build_inference_dataloader(validation_data)
 
     # evaluate model performance over the training and validation dataset    
     evaluation_report(model, train_dataset, validation_dataset) 
@@ -62,9 +62,9 @@ if __name__ == '__main__':
     # 5. [COMPARE RECONTRUCTED IMAGES]
     #--------------------------------------------------------------------------
     validator = ImageReconstruction(CONFIG, model, checkpoint_path)
-    train_images = [dataserializer.load_image(path) for path in 
+    train_images = [loader.load_image(path) for path in 
                     random.sample(train_data, validator.num_images)]
-    validation_images = [dataserializer.load_image(path) for path in 
+    validation_images = [loader.load_image(path) for path in 
                          random.sample(validation_data, validator.num_images)]
     
     logger.info(

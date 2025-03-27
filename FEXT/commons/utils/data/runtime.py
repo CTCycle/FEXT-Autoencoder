@@ -13,7 +13,21 @@ class TrainingDataLoaderProcessor:
         self.img_shape = (128, 128)   
         self.num_channels = 3 # RGB images   
         self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
-        self.configuration = configuration         
+        self.configuration = configuration  
+
+    # load and preprocess a single image
+    #--------------------------------------------------------------------------
+    def load_image(self, path, normalize=True): 
+        # load images using tensorflow IO operations for efficiency       
+        image = tf.io.read_file(path) # read image file
+        # decode image as RGB and resize it to image input shae
+        rgb_image = tf.image.decode_image(
+            image, channels=self.num_channels, expand_animations=False)        
+        rgb_image = tf.image.resize(rgb_image, self.img_shape)        
+        # normalize image to [0, 1] range     
+        rgb_image = rgb_image/255.0 if normalize else rgb_image 
+        
+        return rgb_image, rgb_image       
     
     # load and preprocess a single image
     #--------------------------------------------------------------------------
