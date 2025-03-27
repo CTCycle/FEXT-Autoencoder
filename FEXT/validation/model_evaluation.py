@@ -9,9 +9,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.commons.utils.data.tensordata import TrainingDatasetBuilder
+from FEXT.commons.utils.data.loader import TrainingDataLoader
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.commons.utils.process.splitting import TrainValidationSplit
+from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.images import ImageReconstruction
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------  
     # use tf.data.Dataset to build the model dataloader with a larger batch size
     # the dataset is built on top of the training and validation data
-    builder = TrainingDatasetBuilder(CONFIG, evaluate=True)        
+    builder = TrainingDataLoader(CONFIG, evaluate=True)        
     train_dataset, validation_dataset = builder.build_model_dataloader(
         train_data, validation_data)
 

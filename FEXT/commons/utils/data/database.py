@@ -22,7 +22,7 @@ class FEXTDatabase:
         
         create_image_statistics_table = '''
         CREATE TABLE IF NOT EXISTS IMAGE_STATISTICS (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            index INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             height INTEGER,
             width INTEGER,
@@ -39,7 +39,7 @@ class FEXTDatabase:
     
         create_checkpoints_summary_table = '''
         CREATE TABLE IF NOT EXISTS CHECKPOINTS_SUMMARY (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            index INTEGER PRIMARY KEY AUTOINCREMENT,
             checkpoint_name TEXT,
             sample_size REAL,
             validation_size REAL,

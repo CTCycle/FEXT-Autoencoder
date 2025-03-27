@@ -16,7 +16,9 @@ class ModelTraining:
         keras.utils.set_random_seed(configuration["SEED"])        
         self.selected_device = configuration["device"]["DEVICE"]
         self.device_id = configuration["device"]["DEVICE_ID"]
-        self.mixed_precision = self.configuration["device"]["MIXED_PRECISION"]      
+        self.mixed_precision = self.configuration["device"]["MIXED_PRECISION"] 
+        # initialize model serializer
+        self.serializer = ModelSerializer()     
 
     # set device
     #--------------------------------------------------------------------------
@@ -38,10 +40,7 @@ class ModelTraining:
 
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    checkpoint_path, from_checkpoint=False):
-        
-        # initialize model serializer
-        serializer = ModelSerializer() 
+                    checkpoint_path, from_checkpoint=False):       
 
         # perform different initialization duties based on state of session:
         # training from scratch vs resumed training
@@ -51,7 +50,7 @@ class ModelTraining:
             from_epoch = 0
             history = None
         else:
-            _, history = serializer.load_session_configuration(checkpoint_path)                     
+            _, history = self.serializer.load_session_configuration(checkpoint_path)                     
             epochs = history['total_epochs'] + CONFIG["training"]["ADDITIONAL_EPOCHS"] 
             from_epoch = history['total_epochs']           
        
@@ -68,8 +67,8 @@ class ModelTraining:
                    'val_history' : RTH_callback.val_history,
                    'total_epochs' : epochs}
         
-        serializer.save_pretrained_model(model, checkpoint_path)       
-        serializer.save_session_configuration(
+        self.serializer.save_pretrained_model(model, checkpoint_path)       
+        self.serializer.save_session_configuration(
             checkpoint_path, history, self.configuration)
 
         
