@@ -45,7 +45,7 @@ class DataSerializer:
         self.parameters = configuration["dataset"]
         self.configuration = configuration
 
-    # get images path from a given directory 
+    # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
     def get_images_path_from_directory(self, path, sample_size=None): 
         # get sample size reduction from configurations if not directly provided
