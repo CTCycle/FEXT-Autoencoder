@@ -115,9 +115,10 @@ For customization, you can modify the main configuration parameters using *setti
 
 | Parameter          | Description                                              |
 |--------------------|----------------------------------------------------------|
-| INITIAL_LR         | Initial value of learni rate                             |
+| INITIAL_LR         | Initial value of learning rate                           |
 | CONSTANT_STEPS     | Number of steps (batch) to keep the learning rate stable |
 | DECAY_STEPS        | Number of steps (batch) to decay learning rate           |
+| FINAL_LR           | Final value of learning rate (target)                    |
 
 #### Validation Configuration
 
