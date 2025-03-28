@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # 3. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------
     dataserializer = DataSerializer(configuration)
-    images_path = dataserializer.get_images_path(IMG_PATH)
+    images_path = dataserializer.get_images_path_from_directory(IMG_PATH)
 
     splitter = TrainValidationSplit(images_path, configuration)     
     train_data, validation_data = splitter.split_train_and_validation() 

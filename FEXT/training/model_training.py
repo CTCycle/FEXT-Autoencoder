@@ -24,7 +24,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------    
     # select a fraction of data for training
     dataserializer = DataSerializer(CONFIG)     
-    images_paths = dataserializer.get_images_path(IMG_PATH)    
+    images_paths = dataserializer.get_images_path_from_directory(IMG_PATH)    
 
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  

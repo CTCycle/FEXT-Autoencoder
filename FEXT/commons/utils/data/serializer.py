@@ -47,7 +47,7 @@ class DataSerializer:
 
     # get images path from a given directory 
     #--------------------------------------------------------------------------
-    def get_images_path(self, path, sample_size=None): 
+    def get_images_path_from_directory(self, path, sample_size=None): 
         # get sample size reduction from configurations if not directly provided
         sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
