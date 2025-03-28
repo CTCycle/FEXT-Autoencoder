@@ -2,7 +2,7 @@ import keras
 from keras import layers, activations, metrics, losses, Model
 import torch
 
-from FEXT.commons.utils.learning.scheduler import LRScheduler
+from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
 from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
 from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
 
@@ -63,7 +63,7 @@ class FeXTAutoEncoder:
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        lr_schedule = LRScheduler(
+        lr_schedule = LinearDecayLRScheduler(
             self.initial_lr, self.constant_lr_steps, self.decay_steps, self.final_lr)            
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
         loss = losses.MeanAbsoluteError()        

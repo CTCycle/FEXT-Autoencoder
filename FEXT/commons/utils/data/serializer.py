@@ -5,7 +5,7 @@ import numpy as np
 import keras
 from datetime import datetime
 
-from FEXT.commons.utils.learning.scheduler import LRScheduler
+from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
@@ -138,7 +138,7 @@ class ModelSerializer:
         
     #--------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint_name):
-        custom_objects = {'LRScheduler': LRScheduler}                
+        custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path, custom_objects=custom_objects) 
