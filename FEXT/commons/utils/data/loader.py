@@ -12,7 +12,7 @@ class TrainingDataLoader:
 
     def __init__(self, configuration, shuffle=True):
         self.processor = DataLoaderProcessor(configuration) 
-        self.batch_size = self.configuration['training']["BATCH_SIZE"]
+        self.batch_size = configuration['training']["BATCH_SIZE"]
         self.configuration = configuration
         self.shuffle = shuffle             
 
@@ -20,7 +20,7 @@ class TrainingDataLoader:
     #--------------------------------------------------------------------------
     def compose_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):
         num_samples = len(images) 
-        batch_size = self.configuration["BATCH_SIZE"] if batch_size is None else batch_size
+        batch_size = self.batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)                
         dataset = dataset.map(
             self.processor.load_and_process_image, num_parallel_calls=buffer_size)        

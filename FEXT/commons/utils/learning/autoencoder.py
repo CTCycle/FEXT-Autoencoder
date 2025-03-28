@@ -22,7 +22,8 @@ class FeXTAutoEncoder:
         self.scheduler_config = configuration["training"]["LR_SCHEDULER"]
         self.initial_lr = self.scheduler_config["INITIAL_LR"]
         self.constant_lr_steps = self.scheduler_config["CONSTANT_STEPS"]       
-        self.decay_steps = self.scheduler_config["DECAY_STEPS"]           
+        self.decay_steps = self.scheduler_config["DECAY_STEPS"]  
+        self.final_lr = self.scheduler_config["FINAL_LR"]         
         self.configuration = configuration       
 
     # build model given the architecture
@@ -63,7 +64,7 @@ class FeXTAutoEncoder:
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
         lr_schedule = LRScheduler(
-            self.initial_lr, self.constant_lr_steps, self.decay_steps)            
+            self.initial_lr, self.constant_lr_steps, self.decay_steps, self.final_lr)            
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
         loss = losses.MeanAbsoluteError()        
         metric = [metrics.CosineSimilarity()]
