@@ -60,18 +60,22 @@ if __name__ == '__main__':
     evaluation_report(model, train_dataset, validation_dataset) 
 
     # 5. [COMPARE RECONTRUCTED IMAGES]
-    #--------------------------------------------------------------------------
-    validator = ImageReconstruction(CONFIG, model, checkpoint_path)
-    train_images = [loader.load_image(path) for path in 
-                    random.sample(train_data, validator.num_images)]
-    validation_images = [loader.load_image(path) for path in 
-                         random.sample(validation_data, validator.num_images)]
+    #--------------------------------------------------------------------------   
+    validator = ImageReconstruction(CONFIG, model, checkpoint_path) 
+    train_images = [
+        loader.load_image_as_array(path) for path in 
+        random.sample(train_data, validator.num_images)]
+    validation_images = [
+        loader.load_image_as_array(path) for path in 
+        random.sample(validation_data, validator.num_images)]
     
     logger.info(
-        f'Comparing {validator.num_images} reconstructed images to inputs from training dataset')
-    validator.visualize_reconstructed_images(train_images, data_name='training')
+        f'Comparing {validator.num_images} reconstructed images rom training dataset')
+    validator.visualize_reconstructed_images(
+        train_images, 'train_images_reconstruction')
     logger.info(
-        f'Comparing {validator.num_images} reconstructed images to inputs from validation dataset')
-    validator.visualize_reconstructed_images(validation_images, data_name='validation')
+        f'Comparing {validator.num_images} reconstructed images from validation dataset')
+    validator.visualize_reconstructed_images(
+        validation_images, 'validation_images_reconstruction')
 
    

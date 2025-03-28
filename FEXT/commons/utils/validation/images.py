@@ -47,7 +47,7 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, images : list, data_name='training'):        
+    def visualize_reconstructed_images(self, images : list, filename='training'):        
         num_pics = len(images)
         fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
         for i, img in enumerate(images):           
@@ -65,7 +65,7 @@ class ImageReconstruction:
         
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.validation_path, f'{data_name}_reconstructed_images.jpeg'), 
+            os.path.join(self.validation_path, f'{filename}.jpeg'), 
             dpi=self.DPI)
         plt.close()
                  
