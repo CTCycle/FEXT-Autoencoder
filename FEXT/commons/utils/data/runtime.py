@@ -12,7 +12,12 @@ class DataLoaderProcessor:
         self.img_shape = (128, 128)   
         self.num_channels = 3   
         self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
-        self.configuration = configuration  
+        self.configuration = configuration 
+
+    # load and preprocess a single image
+    #--------------------------------------------------------------------------
+    def set_augmentation(self, state=False): 
+        self.augmentation = state
 
     # load and preprocess a single image
     #--------------------------------------------------------------------------
