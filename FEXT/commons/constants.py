@@ -10,7 +10,7 @@ DATA_PATH = join(RSC_PATH, 'database')
 IMG_PATH = join(DATA_PATH, 'images')
 VALIDATION_PATH = join(DATA_PATH, 'validation')
 CHECKPOINT_PATH = join(RSC_PATH, 'checkpoints')
-INFERENCE_PATH = join(RSC_PATH, 'inference')
+INFERENCE_PATH = join(DATA_PATH, 'inference')
 INFERENCE_INPUT_PATH = join(INFERENCE_PATH, 'images')
 LOGS_PATH = join(RSC_PATH, 'logs')
 

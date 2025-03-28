@@ -1,6 +1,6 @@
-FEXT/resources/database/images/*
+FEXT/resources/database/dataset/*
 FEXT/resources/database/validation/*
-FEXT/resources/inference/images/*
+FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
 setup/environment/*
@@ -8,6 +8,9 @@ setup/miniconda/*
 setup/variables/.env
 
 __pycache__
+*.jpeg
+*.jpg
+*.png
 *.db
 *.log
 *.npy
