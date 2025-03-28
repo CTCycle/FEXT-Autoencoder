@@ -16,14 +16,13 @@ class DataLoaderProcessor:
 
     # load and preprocess a single image
     #--------------------------------------------------------------------------
-    def load_image(self, path, normalize=True): 
+    def load_image(self, path): 
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
             image, channels=3, expand_animations=False)        
-        rgb_image = tf.image.resize(rgb_image, self.img_shape)             
-        rgb_image = rgb_image/255.0 if normalize else rgb_image 
+        rgb_image = tf.image.resize(rgb_image, self.img_shape)        
         
-        return rgb_image, rgb_image       
+        return rgb_image      
     
     # load and preprocess a single image
     #--------------------------------------------------------------------------
