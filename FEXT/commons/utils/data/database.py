@@ -1,7 +1,6 @@
 import os
 import sqlite3
 import pandas as pd
-from sqlalchemy import types
 
 from FEXT.commons.constants import DATA_PATH
 from FEXT.commons.logger import logger
@@ -31,8 +30,8 @@ class ImageStatisticsTable:
     
     #--------------------------------------------------------------------------
     def create_table(self, cursor):
-        query = '''
-        CREATE TABLE IF NOT EXISTS IMAGE_STATISTICS (
+        query = f'''
+        CREATE TABLE IF NOT EXISTS {self.name} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name VARCHAR,
             height INTEGER,
@@ -48,8 +47,6 @@ class ImageStatisticsTable:
         );
         '''
         cursor.execute(query)
-
-        return cursor
     
     
 ###############################################################################
@@ -87,8 +84,8 @@ class CheckpointSummaryTable:
     
     #--------------------------------------------------------------------------
     def create_table(self, cursor):
-        query = '''
-        CREATE TABLE IF NOT EXISTS CHECKPOINTS_SUMMARY (
+        query = f'''
+        CREATE TABLE IF NOT EXISTS {self.name} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             checkpoint_name VARCHAR,
             sample_size FLOAT,
@@ -114,9 +111,8 @@ class CheckpointSummaryTable:
             lr_scheduler_decay_steps FLOAT
             );
             '''  
-        cursor.execute(query)
-
-        return cursor 
+        
+        cursor.execute(query)       
 
 
 # [DATABASE]
@@ -127,16 +123,15 @@ class FEXTDatabase:
         self.db_path = os.path.join(DATA_PATH, 'FEXT_database.db')               
         self.configuration = configuration
         self.image_stats = ImageStatisticsTable()
-        self.checkpoints_summary = CheckpointSummaryTable()
-         
+        self.checkpoints_summary = CheckpointSummaryTable()         
         self.initialize_database()  
 
     #--------------------------------------------------------------------------       
     def initialize_database(self):        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor() 
-        cursor = self.image_stats.create_table(cursor)  
-        cursor = self.checkpoints_summary.create_table(cursor)   
+        self.image_stats.create_table(cursor)  
+        self.checkpoints_summary.create_table(cursor)   
         conn.commit()
         conn.close()       
 
