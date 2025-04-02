@@ -6,7 +6,7 @@ from FEXT.commons.logger import logger
              
 
 ###############################################################################
-class DataLoaderProcessor:
+class TrainingDataLoaderProcessor:
 
     def __init__(self, configuration):                
         self.img_shape = (128, 128)   
