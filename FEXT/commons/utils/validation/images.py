@@ -26,7 +26,8 @@ class ImageReconstruction:
         self.configuration = configuration
         self.num_images = configuration['validation']['NUM_IMAGES']
         self.DPI = configuration['validation']['DPI']  
-        self.file_type = 'jpeg'    
+        self.file_type = 'jpeg'
+            
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
