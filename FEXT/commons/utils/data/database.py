@@ -146,7 +146,7 @@ class FEXTDatabase:
         conn.close() 
 
     #--------------------------------------------------------------------------
-    def save_checkpoints_summary(self, data : pd.DataFrame): 
+    def save_checkpoints_summary_table(self, data : pd.DataFrame): 
         # connect to sqlite database and save the preprocessed data as table
         conn = sqlite3.connect(self.db_path)         
         data.to_sql(
