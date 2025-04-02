@@ -52,7 +52,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------  
     # use tf.data.Dataset to build the model dataloader with a larger batch size
     # the dataset is built on top of the training and validation data
-    loader = InferenceDataLoader(CONFIG)        
+    loader = InferenceDataLoader(configuration)        
     train_dataset = loader.build_inference_dataloader(train_data)
     validation_dataset = loader.build_inference_dataloader(validation_data)
 
@@ -61,21 +61,8 @@ if __name__ == '__main__':
 
     # 5. [COMPARE RECONTRUCTED IMAGES]
     #--------------------------------------------------------------------------   
-    validator = ImageReconstruction(CONFIG, model, checkpoint_path) 
-    train_images = [
-        loader.load_image_as_array(path) for path in 
-        random.sample(train_data, validator.num_images)]
-    validation_images = [
-        loader.load_image_as_array(path) for path in 
-        random.sample(validation_data, validator.num_images)]
-    
-    logger.info(
-        f'Comparing {validator.num_images} reconstructed images rom training dataset')
-    validator.visualize_reconstructed_images(
-        train_images, 'train_images_reconstruction')
-    logger.info(
-        f'Comparing {validator.num_images} reconstructed images from validation dataset')
-    validator.visualize_reconstructed_images(
-        validation_images, 'validation_images_reconstruction')
+    validator = ImageReconstruction(CONFIG, model, checkpoint_path)      
+    validator.visualize_reconstructed_images(train_dataset, validation_dataset)    
+   
 
    

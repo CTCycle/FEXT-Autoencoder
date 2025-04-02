@@ -1,5 +1,6 @@
 import os
 import cv2
+import random
 import pandas as pd
 import numpy as np
 import keras
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
+from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.constants import DATA_PATH, VALIDATION_PATH
 from FEXT.commons.logger import logger
@@ -21,13 +23,24 @@ class ImageReconstruction:
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.validation_path = os.path.join(VALIDATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
+        self.loader = InferenceDataLoader(configuration) 
 
         self.model = model  
         self.configuration = configuration
         self.num_images = configuration['validation']['NUM_IMAGES']
         self.DPI = configuration['validation']['DPI']  
         self.file_type = 'jpeg'
-            
+
+    #-------------------------------------------------------------------------- 
+    def get_images(self, train_data, validation_data):
+        train_images = [
+            self.loader.load_image_as_array(path) for path in 
+            random.sample(train_data, self.num_images)]
+        validation_images = [
+            self.loader.load_image_as_array(path) for path in 
+            random.sample(validation_data, self.num_images)]
+                
+        return train_images, validation_images
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
@@ -48,10 +61,12 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, images : list, filename='training'):        
-        num_pics = len(images)
-        fig, axs = plt.subplots(num_pics, 2, figsize=(4, num_pics * 2))
-        for i, img in enumerate(images):           
+    def visualize_reconstructed_images(self, train_data, validation_data):       
+        train_images, val_images = self.get_images(train_data, validation_data)
+        logger.info(
+        f'Comparing {self.num_images} reconstructed images from both training and validation dataset')
+        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
+        for i, img in enumerate(train_images):           
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
                 expanded_img, verbose=0, batch_size=1)[0]              
@@ -66,9 +81,29 @@ class ImageReconstruction:
         
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.validation_path, f'{filename}.jpeg'), 
+            os.path.join(self.validation_path, 'training_images_recostruction.jpeg'), 
             dpi=self.DPI)
         plt.close()
+       
+        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
+        for i, img in enumerate(train_images):           
+            expanded_img = np.expand_dims(img, axis=0)                 
+            reconstructed_image = self.model.predict(
+                expanded_img, verbose=0, batch_size=1)[0]              
+            real = np.clip(img, 0, 1)
+            pred = np.clip(reconstructed_image, 0, 1)          
+            axs[i, 0].imshow(real)
+            axs[i, 0].set_title('Original Picture' if i == 0 else "")
+            axs[i, 0].axis('off')            
+            axs[i, 1].imshow(pred)
+            axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
+            axs[i, 1].axis('off')
+        
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(self.validation_path, 'validation_images_recostruction.jpeg'), 
+            dpi=self.DPI)
+        plt.close()    
                  
 
 # [VALIDATION OF PRETRAINED MODELS]
