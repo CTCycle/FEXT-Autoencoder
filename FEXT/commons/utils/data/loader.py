@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from FEXT.commons.utils.data.runtime import DataLoaderProcessor
+from FEXT.commons.utils.data.runtime import TrainingDataLoaderProcessor
 from FEXT.commons.logger import logger
 
    
@@ -11,7 +11,7 @@ from FEXT.commons.logger import logger
 class TrainingDataLoader:
 
     def __init__(self, configuration, shuffle=True):
-        self.processor = DataLoaderProcessor(configuration) 
+        self.processor = TrainingDataLoaderProcessor(configuration) 
         self.batch_size = configuration['training']["BATCH_SIZE"]
         self.configuration = configuration
         self.shuffle = shuffle             
@@ -43,7 +43,7 @@ class InferenceDataLoader:
 
     def __init__(self, configuration):
         # initialize dataloader processor and turn image augmentation off
-        self.processor = DataLoaderProcessor(configuration)
+        self.processor = TrainingDataLoaderProcessor(configuration)
         self.processor.set_augmentation(False)        
         self.batch_size = configuration['validation']["BATCH_SIZE"]    
         self.img_shape = (128, 128, 3)
