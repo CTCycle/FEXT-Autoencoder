@@ -3,7 +3,7 @@ from keras import activations, layers
 
 # [CONVOLUTIONAL BLOCKS]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='ResidualConvolutivePooling')
+@keras.saving.register_keras_serializable(package='CustomLayers', name='ResidualConvolutivePooling')
 class ResidualConvolutivePooling(layers.Layer):
     
     def __init__(self, units, num_layers, **kwargs):
@@ -49,7 +49,7 @@ class ResidualConvolutivePooling(layers.Layer):
     
 # [TRANSPOSE CONVOLUTIONAL BLOCKS]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='ResidualTransConvolutiveUpsampling')
+@keras.saving.register_keras_serializable(package='CustomLayers', name='ResidualTransConvolutiveUpsampling')
 class ResidualTransConvolutiveUpsampling(layers.Layer):
     
     def __init__(self, units, num_layers, **kwargs):

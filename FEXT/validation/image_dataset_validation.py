@@ -37,7 +37,6 @@ if __name__ == '__main__':
     # 3. [COMPARE TRAIN AND TEST DATASETS]
     #--------------------------------------------------------------------------
     splitter = TrainValidationSplit(images_paths, CONFIG)     
-    train_data, validation_data = splitter.split_train_and_validation()
-    logger.info('Splitting images pool into train and validation datasets')
+    train_data, validation_data = splitter.split_train_and_validation()    
     logger.info(f'Number of train samples: {len(train_data)}')
     logger.info(f'Number of validation samples: {len(validation_data)}')

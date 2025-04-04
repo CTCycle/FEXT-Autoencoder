@@ -5,7 +5,7 @@ import torch
     
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='CompressionLayer')
+@keras.saving.register_keras_serializable(package='CustomLayers', name='CompressionLayer')
 class CompressionLayer(layers.Layer):
     
     def __init__(self, units, dropout_rate=0.2, num_layers=4, seed=42, **kwargs):
@@ -52,7 +52,7 @@ class CompressionLayer(layers.Layer):
     
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
-@keras.utils.register_keras_serializable(package='CustomLayers', name='DecompressionLayer')
+@keras.saving.register_keras_serializable(package='CustomLayers', name='DecompressionLayer')
 class DecompressionLayer(layers.Layer):
     
     def __init__(self, units=256, num_layers=3, seed=42, **kwargs):
