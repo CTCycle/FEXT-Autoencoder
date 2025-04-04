@@ -11,7 +11,7 @@
     "device" : {"DEVICE" : "GPU",
                 "DEVICE_ID" : 0,
                 "MIXED_PRECISION" : false,                                                
-                "NUM_PROCESSORS": 6},
+                "NUM_PROCESSORS": 3},
 
     "training" : {"EPOCHS" : 1,
                   "ADDITIONAL_EPOCHS" : 1,                  
