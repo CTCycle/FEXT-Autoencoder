@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 0.8,
+    "dataset" : {"SAMPLE_SIZE" : 1.0,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_AUGMENTATION" : true,                 
                  "SPLIT_SEED" : 76},
@@ -13,8 +13,8 @@
                 "MIXED_PRECISION" : false,                                                
                 "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 20,
-                  "ADDITIONAL_EPOCHS" : 20,                  
+    "training" : {"EPOCHS" : 1,
+                  "ADDITIONAL_EPOCHS" : 1,                  
                   "BATCH_SIZE" : 25,                  
                   "USE_TENSORBOARD" : true,
                   "SAVE_CHECKPOINTS": false,
