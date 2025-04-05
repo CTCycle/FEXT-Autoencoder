@@ -103,20 +103,20 @@ class TrainingDataLoader:
     def __init__(self, configuration, shuffle=True):
         self.processor = TrainingDataLoaderProcessor(configuration) 
         self.batch_size = configuration['training']["BATCH_SIZE"]
+        self.shuffle_samples = 1024
         self.configuration = configuration
         self.shuffle = shuffle             
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
-    def compose_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):
-        num_samples = len(images) 
+    def compose_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):        
         batch_size = self.batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)                
         dataset = dataset.map(
             self.processor.load_and_process_image, num_parallel_calls=buffer_size)        
         dataset = dataset.batch(batch_size)
         dataset = dataset.prefetch(buffer_size=buffer_size)
-        dataset = dataset.shuffle(buffer_size=num_samples) if self.shuffle else dataset 
+        dataset = dataset.shuffle(buffer_size=self.shuffle_samples) if self.shuffle else dataset 
 
         return dataset         
       

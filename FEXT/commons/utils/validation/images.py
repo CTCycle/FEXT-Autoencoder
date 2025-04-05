@@ -86,7 +86,7 @@ class ImageReconstruction:
         plt.close()
        
         fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
-        for i, img in enumerate(train_images):           
+        for i, img in enumerate(val_images):           
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
                 expanded_img, verbose=0, batch_size=1)[0]              

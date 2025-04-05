@@ -18,7 +18,7 @@ from FEXT.commons.logger import logger
 
 # [RUN MAIN]
 ###############################################################################
-if __name__ == '__main__':
+if __name__ == '__main__':   
 
     # 1. [LOAD AND SPLIT DATA]
     #--------------------------------------------------------------------------    
@@ -29,24 +29,26 @@ if __name__ == '__main__':
     # split data into train and validation        
     logger.info('Preparing dataset of images based on splitting sizes')  
     splitter = TrainValidationSplit(images_paths, CONFIG)     
-    train_data, validation_data = splitter.split_train_and_validation()     
-    
+    train_data, validation_data = splitter.split_train_and_validation()         
+
     # 2. [DEFINE IMAGES GENERATOR AND BUILD TF.DATASET]
-    #-------------------------------------------------------------------------- 
-    modelserializer = ModelSerializer()
-    checkpoint_path = modelserializer.create_checkpoint_folder()
-
-    logger.info('Setting device for training operations based on user configurations') 
-    trainer = ModelTraining(CONFIG)
-    trainer.set_device()   
-
+    #--------------------------------------------------------------------------
     # create the tf.datasets using the previously initialized generators 
     logger.info('Building model data loaders with prefetching and parallel processing') 
     builder = TrainingDataLoader(CONFIG)   
     train_dataset, validation_dataset = builder.build_training_dataloader(
-        train_data, validation_data)           
+        train_data, validation_data)  
     
-    # 3. [TRAINING MODEL]
+    modelserializer = ModelSerializer()
+    checkpoint_path = modelserializer.create_checkpoint_folder()  
+
+    # 3. [SET DEVICE]
+    #--------------------------------------------------------------------------
+    logger.info('Setting device for training operations based on user configurations') 
+    trainer = ModelTraining(CONFIG)
+    trainer.set_device()         
+    
+    # 4. [TRAINING MODEL]
     # Setting callbacks and training routine for the machine learning model 
     # use command prompt on the model folder and (upon activating environment), 
     # use the bash command: python -m tensorboard.main --logdir tensorboard/ 

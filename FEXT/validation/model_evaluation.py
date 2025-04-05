@@ -46,15 +46,15 @@ if __name__ == '__main__':
     images_path = dataserializer.get_images_path_from_directory(IMG_PATH)
 
     splitter = TrainValidationSplit(images_path, configuration)     
-    train_data, validation_data = splitter.split_train_and_validation() 
+    train_images, validation_images = splitter.split_train_and_validation() 
 
     # 4. [EVALUATE ON TRAIN AND VALIDATION]
     #--------------------------------------------------------------------------  
     # use tf.data.Dataset to build the model dataloader with a larger batch size
     # the dataset is built on top of the training and validation data
     loader = InferenceDataLoader(configuration)        
-    train_dataset = loader.build_inference_dataloader(train_data)
-    validation_dataset = loader.build_inference_dataloader(validation_data)
+    train_dataset = loader.build_inference_dataloader(train_images)
+    validation_dataset = loader.build_inference_dataloader(validation_images)
 
     # evaluate model performance over the training and validation dataset    
     evaluation_report(model, train_dataset, validation_dataset) 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # 5. [COMPARE RECONTRUCTED IMAGES]
     #--------------------------------------------------------------------------   
     validator = ImageReconstruction(CONFIG, model, checkpoint_path)      
-    validator.visualize_reconstructed_images(train_dataset, validation_dataset)    
+    validator.visualize_reconstructed_images(train_images, validation_images)    
    
 
    
