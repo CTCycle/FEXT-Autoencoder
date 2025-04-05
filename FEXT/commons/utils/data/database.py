@@ -136,11 +136,11 @@ class FEXTDatabase:
         conn.close()       
 
     #--------------------------------------------------------------------------
-    def save_image_statistics(self, data : pd.DataFrame): 
+    def save_image_statistics_table(self, data : pd.DataFrame): 
         # connect to sqlite database and save the preprocessed data as table
         conn = sqlite3.connect(self.db_path)         
         data.to_sql(
-            self.image_stats.name, conn, if_exists='replace',
+            self.image_stats.name, conn, if_exists='replace', index=False,
             dtype=self.image_stats.get_dtypes())
         conn.commit()
         conn.close() 
@@ -150,7 +150,7 @@ class FEXTDatabase:
         # connect to sqlite database and save the preprocessed data as table
         conn = sqlite3.connect(self.db_path)         
         data.to_sql(
-            self.checkpoints_summary.name, conn, if_exists='replace',
+            self.checkpoints_summary.name, conn, if_exists='replace', index=False,
             dtype=self.checkpoints_summary.get_dtypes())
         conn.commit()
         conn.close() 
