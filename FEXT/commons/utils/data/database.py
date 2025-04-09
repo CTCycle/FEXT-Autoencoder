@@ -32,7 +32,6 @@ class ImageStatisticsTable:
     def create_table(self, cursor):
         query = f'''
         CREATE TABLE IF NOT EXISTS {self.name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
             name VARCHAR,
             height INTEGER,
             width INTEGER,
@@ -85,8 +84,7 @@ class CheckpointSummaryTable:
     #--------------------------------------------------------------------------
     def create_table(self, cursor):
         query = f'''
-        CREATE TABLE IF NOT EXISTS {self.name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        CREATE TABLE IF NOT EXISTS {self.name} (            
             checkpoint_name VARCHAR,
             sample_size FLOAT,
             validation_size FLOAT,
@@ -136,8 +134,7 @@ class FEXTDatabase:
         conn.close()       
 
     #--------------------------------------------------------------------------
-    def save_image_statistics_table(self, data : pd.DataFrame): 
-        # connect to sqlite database and save the preprocessed data as table
+    def save_image_statistics_table(self, data : pd.DataFrame):        
         conn = sqlite3.connect(self.db_path)         
         data.to_sql(
             self.image_stats.name, conn, if_exists='replace', index=False,
@@ -146,8 +143,7 @@ class FEXTDatabase:
         conn.close() 
 
     #--------------------------------------------------------------------------
-    def save_checkpoints_summary_table(self, data : pd.DataFrame): 
-        # connect to sqlite database and save the preprocessed data as table
+    def save_checkpoints_summary_table(self, data : pd.DataFrame):         
         conn = sqlite3.connect(self.db_path)         
         data.to_sql(
             self.checkpoints_summary.name, conn, if_exists='replace', index=False,
