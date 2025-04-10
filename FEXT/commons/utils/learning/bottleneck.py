@@ -70,7 +70,7 @@ class DecompressionLayer(layers.Layer):
     def call(self, inputs, training=None):        
         batch_size, sequence_dims, channels = keras.ops.shape(inputs)        
         original_dims = keras.ops.sqrt(sequence_dims)
-        original_dims = keras.ops.cast(original_dims, dtype=torch.int32)        
+        original_dims = keras.ops.cast(original_dims, dtype='int32')        
         layer = keras.ops.reshape(
             inputs, (batch_size, original_dims, original_dims, channels))     
         for dense, batch_norm in zip(self.dense_layers, self.batch_norm_layers):
