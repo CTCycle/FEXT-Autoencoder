@@ -1,6 +1,6 @@
 {   
     "SEED" : 42,   
-    "dataset" : {"SAMPLE_SIZE" : 1.0,
+    "dataset" : {"SAMPLE_SIZE" : 0.5,
                  "VALIDATION_SIZE" : 0.2,                 
                  "IMG_AUGMENTATION" : true,                 
                  "SPLIT_SEED" : 76},
@@ -11,11 +11,11 @@
     "device" : {"DEVICE" : "GPU",
                 "DEVICE_ID" : 0,
                 "MIXED_PRECISION" : false,                                                
-                "NUM_PROCESSORS": 3},
+                "NUM_PROCESSORS": 6},
 
-    "training" : {"EPOCHS" : 1,
-                  "ADDITIONAL_EPOCHS" : 1,                  
-                  "BATCH_SIZE" : 25,                  
+    "training" : {"EPOCHS" : 3,
+                  "ADDITIONAL_EPOCHS" : 10,                  
+                  "BATCH_SIZE" : 20,                  
                   "USE_TENSORBOARD" : true,
                   "SAVE_CHECKPOINTS": false,
                   "LR_SCHEDULER" : {"INITIAL_LR" : 0.001,
