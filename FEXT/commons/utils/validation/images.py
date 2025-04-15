@@ -32,15 +32,11 @@ class ImageReconstruction:
         self.file_type = 'jpeg'
 
     #-------------------------------------------------------------------------- 
-    def get_images(self, train_data, validation_data):
-        train_images = [
-            self.loader.load_image_as_array(path) for path in 
-            random.sample(train_data, self.num_images)]
-        validation_images = [
-            self.loader.load_image_as_array(path) for path in 
-            random.sample(validation_data, self.num_images)]
+    def get_images(self, data):
+        images = [self.loader.load_image_as_array(path) for path in 
+                  random.sample(data, self.num_images)]        
                 
-        return train_images, validation_images
+        return images
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
@@ -61,31 +57,11 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, train_data, validation_data):       
-        train_images, val_images = self.get_images(train_data, validation_data)
+    def visualize_reconstructed_images(self, validation_data):       
+        val_images = self.get_images(validation_data)
         logger.info(
-        f'Comparing {self.num_images} reconstructed images from both training and validation dataset')
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
-        for i, img in enumerate(train_images):           
-            expanded_img = np.expand_dims(img, axis=0)                 
-            reconstructed_image = self.model.predict(
-                expanded_img, verbose=0, batch_size=1)[0]              
-            real = np.clip(img, 0, 1)
-            pred = np.clip(reconstructed_image, 0, 1)          
-            axs[i, 0].imshow(real)
-            axs[i, 0].set_title('Original Picture' if i == 0 else "")
-            axs[i, 0].axis('off')            
-            axs[i, 1].imshow(pred)
-            axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
-            axs[i, 1].axis('off')
-        
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(self.validation_path, 'training_images_recostruction.jpeg'), 
-            dpi=self.DPI)
-        plt.close()
-       
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
+        f'Comparing {self.num_images} reconstructed images from validation dataset')
+        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
         for i, img in enumerate(val_images):           
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
@@ -101,7 +77,7 @@ class ImageReconstruction:
         
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.validation_path, 'validation_images_recostruction.jpeg'), 
+            os.path.join(self.validation_path, 'images_recostruction.jpeg'), 
             dpi=self.DPI)
         plt.close()    
                  
