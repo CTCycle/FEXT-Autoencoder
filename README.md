@@ -36,15 +36,20 @@ On Windows, run *start_on_windows.bat* to launch the main navigation menu and br
 
 ### 5.1 Navigation menu
 
-**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in the image statistics table of the database. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. Then, the average pixel distribution is calculated and saved into *resources/database/validation*.  
+**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in the database. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. The following analysis are then performed on the image dataset (saved in *resources/database/validation*):
+- Calculation of images statistics (pixels mean values, standard deviation, values range, noise ratio)
+- Calculation of average pixel distribution 
+- Average pixel distribution of train versus validation   
 
 **2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation.
 
-- **train from scratch:** start training an instance of the autoencoder model from scratch. 
+**train from scratch:** start training an instance of the autoencoder model from scratch. 
 
-- **train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
+**train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
 
-- **model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. The average mean squared error and mean average error are calculated for both the training and validation datasets. Random images are sampled from both datasets and reconstructed using a checkpoint encoder, while being visually compared to their original counterpart.   
+**model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. These are the following:
+- Calculation of average mean squared error and mean average error for training and validation datasets
+- Visual comparison of random reconstructed images 
 
 **3) Encode images:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*. 
 
