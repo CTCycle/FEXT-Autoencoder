@@ -1,8 +1,9 @@
-import os
-import keras
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+import os
+import keras
 import webbrowser
 import subprocess
 import time
@@ -63,30 +64,21 @@ class RealTimeHistory(keras.callbacks.Callback):
         plt.savefig(fig_path, bbox_inches='tight', format='jpeg', dpi=300)
         plt.close()
 
-
-# [LOGGING]
-###############################################################################
-class LoggingCallback(keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        if logs is not None:
-            logger.debug(f"Epoch {epoch + 1}: {logs}")
-
-    
+  
 # [CALLBACKS HANDLER]
 ###############################################################################
 def callbacks_handler(configuration, checkpoint_path, history):
 
-    RTH_callback = RealTimeHistory(checkpoint_path, past_logs=history)
-    logger_callback = LoggingCallback()   
-    callbacks_list = [RTH_callback, logger_callback]
+    RTH_callback = RealTimeHistory(checkpoint_path, past_logs=history)   
+    callbacks_list = [RTH_callback]
 
     # initialize tensorboard if requested    
     if configuration["training"]["USE_TENSORBOARD"]:
         logger.debug('Using tensorboard during training')
         log_path = os.path.join(checkpoint_path, 'tensorboard')
-        callbacks_list.append(keras.callbacks.TensorBoard(log_dir=log_path, histogram_freq=1,
-                                                          write_images=True))          
-        start_tensorboard(log_path)      
+        callbacks_list.append(keras.callbacks.TensorBoard(
+            log_dir=log_path, histogram_freq=1, write_images=True))          
+        start_tensorboard_subprocess(log_path)      
 
     # Add a checkpoint saving callback
     if configuration["training"]["SAVE_CHECKPOINTS"]:
@@ -103,11 +95,11 @@ def callbacks_handler(configuration, checkpoint_path, history):
 
 
 ###############################################################################
-def start_tensorboard(log_dir):
-    
+def start_tensorboard_subprocess(log_dir):    
     tensorboard_command = ["tensorboard", "--logdir", log_dir, "--port", "6006"]
-    subprocess.Popen(tensorboard_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)      
-    time.sleep(4)            
+    subprocess.Popen(
+        tensorboard_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)      
+    time.sleep(5)            
     webbrowser.open("http://localhost:6006")       
         
     
