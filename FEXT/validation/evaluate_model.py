@@ -33,7 +33,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     # selected and load the pretrained model, then print the summary 
     modelserializer = ModelSerializer()         
-    model, configuration, history, checkpoint_path = modelserializer.select_and_load_checkpoint()
+    model, configuration, checkpoint_path = modelserializer.select_and_load_checkpoint()
     model.summary(expand_nested=True)
 
     # isolate the encoder from the autoencoder model   
