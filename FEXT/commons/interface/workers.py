@@ -1,11 +1,10 @@
 import os
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
-from EMADB.commons.constants import ROOT_DIR, DATA_PATH
-from EMADB.commons.logger import logger
+from FEXT.commons.constants import ROOT_DIR, DATA_PATH
+from FEXT.commons.logger import logger
 
 
-# [MAIN WINDOW]
 ###############################################################################
 class WorkerSignals(QObject):
     finished = Signal(object)      
@@ -13,7 +12,6 @@ class WorkerSignals(QObject):
     progress = Signal(int)    
 
 
-# [MAIN WINDOW]
 ###############################################################################
 class Worker(QRunnable):
     

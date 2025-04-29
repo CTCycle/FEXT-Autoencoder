@@ -4,14 +4,16 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QPlainTextE
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
 
+from FEXT.commons.variables import EnvironmentVariables
 from FEXT.commons.configurations import Configurations
 from FEXT.commons.interface.events import ValidationEvents
+from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import UI_PATH
 from FEXT.commons.logger import logger
 
 
 
-# [MAIN WINDOW]
+
 ###############################################################################
 class MainWindow:
     
@@ -23,11 +25,22 @@ class MainWindow:
         self.main_win = loader.load(ui_file)
         ui_file.close()  
        
+        self.text_dataset = None
+        self.tokenizers = None       
+        self.figures = []
+        self.pixmaps = None
+
         # initial settings
         self.config_manager = Configurations()
         self.configurations = self.config_manager.get_configurations()
-
+    
         self.threadpool = QThreadPool.globalInstance()
+        self._validation_worker = None
+        self._training_worker = None        
+
+        # get Hugging Face access token
+        EV = EnvironmentVariables()
+        self.env_variables = EV.get_environment_variables()
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
@@ -98,7 +111,7 @@ class MainWindow:
         self.set_CPU = self.main_win.findChild(QRadioButton, "setCPU")
         self.set_GPU = self.main_win.findChild(QRadioButton, "setGPU")     
 
-        # connect their toggled signals to our updater
+        # connect their toggled signals to our updater        
         self.set_img_agumentation.toggled.connect(self._update_settings)
         self.set_shuffle.toggled.connect(self._update_settings)
         self.set_mixed_precision.toggled.connect(self._update_settings)
@@ -106,28 +119,31 @@ class MainWindow:
         self.set_tensorboard.toggled.connect(self._update_settings)
         self.set_real_time_history.toggled.connect(self._update_settings)
         self.set_checkpoints.toggled.connect(self._update_settings)
-        self.set_LR_scheduler.toggled.connect(self._update_settings)       
+        self.set_LR_scheduler.toggled.connect(self._update_settings)
         self.set_general_seed.valueChanged.connect(self._update_settings)
         self.set_split_seed.valueChanged.connect(self._update_settings)
         self.set_train_seed.valueChanged.connect(self._update_settings)
         self.set_epochs.valueChanged.connect(self._update_settings)
         self.set_batch_size.valueChanged.connect(self._update_settings)
         self.set_device_ID.valueChanged.connect(self._update_settings)
+        self.save_cp_frequency.valueChanged.connect(self._update_settings)
+        self.set_num_workers.valueChanged.connect(self._update_settings)
+        self.set_constant_steps.valueChanged.connect(self._update_settings)
+        self.set_decay_steps.valueChanged.connect(self._update_settings)
         self.set_sample_size.valueChanged.connect(self._update_settings)
         self.set_train_sample_size.valueChanged.connect(self._update_settings)
         self.set_validation_size.valueChanged.connect(self._update_settings)
+        self.set_initial_LR.valueChanged.connect(self._update_settings)
+        self.set_target_LR.valueChanged.connect(self._update_settings)
         self.set_CPU.toggled.connect(self._update_settings)
-        self.set_GPU.toggled.connect(self._update_settings)  
-      
+        self.set_GPU.toggled.connect(self._update_settings)
+
     #--------------------------------------------------------------------------
     def _connect_signals(self):        
         self._connect_combo_box("backendJIT", self.on_JIT_backend_selection)
-        self._connect_button("loadDataset", self.load_and_process_dataset)
-        self._connect_button("analyzeDataset", self.run_dataset_analysis)       
-        self._connect_button("runBenchmarks", self.run_tokenizers_benchmark)        
-        self._connect_button("visualizeResults", self.generate_figures)  
-        self._connect_button("previousImg", self.show_previous_figure)
-        self._connect_button("nextImg", self.show_next_figure)       
+        self._connect_button("imageStats", self.calculate_image_statistics)
+        self._connect_button("pixelDist", self.g)
+           
        
     # --- Slots ---
     # It's good practice to define methods that act as slots within the class
@@ -156,9 +172,58 @@ class MainWindow:
 
         self.device = 'GPU' if self.set_GPU.isChecked() else 'CPU'
         self.config_manager.update_value('device', self.device)
+
+    #--------------------------------------------------------------------------
+    @Slot()
+    def calculate_image_statistics(self):         
+        self.configurations = self.config_manager.get_configurations() 
+        self.validation_handler = ValidationEvents(self.configurations) 
+        
+        # send message to status bar
+        # self._send_message(
+        #     f"Downloading dataset {corpus_text} (configuration: {config_text})")
+
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._data_worker = Worker(self.validation_handler.compute_dataset_statistics)
+        worker = self._data_worker       
+        worker.signals.finished.connect(self.on_statistics_calculated)
+        worker.signals.error.connect(self.on_validation_error)
+        self.threadpool.start(worker)      
         
 
-    
+    #--------------------------------------------------------------------------
+    @Slot(object)
+    def on_statistics_calculated(self, datasets):             
+        self.text_dataset = datasets
+        config = self.config_manager.get_configurations().get('DATASET', {})
+        corpus = config.get('corpus', 'NA')  
+        config = config.get('config', 'NA')         
+        message = f'Text dataset has been loaded: {corpus} with config {config}' 
+        self.loading_handler.handle_success(self.main_win, message)        
+       
+    #--------------------------------------------------------------------------
+    @Slot(tuple)
+    def on_validation_error(self, err_tb):
+        self.validation_handler.handle_error(self.main_win, err_tb)  
+
+    #--------------------------------------------------------------------------
+    @Slot()
+    def compute_pixel_distribution_histogram(self):         
+        self.configurations = self.config_manager.get_configurations() 
+        self.validation_handler = ValidationEvents(self.configurations) 
+        
+        # send message to status bar
+        # self._send_message(
+        #     f"Downloading dataset {corpus_text} (configuration: {config_text})")
+
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._data_worker = Worker(self.validation_handler.get_pixel_distribution)
+        worker = self._data_worker       
+        worker.signals.finished.connect(self.on_statistics_calculated)
+        worker.signals.error.connect(self.on_validation_error)
+        self.threadpool.start(worker)      
 
     #--------------------------------------------------------------------------
     @Slot(str)
