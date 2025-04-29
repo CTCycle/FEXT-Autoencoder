@@ -6,9 +6,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from EMADB.commons.interface.window import MainWindow
-from EMADB.commons.constants import UI_PATH
-from EMADB.commons.logger import logger
+from FEXT.commons.interface.window import MainWindow
+from FEXT.commons.constants import UI_PATH
+from FEXT.commons.logger import logger
 
 
 # [RUN MAIN]
