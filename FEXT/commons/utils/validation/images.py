@@ -131,14 +131,17 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})    
 
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics(stats_dataframe)       
+        self.database.save_image_statistics_table(stats_dataframe)       
         
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path : list):            
+    def calculate_pixel_intensity_distribution(self, images_path : list, progress_callback=None):                
         image_histograms = np.zeros(256, dtype=np.int64)        
-        for path in tqdm(images_path, desc="Processing image histograms", total=len(images_path), ncols=100):            
+        for i, path in enumerate(
+            tqdm(images_path, desc="Processing image histograms", 
+            total=len(images_path), ncols=100)):
+                        
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -147,6 +150,11 @@ class ImageAnalysis:
             # Calculate histogram for grayscale values [0, 255]
             hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
             image_histograms += hist.astype(np.int64)
+
+            if progress_callback is not None:
+                total = len(images_path)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)
 
         # Plot the combined histogram
         plt.figure(figsize=(14, 12))
