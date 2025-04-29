@@ -1,12 +1,13 @@
-from PySide6.QtWidgets import QPushButton, QCheckBox, QPlainTextEdit, QSpinBox, QMessageBox
+from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QPlainTextEdit, QDoubleSpinBox, QSpinBox,
+                               QMessageBox, QComboBox, QTextEdit, QProgressBar,
+                               QGraphicsScene, QGraphicsPixmapItem, QGraphicsView)
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool
+from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
 
-from EMADB.commons.utils.scraper.driver import WebDriverToolkit
-from EMADB.commons.configurations import Configurations
-from EMADB.commons.interface.events import SearchEvents
-from EMADB.commons.constants import UI_PATH
-from EMADB.commons.logger import logger
+from FEXT.commons.configurations import Configurations
+from FEXT.commons.interface.events import ValidationEvents
+from FEXT.commons.constants import UI_PATH
+from FEXT.commons.logger import logger
 
 
 
@@ -30,14 +31,27 @@ class MainWindow:
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
-        self.search_handler = SearchEvents(self.configurations)   
-        self.webdriver_handler = WebDriverToolkit(headless=True, ignore_SSL=False)         
+        self.validation_handler = ValidationEvents(self.configurations)                   
         
-        # --- modular checkbox setup ---
+        # setup UI elements
         self._setup_configurations()
+        self._connect_signals()
+        self._set_states()
 
-        # --- Connect signals to slots ---
-        self._connect_signals()      
+        # --- prepare graphics view for figures ---
+        self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
+        self.scene = QGraphicsScene()
+        self.pixmap_item = QGraphicsPixmapItem()
+        self.scene.addItem(self.pixmap_item)
+        self.view.setScene(self.scene)
+    
+
+    #--------------------------------------------------------------------------
+    def _set_states(self): 
+        self.data_progress_bar = self.main_win.findChild(QProgressBar, "dataProgressBar")
+        self.train_progress_bar = self.main_win.findChild(QProgressBar, "trainingProgressBar")
+        self.data_progress_bar.setValue(0)  
+        self.train_progress_bar.setValue(0)   
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -45,73 +59,113 @@ class MainWindow:
         button.clicked.connect(slot) 
 
     #--------------------------------------------------------------------------
+    def _connect_combo_box(self, combo_name: str, slot):        
+        combo = self.main_win.findChild(QComboBox, combo_name)
+        combo.currentTextChanged.connect(slot)
+
+    #--------------------------------------------------------------------------
     def _send_message(self, message): 
         self.main_win.statusBar().showMessage(message)
 
     #--------------------------------------------------------------------------
     def _setup_configurations(self):              
-        self.check_headless = self.main_win.findChild(QCheckBox, "Headless")
-        self.check_ignore_ssl = self.main_win.findChild(QCheckBox, "IgnoreSSL")
-        # set the default value of the wait time box to the current wait time
-        self.set_wait_time = self.main_win.findChild(QSpinBox, "waitTime")
-        self.set_wait_time.setValue(self.configurations.get('wait_time', 0))
-        # connect their toggled signals to our updater
-        self.check_headless.toggled.connect(self._update_search_settings)
-        self.check_ignore_ssl.toggled.connect(self._update_search_settings) 
-        self.set_wait_time.valueChanged.connect(self._update_search_settings)  
+        self.set_img_agumentation = self.main_win.findChild(QCheckBox, "imgAugment")
+        self.set_shuffle = self.main_win.findChild(QCheckBox, "setShuffle")
+        self.set_mixed_precision = self.main_win.findChild(QCheckBox, "mixedPrecision")
+        self.set_JIT_compiler = self.main_win.findChild(QCheckBox, "compileJIT")
+        self.set_tensorboard = self.main_win.findChild(QCheckBox, "runTensorboard")
+        self.set_real_time_history = self.main_win.findChild(QCheckBox, "realTimeHistory")
+        self.set_checkpoints = self.main_win.findChild(QCheckBox, "saveCheckpoints")
+        self.set_LR_scheduler = self.main_win.findChild(QCheckBox, "useScheduler")          
 
+        self.set_general_seed = self.main_win.findChild(QSpinBox, "seed")
+        self.set_split_seed = self.main_win.findChild(QSpinBox, "splitSeed")
+        self.set_train_seed = self.main_win.findChild(QSpinBox, "trainSeed")
+        self.set_epochs = self.main_win.findChild(QSpinBox, "numEpochs")
+        self.set_batch_size = self.main_win.findChild(QSpinBox, "batchSize")
+        self.set_device_ID = self.main_win.findChild(QSpinBox, "deviceID")
+        self.save_cp_frequency = self.main_win.findChild(QSpinBox, "saveCPFrequency")      
+        self.set_num_workers = self.main_win.findChild(QSpinBox, "numWorkers")     
+        self.set_constant_steps = self.main_win.findChild(QSpinBox, "saveCPFrequency")      
+        self.set_decay_steps = self.main_win.findChild(QSpinBox, "numWorkers")  
+        
+        self.set_sample_size = self.main_win.findChild(QDoubleSpinBox, "sampleSize")
+        self.set_train_sample_size = self.main_win.findChild(QDoubleSpinBox, "trainSampleSize")
+        self.set_validation_size = self.main_win.findChild(QDoubleSpinBox, "validationSize")
+        self.set_initial_LR = self.main_win.findChild(QDoubleSpinBox, "constantSteps")
+        self.set_target_LR = self.main_win.findChild(QDoubleSpinBox, "decaySteps")      
+
+        self.set_CPU = self.main_win.findChild(QRadioButton, "setCPU")
+        self.set_GPU = self.main_win.findChild(QRadioButton, "setGPU")     
+
+        # connect their toggled signals to our updater
+        self.set_img_agumentation.toggled.connect(self._update_settings)
+        self.set_shuffle.toggled.connect(self._update_settings)
+        self.set_mixed_precision.toggled.connect(self._update_settings)
+        self.set_JIT_compiler.toggled.connect(self._update_settings)
+        self.set_tensorboard.toggled.connect(self._update_settings)
+        self.set_real_time_history.toggled.connect(self._update_settings)
+        self.set_checkpoints.toggled.connect(self._update_settings)
+        self.set_LR_scheduler.toggled.connect(self._update_settings)       
+        self.set_general_seed.valueChanged.connect(self._update_settings)
+        self.set_split_seed.valueChanged.connect(self._update_settings)
+        self.set_train_seed.valueChanged.connect(self._update_settings)
+        self.set_epochs.valueChanged.connect(self._update_settings)
+        self.set_batch_size.valueChanged.connect(self._update_settings)
+        self.set_device_ID.valueChanged.connect(self._update_settings)
+        self.set_sample_size.valueChanged.connect(self._update_settings)
+        self.set_train_sample_size.valueChanged.connect(self._update_settings)
+        self.set_validation_size.valueChanged.connect(self._update_settings)
+        self.set_CPU.toggled.connect(self._update_settings)
+        self.set_GPU.toggled.connect(self._update_settings)  
+      
     #--------------------------------------------------------------------------
     def _connect_signals(self):        
-        self._connect_button("searchFromFile", self.search_from_file)
-        self._connect_button("searchFromBox", self.search_from_text)    
-        self._connect_button("checkDriver", self.check_webdriver) 
-
+        self._connect_combo_box("backendJIT", self.on_JIT_backend_selection)
+        self._connect_button("loadDataset", self.load_and_process_dataset)
+        self._connect_button("analyzeDataset", self.run_dataset_analysis)       
+        self._connect_button("runBenchmarks", self.run_tokenizers_benchmark)        
+        self._connect_button("visualizeResults", self.generate_figures)  
+        self._connect_button("previousImg", self.show_previous_figure)
+        self._connect_button("nextImg", self.show_next_figure)       
+       
     # --- Slots ---
     # It's good practice to define methods that act as slots within the class
     # that manages the UI elements. These slots can then call methods on the
     # handler objects. Using @Slot decorator is optional but good practice
     #--------------------------------------------------------------------------
     @Slot()
-    def _update_search_settings(self):
-        self.config_manager.update_value('headless', self.check_headless.isChecked())         
-        self.config_manager.update_value('ignore_SSL', self.check_ignore_ssl.isChecked())
-        self.config_manager.update_value('wait_time', self.set_wait_time.value())        
-            
-    #--------------------------------------------------------------------------
-    @Slot()
-    def search_from_file(self): 
-        self.configurations = self.config_manager.get_configurations()
-        self.search_handler = SearchEvents(self.configurations)              
-        self.threadpool.start(lambda: self.search_handler.search_using_webdriver())       
+    def _update_settings(self):        
+        self.config_manager.update_value('use_img_augmentation', self.set_img_agumentation.isChecked())
+        self.config_manager.update_value('shuffle_dataset', self.set_shuffle.isChecked())
+        self.config_manager.update_value('mixed_precision', self.set_mixed_precision.isChecked())
+        self.config_manager.update_value('use_jit_compiler', self.set_JIT_compiler.isChecked())
+        self.config_manager.update_value('run_tensorboard', self.set_tensorboard.isChecked())
+        self.config_manager.update_value('real_time_history', self.set_real_time_history.isChecked())
+        self.config_manager.update_value('save_checkpoints', self.set_checkpoints.isChecked())
+        self.config_manager.update_value('use_lr_scheduler', self.set_LR_scheduler.isChecked())       
+        self.config_manager.update_value('general_seed', self.set_general_seed.value())
+        self.config_manager.update_value('split_seed', self.set_split_seed.value())
+        self.config_manager.update_value('train_seed', self.set_train_seed.value())
+        self.config_manager.update_value('num_epochs', self.set_epochs.value())
+        self.config_manager.update_value('batch_size', self.set_batch_size.value())
+        self.config_manager.update_value('device_id', self.set_device_ID.value())
+        self.config_manager.update_value('sample_size', self.set_sample_size.value())
+        self.config_manager.update_value('train_sample_size', self.set_train_sample_size.value())
+        self.config_manager.update_value('validation_size', self.set_validation_size.value())
+
+        self.device = 'GPU' if self.set_GPU.isChecked() else 'CPU'
+        self.config_manager.update_value('device', self.device)
+        
+
+    
 
     #--------------------------------------------------------------------------
-    @Slot()
-    def search_from_text(self):  
-        text_box = self.main_win.findChild(QPlainTextEdit, "drugInputs")
-        query = text_box.toPlainText()
-        drug_list = None if not query else query.strip(',')
+    @Slot(str)
+    def on_JIT_backend_selection(self, backend: str):
+        self.config_manager.update_value('jit_backend', backend)
 
-        self.configurations = self.config_manager.get_configurations()
-        self.search_handler = SearchEvents(self.configurations)            
-        self.threadpool.start(lambda: self.search_handler.search_using_webdriver(drug_list))
-
-    #--------------------------------------------------------------------------
-    @Slot()
-    def check_webdriver(self):   
-        is_installed = self.webdriver_handler.is_chromedriver_installed()
-        if is_installed:
-            version = self.webdriver_handler.check_chrome_version()
-            message = f'Chrome driver is installed, current version: {version}'
-            QMessageBox.information(
-            self.main_win,
-            "Chrome driver is installed",
-            message,
-            QMessageBox.Ok)
-        else:
-            message = 'Chrome driver is not installed, it will be installed automatically when running search'
-            QMessageBox.critical(self.main_win, 'Chrome driver not installed', message) 
-
-     
+    
     #--------------------------------------------------------------------------
     def show(self):        
         self.main_win.show()   
