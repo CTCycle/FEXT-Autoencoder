@@ -5,7 +5,7 @@ class Configurations:
     
     def __init__(self):
         self.configurations = {
-            # Seeds
+            
             'general_seed': 42,
             'split_seed': 76,
             'training_seed': 42,

@@ -86,16 +86,16 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):                          
-        self.DPI = configuration['validation']['DPI']  
-        self.configuration = configuration 
-        self.database = FEXTDatabase(configuration)       
+    def __init__(self, configuration):           
+        self.database = FEXTDatabase(configuration)  
+        self.DPI = 600  
+        self.configuration = configuration      
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path : list):          
+    def calculate_image_statistics(self, images_path : list, progress_callback=None):          
         results= []     
-        for path in tqdm(
-            images_path, desc="Processing images", total=len(images_path), ncols=100):                  
+        for i, path in enumerate(tqdm(
+            images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
             img = cv2.imread(path)            
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -128,7 +128,12 @@ class ImageAnalysis:
                             'max': max_val,
                             'pixel_range': pixel_range,
                             'noise_std': noise_std,
-                            'noise_ratio': noise_ratio})    
+                            'noise_ratio': noise_ratio}) 
+
+            if progress_callback is not None:
+                total = len(images_path)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)   
 
         stats_dataframe = pd.DataFrame(results) 
         self.database.save_image_statistics_table(stats_dataframe)       
@@ -159,7 +164,7 @@ class ImageAnalysis:
         # Plot the combined histogram
         plt.figure(figsize=(14, 12))
         plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        plt.title('Combined Pixel Intensity Histogram', fontsize=16)
+        plt.title('Combined Pixel Intensity Histogram', fontsize=20)
         plt.xlabel('Pixel Intensity', fontsize=12)
         plt.ylabel('Frequency', fontsize=12)
         plt.tight_layout()

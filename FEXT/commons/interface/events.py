@@ -24,7 +24,8 @@ class ValidationEvents:
     def compute_dataset_statistics(self, progress_callback=None):          
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH)  
         logger.info(f'The image dataset is composed of {len(images_paths)} images')        
-        image_statistics = self.analyzer.calculate_image_statistics(images_paths)  
+        image_statistics = self.analyzer.calculate_image_statistics(
+            images_paths, progress_callback=progress_callback)  
 
         return image_statistics  
 
@@ -32,28 +33,26 @@ class ValidationEvents:
     def get_pixel_distribution(self, progress_callback=None): 
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH)            
         self.analyzer.calculate_pixel_intensity_distribution(
-            images_paths, progress_callback=progress_callback)             
-
+            images_paths, progress_callback=progress_callback)   
 
     # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
-    def handle_success(self, window, message):            
-        QMessageBox.information(
-        window, 
-        "Task successful",
-        message,
-        QMessageBox.Ok)
+    def handle_success(self, window, message, popup=False): 
+        if popup:                
+            QMessageBox.information(
+            window, 
+            "Task successful",
+            message,
+            QMessageBox.Ok)
 
         # send message to status bar
-        window.statusBar().showMessage(message)  
+        window.statusBar().showMessage(message)
     
-
     # define the logic to handle error during data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
     def handle_error(self, window, err_tb):
         exc, tb = err_tb
-        logger.error(exc, tb)
-        QMessageBox.critical(window, 'Dataset loading failed!', f"{exc}\n\n{tb}")  
+        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
 
    
 
@@ -61,73 +60,50 @@ class ValidationEvents:
 
 
 ###############################################################################
-class InferenceEvents:
+class VisualizationEnvents:
 
     def __init__(self, configurations):
-        self.configurations = configurations       
-        self.headless = configurations.get('headless', False)
-        self.ignore_SSL = configurations.get('ignore_SSL', False)
-        self.wait_time = configurations.get('wait_time', 0)        
+        self.configurations = configurations             
+        self.DPI = 400
 
     #--------------------------------------------------------------------------
-    def get_drug_names(self):         
-        filepath = os.path.join(DATA_PATH, 'drugs_to_search.txt')  
-        with open(filepath, 'r') as file:
-            drug_list = [x.lower().strip() for x in file.readlines()]
+    def visualize_benchmark_results(self, tokenizers):        
+        self.visualizer.update_tokenizers_dictionaries(tokenizers)
 
-        return drug_list  
+        figures = []
+        self.visualizer.get_vocabulary_report()          
+        figures.append(self.visualizer.plot_vocabulary_size())
+        figures.extend(self.visualizer.plot_histogram_tokens_length())
+        figures.append(self.visualizer.plot_boxplot_tokens_length())
+        figures.append(self.visualizer.plot_subwords_vs_words())       
 
+        return figures  
+    
     #--------------------------------------------------------------------------
-    def search_using_webdriver(self, drug_list=None):
-        # initialize webdriver and webscraper
-        self.toolkit = WebDriverToolkit(self.headless, self.ignore_SSL) 
-        webdriver = self.toolkit.initialize_webdriver()
-        webscraper = EMAWebPilot(webdriver, self.wait_time)  
-        # check if files downloaded in the past are still present, then remove them
-        # create a dictionary of drug names with their initial letter as key    
-        file_remover()
-        if drug_list is None:
-            drug_list = self.get_drug_names()
+    def convert_fig_to_qpixmap(self, fig):    
+        buf = io.bytesIO()
+        fig.savefig(buf, format="png", dpi=self.DPI)
+        buf.seek(0)
+        img_data = buf.read()       
+        qimg = QImage.fromData(img_data)
 
-        grouped_drugs = drug_to_letter_aggregator(drug_list)
-        # click on letter page (based on first letter of names group) and then iterate over
-        # all drugs in that page (from the list). Download excel reports and rename them automatically         
-        webscraper.download_manager(grouped_drugs) 
-
-
-
-
-###############################################################################
-class TrainingEvents:
-
-    def __init__(self, configurations):
-        self.configurations = configurations       
-        self.headless = configurations.get('headless', False)
-        self.ignore_SSL = configurations.get('ignore_SSL', False)
-        self.wait_time = configurations.get('wait_time', 0)        
-
+        return QPixmap.fromImage(qimg)
+    
+    # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
-    def get_drug_names(self):         
-        filepath = os.path.join(DATA_PATH, 'drugs_to_search.txt')  
-        with open(filepath, 'r') as file:
-            drug_list = [x.lower().strip() for x in file.readlines()]
+    def handle_success(self, window, message, popup=False): 
+        if popup:                
+            QMessageBox.information(
+            window, 
+            "Task successful",
+            message,
+            QMessageBox.Ok)
 
-        return drug_list  
-
+        # send message to status bar
+        window.statusBar().showMessage(message)
+    
+    # define the logic to handle error during data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
-    def search_using_webdriver(self, drug_list=None):
-        # initialize webdriver and webscraper
-        self.toolkit = WebDriverToolkit(self.headless, self.ignore_SSL) 
-        webdriver = self.toolkit.initialize_webdriver()
-        webscraper = EMAWebPilot(webdriver, self.wait_time)  
-        # check if files downloaded in the past are still present, then remove them
-        # create a dictionary of drug names with their initial letter as key    
-        file_remover()
-        if drug_list is None:
-            drug_list = self.get_drug_names()
-
-        grouped_drugs = drug_to_letter_aggregator(drug_list)
-        # click on letter page (based on first letter of names group) and then iterate over
-        # all drugs in that page (from the list). Download excel reports and rename them automatically         
-        webscraper.download_manager(grouped_drugs) 
-
+    def handle_error(self, window, err_tb):
+        exc, tb = err_tb
+        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
