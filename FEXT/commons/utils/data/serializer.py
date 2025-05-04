@@ -41,22 +41,19 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration['SEED']   
-        self.parameters = configuration["dataset"]
+        self.seed = configuration.get('general_seed', 42)   
+        self.sample_size = configuration.get("sample_size", 1.0)
         self.configuration = configuration
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path, sample_size=None): 
-        # get sample size reduction from configurations if not directly provided
-        sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
+    def get_images_path_from_directory(self, path):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):
-            if sample_size is not None:
-                files = files[:int(sample_size*len(files))]           
-            for file in files:
-                # only consider files with valid image extensions
+            if self.sample_size < 1.0:
+                files = files[:int(self.sample_size * len(files))]           
+            for file in files:                
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
 

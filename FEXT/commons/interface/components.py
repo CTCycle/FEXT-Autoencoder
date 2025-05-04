@@ -1,12 +1,12 @@
+from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QPlainTextEdit, QDoubleSpinBox, QSpinBox,
+                               QMessageBox, QComboBox, QTextEdit, QProgressBar,
+                               QGraphicsScene, QGraphicsPixmapItem, QGraphicsView)
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
-from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, QSpinBox,
-                               QComboBox, QProgressBar, QGraphicsScene, QGraphicsPixmapItem, QGraphicsView)
-
 
 from FEXT.commons.variables import EnvironmentVariables
 from FEXT.commons.configurations import Configurations
-from FEXT.commons.interface.events import ValidationEvents, VisualizationEnvents
+from FEXT.commons.interface.events import ValidationEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import UI_PATH
 from FEXT.commons.logger import logger
@@ -27,8 +27,8 @@ class MainWindow:
        
         self.text_dataset = None
         self.tokenizers = None       
-        self.dataset_figures = []
-        self.dataset_pixmaps = None
+        self.figures = []
+        self.pixmaps = None
 
         # initial settings
         self.config_manager = Configurations()
@@ -44,8 +44,7 @@ class MainWindow:
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
-        self.validation_handler = ValidationEvents(self.configurations)   
-        self.figures_handler = VisualizationEnvents(self.configurations)                   
+        self.validation_handler = ValidationEvents(self.configurations)                   
         
         # setup UI elements
         self._setup_configurations()
@@ -150,14 +149,9 @@ class MainWindow:
         self._connect_combo_box("backendJIT", self.update_JIT_backend)
         self._connect_button("imageStats", self.calculate_image_statistics)
         self._connect_button("pixelDist", self.compute_pixel_distribution_histogram)
-
-        self._connect_button("previousImg", self.show_previous_figure)
-        self._connect_button("nextImg", self.show_next_figure)    
-        self._connect_button("clearImg", self.show_next_figure)    
            
        
-    # [SLOT]
-    ###########################################################################
+    # --- Slots ---
     # It's good practice to define methods that act as slots within the class
     # that manages the UI elements. These slots can then call methods on the
     # handler objects. Using @Slot decorator is optional but good practice
@@ -187,9 +181,7 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def calculate_image_statistics(self):  
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(False)
-
+    def calculate_image_statistics(self):         
         self.configurations = self.config_manager.get_configurations() 
         self.validation_handler = ValidationEvents(self.configurations) 
         
@@ -204,15 +196,16 @@ class MainWindow:
         # inject the progress signal into the worker   
         self.data_progress_bar.setValue(0)    
         worker.signals.progress.connect(self.data_progress_bar.setValue)
+
         worker.signals.finished.connect(self.on_statistics_calculated)
         worker.signals.error.connect(self.on_validation_error)
-        self.threadpool.start(worker)    
+        self.threadpool.start(worker)          
+
+    
 
     #--------------------------------------------------------------------------
     @Slot()
-    def compute_pixel_distribution_histogram(self): 
-        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(False)
-
+    def compute_pixel_distribution_histogram(self):         
         self.configurations = self.config_manager.get_configurations() 
         self.validation_handler = ValidationEvents(self.configurations) 
         
@@ -227,64 +220,37 @@ class MainWindow:
         # inject the progress signal into the worker   
         self.data_progress_bar.setValue(0)    
         worker.signals.progress.connect(self.data_progress_bar.setValue)
-        worker.signals.finished.connect(self.on_generated_dataset_figure)
+
+        worker.signals.finished.connect(self.on_generated_histogram)
         worker.signals.error.connect(self.on_validation_error)
-        self.threadpool.start(worker)     
+        self.threadpool.start(worker)  
+
+    
 
     #--------------------------------------------------------------------------
     @Slot(str)
     def update_JIT_backend(self, backend: str):
         self.config_manager.update_value('jit_backend', backend)
 
-    #--------------------------------------------------------------------------
-    @Slot()
-    def _update_graphics_view(self):
-        if not self.dataset_figures:
-            return      
-        self.pixmap_item.setPixmap(self.pixmaps[self.current_fig])
-        self.scene.setSceneRect(self.pixmaps[self.current_fig].rect())
-        self.view.fitInView(self.pixmap_item, Qt.KeepAspectRatio)
-
-    #--------------------------------------------------------------------------
-    @Slot()
-    def show_previous_figure(self):       
-        if self.current_fig > 0:
-            self.current_fig -= 1
-            self._update_graphics_view()
-
-    #--------------------------------------------------------------------------
-    @Slot()
-    def show_next_figure(self):       
-        if self.current_fig < len(self.dataset_figures) - 1:
-            self.current_fig += 1
-            self._update_graphics_view()
-
-
-    # [POSITIVE OUTCOME HANDLERS]
-    ###########################################################################       
+    ###########################################################################
+    # Handling positives outcomes
+    ###########################################################################      
     def on_statistics_calculated(self, datasets):   
         message = "Image dataset statistics have been calculated"
-        self.validation_handler.handle_success(self.main_win, message) 
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(True)       
+        self.validation_handler.handle_success(self.main_win, message)        
 
     #--------------------------------------------------------------------------
-    @Slot(object)    
-    def on_generated_dataset_figure(self, figures):        
-        self.dataset_figures = figures
-        self.pixmaps = [self.figures_handler.convert_fig_to_qpixmap(p) for p in self.dataset_figures]
-        self.current_fig = 0
-        self._update_graphics_view()
-        self.figures_handler.handle_success(
-            self.main_win, 'Benchmark results plots have been generated') 
+    @Slot(object)
+    def on_generated_histogram(self, datasets):   
+        message = "Image dataset statistics have been calculated"
+        self.validation_handler.handle_success(self.main_win, message) 
 
-    # [NEGATIVE OUTCOME HANDLERS]
-    ########################################################################### #    
+    ###########################################################################
+    # Handling negatives outcomes
+    ###########################################################################    
     @Slot(tuple)
     def on_validation_error(self, err_tb):
-        self.validation_handler.handle_error(self.main_win, err_tb) 
-        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(True) 
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(True)       
- 
+        self.validation_handler.handle_error(self.main_win, err_tb)  
 
     
        
