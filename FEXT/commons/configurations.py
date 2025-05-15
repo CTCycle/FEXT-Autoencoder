@@ -9,6 +9,7 @@ class Configurations:
             'general_seed': 42,
             'split_seed': 76,
             'training_seed': 42,
+            'view_type' : 'plot',
 
             # Dataset
             'sample_size': 1.0,

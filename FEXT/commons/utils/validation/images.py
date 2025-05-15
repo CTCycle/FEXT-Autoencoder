@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.database import FEXTDatabase
-from FEXT.commons.constants import DATA_PATH, VALIDATION_PATH
+from FEXT.commons.constants import DATA_PATH, EVALUATION_PATH
 from FEXT.commons.logger import logger
 
 
@@ -21,7 +21,7 @@ class ImageReconstruction:
 
     def __init__(self, configuration : dict, model : keras.Model, checkpoint_path : str):       
         self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(VALIDATION_PATH, self.checkpoint_name)       
+        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
         self.loader = InferenceDataLoader(configuration) 
 
@@ -87,9 +87,15 @@ class ImageReconstruction:
 class ImageAnalysis:
 
     def __init__(self, configuration):           
-        self.database = FEXTDatabase(configuration)  
-        self.DPI = 600  
+        self.database = FEXTDatabase(configuration)
+        self.save_images = configuration.get('save_images', True)          
         self.configuration = configuration      
+        self.DPI = 400 
+
+    #--------------------------------------------------------------------------
+    def save_image(self, fig, name):        
+        out_path = os.path.join(EVALUATION_PATH, name)
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI) 
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list, progress_callback=None):          
@@ -145,8 +151,7 @@ class ImageAnalysis:
         image_histograms = np.zeros(256, dtype=np.int64)        
         for i, path in enumerate(
             tqdm(images_path, desc="Processing image histograms", 
-            total=len(images_path), ncols=100)):
-                        
+            total=len(images_path), ncols=100)):                        
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -162,18 +167,16 @@ class ImageAnalysis:
                 progress_callback(percent)
 
         # Plot the combined histogram
-        plt.figure(figsize=(14, 12))
+        fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
         plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        plt.title('Combined Pixel Intensity Histogram', fontsize=20)
-        plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency', fontsize=12)
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram.jpeg'), 
-            dpi=self.DPI)
-        plt.close()        
+        ax.set_title('Combined Pixel Intensity Histogram', fontsize=20)
+        ax.set_xlabel('Pixel Intensity', fontsize=12)
+        ax.set_ylabel('Frequency', fontsize=12)
+        plt.tight_layout()        
+        self.save_image(fig, "pixels_intensity_histogram.jpeg") if self.save_images else None
+        plt.close()          
 
-        return image_histograms
+        return fig              
     
     #--------------------------------------------------------------------------
     def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list):
@@ -211,7 +214,7 @@ class ImageAnalysis:
         plt.ylabel('Frequency', fontsize=12)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
+        plt.savefig(os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
                     dpi=self.DPI)
         plt.close()
 

@@ -1,12 +1,14 @@
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
-from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, QSpinBox,
-                               QComboBox, QProgressBar, QGraphicsScene, QGraphicsPixmapItem, QGraphicsView)
+from PySide6.QtGui import QPainter
+from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, 
+                               QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
+                               QGraphicsPixmapItem, QGraphicsView)
 
 
 from FEXT.commons.variables import EnvironmentVariables
 from FEXT.commons.configurations import Configurations
-from FEXT.commons.interface.events import ValidationEvents, VisualizationEnvents
+from FEXT.commons.interface.events import ValidationEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import UI_PATH
 from FEXT.commons.logger import logger
@@ -26,9 +28,12 @@ class MainWindow:
         ui_file.close()  
        
         self.text_dataset = None
-        self.tokenizers = None       
-        self.dataset_figures = []
-        self.dataset_pixmaps = None
+        self.tokenizers = None
+        self.plots = []       
+        self.images = []
+        self.image_pixmaps = None
+        self.plot_pixmaps = None
+        self.current_fig = 0
 
         # initial settings
         self.config_manager = Configurations()
@@ -44,8 +49,7 @@ class MainWindow:
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
-        self.validation_handler = ValidationEvents(self.configurations)   
-        self.figures_handler = VisualizationEnvents(self.configurations)                   
+        self.validation_handler = ValidationEvents(self.configurations)                       
         
         # setup UI elements
         self._setup_configurations()
@@ -56,8 +60,15 @@ class MainWindow:
         self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
         self.scene = QGraphicsScene()
         self.pixmap_item = QGraphicsPixmapItem()
+        # make pixmap scaling use smooth interpolation
+        self.pixmap_item.setTransformationMode(Qt.SmoothTransformation)
         self.scene.addItem(self.pixmap_item)
         self.view.setScene(self.scene)
+        # set canvas hints
+        self.view.setRenderHint(QPainter.Antialiasing, True)
+        self.view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.view.setRenderHint(QPainter.TextAntialiasing, True) 
+
 
     # [SHOW WINDOW]
     ###########################################################################
@@ -80,11 +91,11 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def _connect_combo_box(self, combo_name: str, slot):        
         combo = self.main_win.findChild(QComboBox, combo_name)
-        combo.currenttextChanged.connect(slot)
+        combo.currentTextChanged.connect(slot)
 
     #--------------------------------------------------------------------------
     def _send_message(self, message): 
-        self.main_win.statusBar().showMessage(message)
+        self.main_win.statusBar().showMessage(message)    
 
     # [SETUP]
     ###########################################################################
@@ -116,7 +127,9 @@ class MainWindow:
         self.set_target_LR = self.main_win.findChild(QDoubleSpinBox, "targetLearningRate")      
 
         self.set_CPU = self.main_win.findChild(QRadioButton, "setCPU")
-        self.set_GPU = self.main_win.findChild(QRadioButton, "setGPU")     
+        self.set_GPU = self.main_win.findChild(QRadioButton, "setGPU")
+        self.set_plot_view = self.main_win.findChild(QRadioButton, "viewPlots")
+        self.set_image_view = self.main_win.findChild(QRadioButton, "viewImages")     
 
         # connect their toggled signals to our updater        
         self.set_img_augmentation.toggled.connect(self._update_settings)
@@ -144,6 +157,8 @@ class MainWindow:
         self.set_target_LR.valueChanged.connect(self._update_settings)
         self.set_CPU.toggled.connect(self._update_settings)
         self.set_GPU.toggled.connect(self._update_settings)
+        self.set_plot_view.toggled.connect(self._update_graphics_view)
+        self.set_image_view.toggled.connect(self._update_graphics_view)
 
     #--------------------------------------------------------------------------
     def _connect_signals(self):        
@@ -185,6 +200,10 @@ class MainWindow:
         self.device = 'GPU' if self.set_GPU.isChecked() else 'CPU'
         self.config_manager.update_value('device', self.device)
 
+        self.view_subject = 'plot' if self.set_plot_view.isChecked() else 'image'
+        self.config_manager.update_value('view_type', self.view_subject)   
+
+
     #--------------------------------------------------------------------------
     @Slot()
     def calculate_image_statistics(self):  
@@ -212,9 +231,8 @@ class MainWindow:
     @Slot()
     def compute_pixel_distribution_histogram(self): 
         self.main_win.findChild(QPushButton, "pixelDist").setEnabled(False)
-
         self.configurations = self.config_manager.get_configurations() 
-        self.validation_handler = ValidationEvents(self.configurations) 
+        self.validation_handler = ValidationEvents(self.configurations)
         
         # send message to status bar
         self._send_message("Computing pixel distribution...")
@@ -227,7 +245,7 @@ class MainWindow:
         # inject the progress signal into the worker   
         self.data_progress_bar.setValue(0)    
         worker.signals.progress.connect(self.data_progress_bar.setValue)
-        worker.signals.finished.connect(self.on_generated_dataset_figure)
+        worker.signals.finished.connect(self.on_generated_plot)
         worker.signals.error.connect(self.on_validation_error)
         self.threadpool.start(worker)     
 
@@ -239,25 +257,38 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def _update_graphics_view(self):
-        if not self.dataset_figures:
-            return      
-        self.pixmap_item.setPixmap(self.pixmaps[self.current_fig])
-        self.scene.setSceneRect(self.pixmaps[self.current_fig].rect())
-        self.view.fitInView(self.pixmap_item, Qt.KeepAspectRatio)
+        source = self.plot_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
+        if source is not None:            
+            raw_pix = source[self.current_fig]
+            view_size = self.view.viewport().size()
+            # scale images to the canvas pixel dimensions with smooth filtering
+            scaled = raw_pix.scaled(
+                view_size,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation)
+            self.pixmap_item.setPixmap(scaled)
+            self.scene.setSceneRect(scaled.rect())
 
     #--------------------------------------------------------------------------
     @Slot()
-    def show_previous_figure(self):       
+    def show_previous_figure(self):             
         if self.current_fig > 0:
             self.current_fig -= 1
             self._update_graphics_view()
 
     #--------------------------------------------------------------------------
     @Slot()
-    def show_next_figure(self):       
-        if self.current_fig < len(self.dataset_figures) - 1:
+    def show_next_figure(self): 
+        elements = len(self.plot_pixmaps) if self.set_plot_view.isChecked() else len(self.image_pixmaps)      
+        if self.current_fig < elements - 1:
             self.current_fig += 1
             self._update_graphics_view()
+
+    #--------------------------------------------------------------------------
+    @Slot()
+    def clear_figures(self):       
+        self.images = []
+        self.image_pixmaps = None
 
 
     # [POSITIVE OUTCOME HANDLERS]
@@ -269,13 +300,14 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot(object)    
-    def on_generated_dataset_figure(self, figures):        
-        self.dataset_figures = figures
-        self.pixmaps = [self.figures_handler.convert_fig_to_qpixmap(p) for p in self.dataset_figures]
+    def on_generated_plot(self, plots):        
+        self.plots.append(plots)
+        self.plot_pixmaps = [self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
         self.current_fig = 0
         self._update_graphics_view()
-        self.figures_handler.handle_success(
-            self.main_win, 'Benchmark results plots have been generated') 
+        self.validation_handler.handle_success(
+            self.main_win, 'Figures have been generated')
+        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(True)  
 
     # [NEGATIVE OUTCOME HANDLERS]
     ########################################################################### #    
