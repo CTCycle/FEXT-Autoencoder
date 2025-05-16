@@ -17,26 +17,27 @@ class ValidationEvents:
     def __init__(self, configurations):        
         self.serializer = DataSerializer(configurations)   
         self.analyzer = ImageAnalysis(configurations)     
-        self.configurations = configurations               
-
+        self.configurations = configurations    
+        
     #--------------------------------------------------------------------------
-    def compute_dataset_statistics(self, progress_callback=None):          
+    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):                  
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH)  
-        logger.info(f'The image dataset is composed of {len(images_paths)} images')        
-        image_statistics = self.analyzer.calculate_image_statistics(
-            images_paths, progress_callback=progress_callback)  
+        logger.info(f'The image dataset is composed of {len(images_paths)} images')
+        
+        images = []        
+        if 'image_stats' in metrics:
+            logger.info('Current metric: image dataset statistics')
+            image_statistics = self.analyzer.calculate_image_statistics(
+                images_paths, progress_callback=progress_callback)
+             
+        if 'pixels_distribution' in metrics:
+            logger.info('Current metric: pixel intensity distribution')
+            images.append(self.analyzer.calculate_pixel_intensity_distribution(
+                images_paths, progress_callback=progress_callback))       
 
-        return image_statistics  
+        return images     
 
     #--------------------------------------------------------------------------
-    def get_pixel_distribution(self, progress_callback=None): 
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH)            
-        distribution = self.analyzer.calculate_pixel_intensity_distribution(
-            images_paths, progress_callback=progress_callback)
-
-        return distribution
-
-     #--------------------------------------------------------------------------
     def convert_fig_to_qpixmap(self, fig):    
         canvas = FigureCanvasAgg(fig)
         canvas.draw()

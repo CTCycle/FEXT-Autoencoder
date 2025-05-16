@@ -578,16 +578,30 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </layout>
               </item>
               <item>
-               <widget class="QPushButton" name="imageStats">
-                <property name="text">
-                 <string>calculate image statistics</string>
+               <widget class="Line" name="line">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pixelDist">
+               <widget class="QCheckBox" name="getStatsAnalysis">
                 <property name="text">
-                 <string>analyze pixel distribution</string>
+                 <string>statistical analysis</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="getPixDist">
+                <property name="text">
+                 <string>pixel intensity distribution</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="getImgMetrics">
+                <property name="text">
+                 <string>calculate image metrics</string>
                 </property>
                </widget>
               </item>
