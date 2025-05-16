@@ -4,10 +4,14 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from FEXT.commons.utils.data.serializer import DataSerializer
 from FEXT.commons.utils.validation.images import ImageAnalysis
+from FEXT.commons.utils.data.loader import TrainingDataLoader
+from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
+from FEXT.commons.utils.data.splitting import TrainValidationSplit
+from FEXT.commons.utils.learning.training import ModelTraining
+from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
+from FEXT.commons.utils.validation.reports import log_training_report
 from FEXT.commons.constants import DATA_PATH, IMG_PATH
 from FEXT.commons.logger import logger
-
-
 
 
 
@@ -62,5 +66,57 @@ class ValidationEvents:
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
 
    
+
+###############################################################################
+class TrainingEvents:
+
+    def __init__(self, configurations):        
+        self.serializer = DataSerializer(configurations)   
+        self.splitter = TrainValidationSplit(configurations)
+        self.builder = TrainingDataLoader(configurations)        
+        self.trainer = ModelTraining(configurations)  
+        self.autoencoder = FeXTAutoEncoder(configurations)  
+        self.modelserializer = ModelSerializer()   
+        self.configurations = configurations    
+        
+    #--------------------------------------------------------------------------
+    def train_model_instance(self, progress_callback=None):
+        logger.info('Preparing dataset of images based on splitting sizes')  
+        train_data, validation_data = self.splitter.split_train_and_validation()
+        # set device for training operations based on user configurations
+        logger.info('Setting device for training operations based on user configurations')         
+        self.trainer.set_device()
+        # create the tf.datasets using the previously initialized generators 
+        logger.info('Building model data loaders with prefetching and parallel processing')            
+        train_dataset, validation_dataset = self.builder.build_training_dataloader(
+            train_data, validation_data)               
+
+        # build the autoencoder model 
+        logger.info('Building FeXT AutoEncoder model based on user configurations')         
+        model = self.autoencoder.get_model(model_summary=True)        
+        # generate training log report and graphviz plot for the model layout
+        checkpoint_path = self.modelserializer.create_checkpoint_folder() 
+        log_training_report(train_data, validation_data, self.configurations)        
+        self.modelserializer.save_model_plot(model, checkpoint_path) 
+        # perform training and save model at the end
+        logger.info('Starting FeXT AutoEncoder training') 
+        self.trainer.train_model(
+            model, train_dataset, validation_dataset, checkpoint_path)
+
+        
+    # define the logic to handle successfull data retrieval outside the main UI loop
+    #--------------------------------------------------------------------------
+    def handle_success(self, window, message):
+        # send message to status bar
+        window.statusBar().showMessage(message)
+    
+    # define the logic to handle error during data retrieval outside the main UI loop
+    #--------------------------------------------------------------------------
+    def handle_error(self, window, err_tb):
+        exc, tb = err_tb
+        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
+
+   
+
 
 

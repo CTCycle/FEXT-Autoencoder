@@ -519,7 +519,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="dataTab">
        <property name="toolTipDuration">
@@ -740,16 +740,19 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
-              <widget class="QCheckBox" name="runTensorboard">
+              <widget class="QCheckBox" name="realTimeHistory">
                <property name="text">
-                <string>Run tensorboard</string>
+                <string>Plot real time loss and metrics</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="realTimeHistory">
+              <widget class="QCheckBox" name="runTensorboard">
                <property name="text">
-                <string>Plot real time loss and metrics</string>
+                <string>Run tensorboard</string>
                </property>
               </widget>
              </item>
@@ -792,6 +795,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </item>
                <item>
                 <widget class="QSpinBox" name="splitSeed">
+                 <property name="maximum">
+                  <number>1000000000</number>
+                 </property>
                  <property name="value">
                   <number>42</number>
                  </property>
@@ -834,6 +840,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                  <property name="maximum">
                   <number>100000</number>
                  </property>
+                 <property name="singleStep">
+                  <number>4</number>
+                 </property>
                  <property name="value">
                   <number>32</number>
                  </property>
@@ -851,7 +860,14 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                 </widget>
                </item>
                <item>
-                <widget class="QSpinBox" name="saveCPFrequency"/>
+                <widget class="QSpinBox" name="saveCPFrequency">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>999</number>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -875,6 +891,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
               <widget class="QCheckBox" name="setShuffle">
                <property name="text">
                 <string>Shuffle dataset</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -938,7 +957,17 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="shuffleSize"/>
+                  <widget class="QSpinBox" name="shuffleSize">
+                   <property name="maximum">
+                    <number>99999</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                   <property name="value">
+                    <number>1024</number>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -1226,7 +1255,14 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="constantSteps"/>
+                  <widget class="QSpinBox" name="constantSteps">
+                   <property name="maximum">
+                    <number>1000000</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
@@ -1240,7 +1276,14 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="decaySteps"/>
+                  <widget class="QSpinBox" name="decaySteps">
+                   <property name="maximum">
+                    <number>1000000</number>
+                   </property>
+                   <property name="singleStep">
+                    <number>10</number>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>

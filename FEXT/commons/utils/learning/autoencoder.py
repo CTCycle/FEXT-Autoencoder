@@ -14,17 +14,34 @@ from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePoolin
 ###############################################################################
 class FeXTAutoEncoder: 
 
-    def __init__(self, configuration):  
+    def __init__(self, configuration : dict):  
         self.image_shape = (128, 128, 3)
-        self.seed = configuration["SEED"]       
-        self.jit_compile = configuration["model"]["JIT_COMPILE"]
-        self.jit_backend = configuration["model"]["JIT_BACKEND"]
-        self.scheduler_config = configuration["training"]["LR_SCHEDULER"]
-        self.initial_lr = self.scheduler_config["INITIAL_LR"]
-        self.constant_lr_steps = self.scheduler_config["CONSTANT_STEPS"]       
-        self.decay_steps = self.scheduler_config["DECAY_STEPS"]  
-        self.final_lr = self.scheduler_config["FINAL_LR"]         
-        self.configuration = configuration       
+        self.seed = configuration.get('training_seed', 42)      
+        self.jit_compile = configuration.get('jit_compile', False)
+        self.jit_backend = configuration.get('jit_backend', 'inductor')
+        self.has_LR_scheduler = configuration.get('use_scheduler', False)  
+        self.initial_lr = configuration.get('initial_LR', 0.001)        
+        self.configuration = configuration  
+  
+    #--------------------------------------------------------------------------
+    def compile_model(self, model : Model, model_summary=True):        
+        if self.has_LR_scheduler:            
+            constant_lr_steps = self.configuration.get('constant_steps', 40000)   
+            decay_steps = self.configuration.get('decay_steps', 1000)  
+            final_lr = self.configuration.get('final_LR', 0.0001)          
+            lr_schedule = LinearDecayLRScheduler(
+                self.initial_lr, constant_lr_steps, decay_steps, final_lr)  
+                  
+        opt = keras.optimizers.Adam(learning_rate=lr_schedule)
+        loss = losses.MeanAbsoluteError()        
+        metric = [metrics.CosineSimilarity()]
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)                 
+  
+        model.summary(expand_nested=True) if model_summary else None
+        if self.jit_compile:
+            model = torch.compile(model, backend=self.jit_backend, mode='default')
+
+        return model         
 
     # build model given the architecture
     #--------------------------------------------------------------------------
@@ -59,22 +76,11 @@ class FeXTAutoEncoder:
 
         output = layers.Dense(3, kernel_initializer='he_uniform')(layer) 
         output = layers.BatchNormalization()(output)       
-        output = activations.relu(output, max_value=1.0)   
+        output = activations.relu(output, max_value=1.0)  
         
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        lr_schedule = LinearDecayLRScheduler(
-            self.initial_lr, self.constant_lr_steps, self.decay_steps, self.final_lr)            
-        opt = keras.optimizers.Adam(learning_rate=lr_schedule)
-        loss = losses.MeanAbsoluteError()        
-        metric = [metrics.CosineSimilarity()]
-        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)        
-                
-        if model_summary:
-            model.summary(expand_nested=True)   
-
-        if self.jit_compile:
-            model = torch.compile(model, backend=self.jit_backend, mode='default')    
+        model = self.compile_model(model, model_summary=model_summary)        
 
         return model
        

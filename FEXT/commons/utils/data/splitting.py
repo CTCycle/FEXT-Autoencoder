@@ -7,24 +7,24 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class TrainValidationSplit:
 
-    def __init__(self, images_path : list, configuration):        
-        
-        self.images_path = images_path
-        validation_size = configuration["dataset"]["VALIDATION_SIZE"]
-        # shuffle the paths list to perform randomic sampling
-        np.random.seed(configuration["dataset"]["SPLIT_SEED"])    
-        np.random.shuffle(images_path)            
-        # get num of samples in train and validation dataset
-        self.train_size = int(len(images_path) * (1.0 - validation_size))
-        self.val_size = int(len(images_path) * validation_size)        
+    def __init__(self, configuration): 
+        self.validation_size = configuration.get('validation_size', 42)
+        np.random.seed(configuration.get('split_seed', 42))   
+        self.configuration = configuration               
         
     #--------------------------------------------------------------------------
-    def split_train_and_validation(self): 
-        shuffled_indices = np.random.permutation(len(self.images_path))     
+    def split_train_and_validation(self, images_path : list):       
+        # shuffle the paths list to perform randomic sampling        
+        np.random.shuffle(images_path)            
+        # get num of samples in train and validation dataset
+        self.train_size = int(len(images_path) * (1.0 - self.validation_size))
+        self.val_size = int(len(images_path) * self.validation_size)        
+
+        shuffled_indices = np.random.permutation(len(images_path))     
         train_indices = shuffled_indices[:self.train_size]
         validation_indices = shuffled_indices[self.train_size:]        
-        train_data = [self.images_path[i] for i in train_indices]
-        validation_data = [self.images_path[i] for i in validation_indices]
+        train_data = [images_path[i] for i in train_indices]
+        validation_data = [images_path[i] for i in validation_indices]
         
         return train_data, validation_data
 
