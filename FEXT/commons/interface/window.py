@@ -28,9 +28,10 @@ class MainWindow:
         ui_file.close()  
        
         self.text_dataset = None
-        self.tokenizers = None
+        self.tokenizers = None        
         self.plots = []       
         self.images = []
+        self.metrics = []
         self.image_pixmaps = None
         self.plot_pixmaps = None
         self.current_fig = 0
@@ -54,7 +55,7 @@ class MainWindow:
         # setup UI elements
         self._setup_configurations()
         self._connect_signals()
-        self._set_states()
+        self._set_states()       
 
         # --- prepare graphics view for figures ---
         self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
@@ -67,7 +68,7 @@ class MainWindow:
         # set canvas hints
         self.view.setRenderHint(QPainter.Antialiasing, True)
         self.view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.view.setRenderHint(QPainter.TextAntialiasing, True) 
+        self.view.setRenderHint(QPainter.TextAntialiasing, True)        
 
 
     # [SHOW WINDOW]
@@ -107,7 +108,9 @@ class MainWindow:
         self.set_tensorboard = self.main_win.findChild(QCheckBox, "runTensorboard")
         self.set_real_time_history = self.main_win.findChild(QCheckBox, "realTimeHistory")
         self.set_checkpoints = self.main_win.findChild(QCheckBox, "saveCheckpoints")
-        self.set_LR_scheduler = self.main_win.findChild(QCheckBox, "useScheduler")          
+        self.set_LR_scheduler = self.main_win.findChild(QCheckBox, "useScheduler")   
+        self.get_image_stats = self.main_win.findChild(QCheckBox, "getStatsAnalysis")
+        self.get_pixels_dist = self.main_win.findChild(QCheckBox, "getPixDist")        
 
         self.set_general_seed = self.main_win.findChild(QSpinBox, "seed")
         self.set_split_seed = self.main_win.findChild(QSpinBox, "splitSeed")
@@ -140,6 +143,11 @@ class MainWindow:
         self.set_real_time_history.toggled.connect(self._update_settings)
         self.set_checkpoints.toggled.connect(self._update_settings)
         self.set_LR_scheduler.toggled.connect(self._update_settings)
+        self.get_image_stats.toggled.connect(self._update_settings)
+        self.get_pixels_dist.toggled.connect(self._update_settings)
+        self.set_CPU.toggled.connect(self._update_settings)
+        self.set_GPU.toggled.connect(self._update_settings)
+
         self.set_general_seed.valueChanged.connect(self._update_settings)
         self.set_split_seed.valueChanged.connect(self._update_settings)
         self.set_train_seed.valueChanged.connect(self._update_settings)
@@ -154,18 +162,15 @@ class MainWindow:
         self.set_train_sample_size.valueChanged.connect(self._update_settings)
         self.set_validation_size.valueChanged.connect(self._update_settings)
         self.set_initial_LR.valueChanged.connect(self._update_settings)
-        self.set_target_LR.valueChanged.connect(self._update_settings)
-        self.set_CPU.toggled.connect(self._update_settings)
-        self.set_GPU.toggled.connect(self._update_settings)
+        self.set_target_LR.valueChanged.connect(self._update_settings)        
+
         self.set_plot_view.toggled.connect(self._update_graphics_view)
         self.set_image_view.toggled.connect(self._update_graphics_view)
 
     #--------------------------------------------------------------------------
     def _connect_signals(self):        
-        self._connect_combo_box("backendJIT", self.update_JIT_backend)
-        self._connect_button("imageStats", self.calculate_image_statistics)
-        self._connect_button("pixelDist", self.compute_pixel_distribution_histogram)
-
+        self._connect_combo_box("backendJIT", self.update_JIT_backend)        
+        self._connect_button("getImgMetrics", self.compute_image_metrics)
         self._connect_button("previousImg", self.show_previous_figure)
         self._connect_button("nextImg", self.show_next_figure)    
         self._connect_button("clearImg", self.show_next_figure)    
@@ -201,53 +206,44 @@ class MainWindow:
         self.config_manager.update_value('device', self.device)
 
         self.view_subject = 'plot' if self.set_plot_view.isChecked() else 'image'
-        self.config_manager.update_value('view_type', self.view_subject)   
+        self.config_manager.update_value('view_type', self.view_subject)
 
+        for name, box in [('image_stats', self.get_image_stats), 
+                          ('pixels_distribution', self.get_pixels_dist)]:
+            if box.isChecked():
+                self.metrics.append(name) if name not in self.metrics else None                    
+            else:
+                self.metrics.remove(name) if name in self.metrics else None
+                   
 
     #--------------------------------------------------------------------------
     @Slot()
-    def calculate_image_statistics(self):  
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(False)
+    def compute_image_metrics(self):  
+        if not self.metrics:
+            return None
+        
+        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(False)
 
         self.configurations = self.config_manager.get_configurations() 
         self.validation_handler = ValidationEvents(self.configurations) 
         
         # send message to status bar
-        self._send_message("Calculating image statistics...")        
+        self._send_message("Calculating image dataset evaluation metrics...")        
 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
-        self._validation_worker = Worker(self.validation_handler.compute_dataset_statistics)
+        self._validation_worker = Worker(
+            self.validation_handler.run_dataset_evaluation_pipeline,
+            self.metrics)
+                
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
         self.data_progress_bar.setValue(0)    
         worker.signals.progress.connect(self.data_progress_bar.setValue)
-        worker.signals.finished.connect(self.on_statistics_calculated)
-        worker.signals.error.connect(self.on_validation_error)
-        self.threadpool.start(worker)    
-
-    #--------------------------------------------------------------------------
-    @Slot()
-    def compute_pixel_distribution_histogram(self): 
-        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(False)
-        self.configurations = self.config_manager.get_configurations() 
-        self.validation_handler = ValidationEvents(self.configurations)
-        
-        # send message to status bar
-        self._send_message("Computing pixel distribution...")
-
-        # initialize worker for asynchronous loading of the dataset
-        # functions that are passed to the worker will be executed in a separate thread
-        self._validation_worker = Worker(self.validation_handler.get_pixel_distribution)
-        worker = self._validation_worker
-
-        # inject the progress signal into the worker   
-        self.data_progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.data_progress_bar.setValue)
-        worker.signals.finished.connect(self.on_generated_plot)
-        worker.signals.error.connect(self.on_validation_error)
-        self.threadpool.start(worker)     
+        worker.signals.finished.connect(self.on_metrics_calculated)
+        worker.signals.error.connect(self.on_metrics_error)
+        self.threadpool.start(worker)       
 
     #--------------------------------------------------------------------------
     @Slot(str)
@@ -258,7 +254,7 @@ class MainWindow:
     @Slot()
     def _update_graphics_view(self):
         source = self.plot_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
-        if source is not None:            
+        if source:            
             raw_pix = source[self.current_fig]
             view_size = self.view.viewport().size()
             # scale images to the canvas pixel dimensions with smooth filtering
@@ -293,30 +289,23 @@ class MainWindow:
 
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
-    def on_statistics_calculated(self, datasets):   
-        message = "Image dataset statistics have been calculated"
-        self.validation_handler.handle_success(self.main_win, message) 
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(True)       
-
-    #--------------------------------------------------------------------------
-    @Slot(object)    
-    def on_generated_plot(self, plots):        
-        self.plots.append(plots)
-        self.plot_pixmaps = [self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
+    def on_metrics_calculated(self, plots):   
+        self.plots.extend(plots) if plots else None
+        self.plot_pixmaps = [
+            self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
         self.current_fig = 0
         self._update_graphics_view()
         self.validation_handler.handle_success(
             self.main_win, 'Figures have been generated')
-        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(True)  
+        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True)     
 
     # [NEGATIVE OUTCOME HANDLERS]
     ########################################################################### #    
     @Slot(tuple)
-    def on_validation_error(self, err_tb):
+    def on_metrics_error(self, err_tb):
         self.validation_handler.handle_error(self.main_win, err_tb) 
-        self.main_win.findChild(QPushButton, "pixelDist").setEnabled(True) 
-        self.main_win.findChild(QPushButton, "imageStats").setEnabled(True)       
- 
+        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True) 
+        
 
     
        

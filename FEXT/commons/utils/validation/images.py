@@ -96,6 +96,11 @@ class ImageAnalysis:
     def save_image(self, fig, name):        
         out_path = os.path.join(EVALUATION_PATH, name)
         fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI) 
+
+    #--------------------------------------------------------------------------
+    def save_image(self, fig, name):        
+        out_path = os.path.join(EVALUATION_PATH, name)
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path : list, progress_callback=None):          
@@ -134,12 +139,12 @@ class ImageAnalysis:
                             'max': max_val,
                             'pixel_range': pixel_range,
                             'noise_std': noise_std,
-                            'noise_ratio': noise_ratio}) 
+                            'noise_ratio': noise_ratio})
 
             if progress_callback is not None:
                 total = len(images_path)
                 percent = int((i + 1) * 100 / total)
-                progress_callback(percent)   
+                progress_callback(percent)            
 
         stats_dataframe = pd.DataFrame(results) 
         self.database.save_image_statistics_table(stats_dataframe)       
