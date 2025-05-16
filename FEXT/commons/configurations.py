@@ -14,6 +14,7 @@ class Configurations:
             'sample_size': 1.0,
             'validation_size': 0.2,
             'use_img_augmentation': True,
+            'shuffle_size': 1024,
 
             # Model 
             'jit_compile': False,

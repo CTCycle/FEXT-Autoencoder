@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
 
 from FEXT.commons.variables import EnvironmentVariables
 from FEXT.commons.configurations import Configurations
-from FEXT.commons.interface.events import ValidationEvents
+from FEXT.commons.interface.events import ValidationEvents, TrainingEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import UI_PATH
 from FEXT.commons.logger import logger
@@ -50,7 +50,8 @@ class MainWindow:
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
-        self.validation_handler = ValidationEvents(self.configurations)                       
+        self.validation_handler = ValidationEvents(self.configurations)
+        self.training_handler = TrainingEvents(self.configurations)                       
         
         # setup UI elements
         self._setup_configurations()
@@ -115,6 +116,7 @@ class MainWindow:
         self.set_general_seed = self.main_win.findChild(QSpinBox, "seed")
         self.set_split_seed = self.main_win.findChild(QSpinBox, "splitSeed")
         self.set_train_seed = self.main_win.findChild(QSpinBox, "trainSeed")
+        self.set_shuffle_size = self.main_win.findChild(QSpinBox, "shuffleSize")
         self.set_epochs = self.main_win.findChild(QSpinBox, "numEpochs")
         self.set_batch_size = self.main_win.findChild(QSpinBox, "batchSize")
         self.set_device_ID = self.main_win.findChild(QSpinBox, "deviceID")
@@ -126,6 +128,7 @@ class MainWindow:
         self.set_sample_size = self.main_win.findChild(QDoubleSpinBox, "sampleSize")
         self.set_train_sample_size = self.main_win.findChild(QDoubleSpinBox, "trainSampleSize")
         self.set_validation_size = self.main_win.findChild(QDoubleSpinBox, "validationSize")
+        
         self.set_initial_LR = self.main_win.findChild(QDoubleSpinBox, "initialLearningRate")
         self.set_target_LR = self.main_win.findChild(QDoubleSpinBox, "targetLearningRate")      
 
@@ -151,6 +154,7 @@ class MainWindow:
         self.set_general_seed.valueChanged.connect(self._update_settings)
         self.set_split_seed.valueChanged.connect(self._update_settings)
         self.set_train_seed.valueChanged.connect(self._update_settings)
+        self.set_shuffle_size.valueChanged.connect(self._update_settings)
         self.set_epochs.valueChanged.connect(self._update_settings)
         self.set_batch_size.valueChanged.connect(self._update_settings)
         self.set_device_ID.valueChanged.connect(self._update_settings)
@@ -174,6 +178,9 @@ class MainWindow:
         self._connect_button("previousImg", self.show_previous_figure)
         self._connect_button("nextImg", self.show_next_figure)    
         self._connect_button("clearImg", self.show_next_figure)    
+
+        self._connect_button("startTraining", self.start_training)
+        self._connect_button("resumeTraining", self.resume_training)
            
        
     # [SLOT]
@@ -195,6 +202,7 @@ class MainWindow:
         self.config_manager.update_value('general_seed', self.set_general_seed.value())
         self.config_manager.update_value('split_seed', self.set_split_seed.value())
         self.config_manager.update_value('train_seed', self.set_train_seed.value())
+        self.config_manager.update_value('shuffle_size', self.set_train_seed.value())
         self.config_manager.update_value('num_epochs', self.set_epochs.value())
         self.config_manager.update_value('batch_size', self.set_batch_size.value())
         self.config_manager.update_value('device_id', self.set_device_ID.value())
@@ -223,19 +231,15 @@ class MainWindow:
             return None
         
         self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(False)
-
         self.configurations = self.config_manager.get_configurations() 
-        self.validation_handler = ValidationEvents(self.configurations) 
-        
+        self.validation_handler = ValidationEvents(self.configurations)       
         # send message to status bar
-        self._send_message("Calculating image dataset evaluation metrics...")        
-
+        self._send_message("Calculating image dataset evaluation metrics...") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
         self._validation_worker = Worker(
             self.validation_handler.run_dataset_evaluation_pipeline,
-            self.metrics)
-                
+            self.metrics)                
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
@@ -244,6 +248,54 @@ class MainWindow:
         worker.signals.finished.connect(self.on_metrics_calculated)
         worker.signals.error.connect(self.on_metrics_error)
         self.threadpool.start(worker)       
+
+    #--------------------------------------------------------------------------
+    @Slot()
+    def start_training(self):  
+        self.main_win.findChild(QPushButton, "startTraining").setEnabled(False)
+        self.configurations = self.config_manager.get_configurations() 
+        self.training_handler = TrainingEvents(self.configurations)         
+  
+        # send message to status bar
+        self._send_message("Training FEXT Autoencoder model from scratch...") 
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._validation_worker = Worker(self.training_handler.train_model_instance)
+                            
+        worker = self._validation_worker
+
+        # inject the progress signal into the worker   
+        self.data_progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.data_progress_bar.setValue)
+        worker.signals.finished.connect(self.on_metrics_calculated)
+        worker.signals.error.connect(self.on_metrics_error)
+        self.threadpool.start(worker)    
+
+    #--------------------------------------------------------------------------
+    @Slot()
+    def resume_training(self):  
+        if not self.metrics:
+            return None
+        
+        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(False)
+
+        self.configurations = self.config_manager.get_configurations() 
+        self.validation_handler = ValidationEvents(self.configurations)       
+        # send message to status bar
+        self._send_message("Calculating image dataset evaluation metrics...") 
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._validation_worker = Worker(
+            self.validation_handler.run_dataset_evaluation_pipeline,
+            self.metrics)                
+        worker = self._validation_worker
+
+        # inject the progress signal into the worker   
+        self.data_progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.data_progress_bar.setValue)
+        worker.signals.finished.connect(self.on_metrics_calculated)
+        worker.signals.error.connect(self.on_metrics_error)
+        self.threadpool.start(worker)          
 
     #--------------------------------------------------------------------------
     @Slot(str)

@@ -102,8 +102,8 @@ class TrainingDataLoader:
 
     def __init__(self, configuration, shuffle=True):
         self.processor = TrainingDataLoaderProcessor(configuration) 
-        self.batch_size = configuration['training']["BATCH_SIZE"]
-        self.shuffle_samples = 1024
+        self.batch_size = configuration.get('batch_size', 32)
+        self.shuffle_samples = configuration.get('shuffle_size', 1024)
         self.configuration = configuration
         self.shuffle = shuffle             
 
