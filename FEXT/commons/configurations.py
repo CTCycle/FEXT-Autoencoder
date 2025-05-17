@@ -4,8 +4,7 @@
 class Configurations:
     
     def __init__(self):
-        self.configurations = {
-            
+        self.configurations = {            
             'general_seed': 42,
             'split_seed': 76,
             'training_seed': 42,         
@@ -13,7 +12,7 @@ class Configurations:
             # Dataset
             'sample_size': 1.0,
             'validation_size': 0.2,
-            'use_img_augmentation': True,
+            'use_img_augmentation': False,
             'shuffle_size': 1024,
 
             # Model 
@@ -21,21 +20,21 @@ class Configurations:
             'jit_backend': 'inductor',
 
             # Device
-            'device': 'GPU',
+            'device': 'CPU',
             'device_id': 0,
             'use_mixed_precision': False,
-            'num_processors': 6,
+            'num_workers': 0,
 
             # Training
-            'epochs': 3,
+            'epochs': 100,
             'additional_epochs': 10,
-            'batch_size': 20,
-            'use_tensorboard': True,
+            'batch_size': 32,
+            'use_tensorboard': False,
             'plot_training_metrics' : True,
             'save_checkpoints': False,
 
             # Learning rate scheduler
-            'use_scheduler' : True,
+            'use_scheduler' : False,
             'initial_lr': 0.001,
             'constant_steps': 40000,
             'decay_steps': 1000,
