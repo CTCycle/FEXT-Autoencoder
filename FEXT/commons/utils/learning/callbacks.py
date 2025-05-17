@@ -10,6 +10,20 @@ import time
 
 from FEXT.commons.logger import logger
 
+# [CALLBACK FOR UI PROGRESS BAR]
+###############################################################################
+class ProgressBarCallback(keras.callbacks.Callback):
+    def __init__(self, progress_callback, total_epochs):
+        super().__init__()
+        self.progress_callback = progress_callback
+        self.total_epochs = total_epochs
+
+    #--------------------------------------------------------------------------
+    def on_epoch_end(self, epoch, logs=None):
+        percent = int(100 * (epoch + 1) / self.total_epochs)
+        if self.progress_callback is not None:
+            self.progress_callback(percent)
+
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 ###############################################################################
@@ -67,13 +81,13 @@ class RealTimeHistory(keras.callbacks.Callback):
   
 # [CALLBACKS HANDLER]
 ###############################################################################
-def callbacks_handler(configuration, checkpoint_path, history):
+def initialize_callbacks_handler(configuration, checkpoint_path, history, progress_callback=None):
+    total_epochs = configuration.get('epochs', 10)
+    callbacks_list = [ProgressBarCallback(progress_callback, total_epochs)]
+    if configuration.get('plot_training_metrics', False):
+        callbacks_list.append(RealTimeHistory(checkpoint_path, past_logs=history))
 
-    RTH_callback = RealTimeHistory(checkpoint_path, past_logs=history)   
-    callbacks_list = [RTH_callback]
-
-    # initialize tensorboard if requested    
-    if configuration["training"]["USE_TENSORBOARD"]:
+    if configuration.get('use_tensorboard', False):
         logger.debug('Using tensorboard during training')
         log_path = os.path.join(checkpoint_path, 'tensorboard')
         callbacks_list.append(keras.callbacks.TensorBoard(
@@ -81,7 +95,7 @@ def callbacks_handler(configuration, checkpoint_path, history):
         start_tensorboard_subprocess(log_path)      
 
     # Add a checkpoint saving callback
-    if configuration["training"]["SAVE_CHECKPOINTS"]:
+    if configuration.get('save_checkpoints', False):
         logger.debug('Adding checkpoint saving callback')
         checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.weights.h5')
         callbacks_list.append(keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath,
@@ -90,8 +104,7 @@ def callbacks_handler(configuration, checkpoint_path, history):
                                                               save_best_only=True,      
                                                               mode='auto',              
                                                               verbose=0))
-
-    return RTH_callback, callbacks_list
+    return callbacks_list
 
 
 ###############################################################################

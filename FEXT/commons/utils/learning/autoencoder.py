@@ -24,7 +24,8 @@ class FeXTAutoEncoder:
         self.configuration = configuration  
   
     #--------------------------------------------------------------------------
-    def compile_model(self, model : Model, model_summary=True):        
+    def compile_model(self, model : Model, model_summary=True):
+        lr_schedule = self.initial_lr        
         if self.has_LR_scheduler:            
             constant_lr_steps = self.configuration.get('constant_steps', 40000)   
             decay_steps = self.configuration.get('decay_steps', 1000)  

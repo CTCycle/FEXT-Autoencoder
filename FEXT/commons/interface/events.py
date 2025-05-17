@@ -75,33 +75,39 @@ class TrainingEvents:
         self.splitter = TrainValidationSplit(configurations)
         self.builder = TrainingDataLoader(configurations)        
         self.trainer = ModelTraining(configurations)  
-        self.autoencoder = FeXTAutoEncoder(configurations)  
-        self.modelserializer = ModelSerializer()   
+        self.autoencoder = FeXTAutoEncoder(configurations)          
         self.configurations = configurations    
         
     #--------------------------------------------------------------------------
-    def train_model_instance(self, progress_callback=None):
+    def train_model(self, progress_callback=None):  
         logger.info('Preparing dataset of images based on splitting sizes')  
-        train_data, validation_data = self.splitter.split_train_and_validation()
-        # set device for training operations based on user configurations
-        logger.info('Setting device for training operations based on user configurations')         
-        self.trainer.set_device()
+        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH) 
+        train_data, validation_data = self.splitter.split_train_and_validation(images_paths)
+        
         # create the tf.datasets using the previously initialized generators 
         logger.info('Building model data loaders with prefetching and parallel processing')            
         train_dataset, validation_dataset = self.builder.build_training_dataloader(
-            train_data, validation_data)               
+            train_data, validation_data)
+
+        self.modelserializer = ModelSerializer() 
+        checkpoint_path = self.modelserializer.create_checkpoint_folder()   
+
+        # set device for training operations based on user configurations
+        logger.info('Setting device for training operations based on user configurations')         
+        self.trainer.set_device()              
 
         # build the autoencoder model 
         logger.info('Building FeXT AutoEncoder model based on user configurations')         
         model = self.autoencoder.get_model(model_summary=True)        
         # generate training log report and graphviz plot for the model layout
-        checkpoint_path = self.modelserializer.create_checkpoint_folder() 
+         
         log_training_report(train_data, validation_data, self.configurations)        
         self.modelserializer.save_model_plot(model, checkpoint_path) 
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
         self.trainer.train_model(
-            model, train_dataset, validation_dataset, checkpoint_path)
+            model, train_dataset, validation_dataset, checkpoint_path, 
+            progress_callback=progress_callback)
 
         
     # define the logic to handle successfull data retrieval outside the main UI loop

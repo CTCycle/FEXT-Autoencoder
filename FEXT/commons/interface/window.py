@@ -51,12 +51,7 @@ class MainWindow:
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
         self.validation_handler = ValidationEvents(self.configurations)
-        self.training_handler = TrainingEvents(self.configurations)                       
-        
-        # setup UI elements
-        self._setup_configurations()
-        self._connect_signals()
-        self._set_states()       
+        self.training_handler = TrainingEvents(self.configurations)            
 
         # --- prepare graphics view for figures ---
         self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
@@ -69,7 +64,90 @@ class MainWindow:
         # set canvas hints
         self.view.setRenderHint(QPainter.Antialiasing, True)
         self.view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.view.setRenderHint(QPainter.TextAntialiasing, True)        
+        self.view.setRenderHint(QPainter.TextAntialiasing, True)  
+
+        # setup UI elements
+        self._set_states()
+        self.widgets = {}
+        self._setup_configurations([
+            (QCheckBox,'imgAugment','set_img_augmentation'),
+            (QCheckBox,'setShuffle','set_shuffle'),
+            (QCheckBox,'mixedPrecision','set_mixed_precision'),
+            (QCheckBox,'compileJIT','set_JIT_compiler'),
+            (QCheckBox,'runTensorboard','set_tensorboard'),
+            (QCheckBox,'realTimeHistory','set_real_time_history'),
+            (QCheckBox,'saveCheckpoints','set_checkpoints'),
+            (QCheckBox,'useScheduler','set_LR_scheduler'),
+            (QCheckBox,'getStatsAnalysis','get_image_stats'),
+            (QCheckBox,'getPixDist','get_pixels_dist'),
+            (QSpinBox,'seed','set_general_seed'),
+            (QSpinBox,'splitSeed','set_split_seed'),
+            (QSpinBox,'trainSeed','set_train_seed'),
+            (QSpinBox,'shuffleSize','set_shuffle_size'),
+            (QSpinBox,'numEpochs','set_epochs'),
+            (QSpinBox,'batchSize','set_batch_size'),
+            (QSpinBox,'deviceID','set_device_ID'),
+            (QSpinBox,'saveCPFrequency','save_cp_frequency'),
+            (QSpinBox,'numWorkers','set_num_workers'),
+            (QSpinBox,'constantSteps','set_constant_steps'),
+            (QSpinBox,'decaySteps','set_decay_steps'),
+            (QDoubleSpinBox,'sampleSize','set_sample_size'),
+            (QDoubleSpinBox,'trainSampleSize','set_train_sample_size'),
+            (QDoubleSpinBox,'validationSize','set_validation_size'),
+            (QDoubleSpinBox,'initialLearningRate','set_initial_LR'),
+            (QDoubleSpinBox,'targetLearningRate','set_target_LR'),
+            (QRadioButton,'setCPU','set_CPU'),
+            (QRadioButton,'setGPU','set_GPU'),
+            (QRadioButton,'viewPlots','set_plot_view'),
+            (QRadioButton,'viewImages','set_image_view'),
+            (QProgressBar,'dataProgressBar','data_progress_bar'),
+            (QProgressBar,'trainingProgressBar','train_progress_bar'),
+            (QComboBox,'backendJIT','combo_backend_jit'),
+            (QPushButton,'getImgMetrics','btn_get_img_metrics'),
+            (QPushButton,'previousImg','btn_prev_img'),
+            (QPushButton,'nextImg','btn_next_img'),
+            (QPushButton,'clearImg','btn_clear_img'),
+            (QPushButton,'startTraining','btn_start_training'),
+            (QPushButton,'resumeTraining','btn_resume_training')])
+        
+        self._connect_signals([
+            ('set_img_augmentation','toggled',self._update_settings),
+            ('set_shuffle','toggled',self._update_settings),            
+            ('set_mixed_precision','toggled',self._update_settings),
+            ('set_JIT_compiler','toggled',self._update_settings),
+            ('set_tensorboard','toggled',self._update_settings),
+            ('set_real_time_history','toggled',self._update_settings),
+            ('set_checkpoints','toggled',self._update_settings),
+            ('set_LR_scheduler','toggled',self._update_settings),
+            ('get_image_stats','toggled',self._update_settings),
+            ('get_pixels_dist','toggled',self._update_settings),
+            ('set_CPU','toggled',self._update_settings),
+            ('set_GPU','toggled',self._update_settings),
+            ('set_general_seed','valueChanged',self._update_settings),
+            ('set_split_seed','valueChanged',self._update_settings),
+            ('set_train_seed','valueChanged',self._update_settings),
+            ('set_shuffle_size','valueChanged',self._update_settings),            
+            ('set_epochs','valueChanged',self._update_settings),
+            ('set_batch_size','valueChanged',self._update_settings),
+            ('set_device_ID','valueChanged',self._update_settings),
+            ('save_cp_frequency','valueChanged',self._update_settings),
+            ('set_num_workers','valueChanged',self._update_settings),
+            ('set_constant_steps','valueChanged',self._update_settings),
+            ('set_decay_steps','valueChanged',self._update_settings),
+            ('set_sample_size','valueChanged',self._update_settings),
+            ('set_train_sample_size','valueChanged',self._update_settings),
+            ('set_validation_size','valueChanged',self._update_settings),
+            ('set_initial_LR','valueChanged',self._update_settings),
+            ('set_target_LR','valueChanged',self._update_settings),
+            ('set_plot_view','toggled',self._update_graphics_view),
+            ('set_image_view','toggled',self._update_graphics_view),
+            ('combo_backend_jit','currentTextChanged',self.update_JIT_backend),
+            ('btn_get_img_metrics','clicked',self.compute_image_metrics),
+            ('btn_prev_img','clicked',self.show_previous_figure),
+            ('btn_next_img','clicked',self.show_next_figure),
+            ('btn_clear_img','clicked',self.clear_figures),
+            ('btn_start_training','clicked',self.start_training),
+            ('btn_resume_training','clicked',self.resume_training)])      
 
 
     # [SHOW WINDOW]
@@ -101,87 +179,17 @@ class MainWindow:
 
     # [SETUP]
     ###########################################################################
-    def _setup_configurations(self):              
-        self.set_img_augmentation = self.main_win.findChild(QCheckBox, "imgAugment")
-        self.set_shuffle = self.main_win.findChild(QCheckBox, "setShuffle")
-        self.set_mixed_precision = self.main_win.findChild(QCheckBox, "mixedPrecision")
-        self.set_JIT_compiler = self.main_win.findChild(QCheckBox, "compileJIT")
-        self.set_tensorboard = self.main_win.findChild(QCheckBox, "runTensorboard")
-        self.set_real_time_history = self.main_win.findChild(QCheckBox, "realTimeHistory")
-        self.set_checkpoints = self.main_win.findChild(QCheckBox, "saveCheckpoints")
-        self.set_LR_scheduler = self.main_win.findChild(QCheckBox, "useScheduler")   
-        self.get_image_stats = self.main_win.findChild(QCheckBox, "getStatsAnalysis")
-        self.get_pixels_dist = self.main_win.findChild(QCheckBox, "getPixDist")        
-
-        self.set_general_seed = self.main_win.findChild(QSpinBox, "seed")
-        self.set_split_seed = self.main_win.findChild(QSpinBox, "splitSeed")
-        self.set_train_seed = self.main_win.findChild(QSpinBox, "trainSeed")
-        self.set_shuffle_size = self.main_win.findChild(QSpinBox, "shuffleSize")
-        self.set_epochs = self.main_win.findChild(QSpinBox, "numEpochs")
-        self.set_batch_size = self.main_win.findChild(QSpinBox, "batchSize")
-        self.set_device_ID = self.main_win.findChild(QSpinBox, "deviceID")
-        self.save_cp_frequency = self.main_win.findChild(QSpinBox, "saveCPFrequency")      
-        self.set_num_workers = self.main_win.findChild(QSpinBox, "numWorkers")     
-        self.set_constant_steps = self.main_win.findChild(QSpinBox, "constantSteps")      
-        self.set_decay_steps = self.main_win.findChild(QSpinBox, "decaySteps")  
-        
-        self.set_sample_size = self.main_win.findChild(QDoubleSpinBox, "sampleSize")
-        self.set_train_sample_size = self.main_win.findChild(QDoubleSpinBox, "trainSampleSize")
-        self.set_validation_size = self.main_win.findChild(QDoubleSpinBox, "validationSize")
-        
-        self.set_initial_LR = self.main_win.findChild(QDoubleSpinBox, "initialLearningRate")
-        self.set_target_LR = self.main_win.findChild(QDoubleSpinBox, "targetLearningRate")      
-
-        self.set_CPU = self.main_win.findChild(QRadioButton, "setCPU")
-        self.set_GPU = self.main_win.findChild(QRadioButton, "setGPU")
-        self.set_plot_view = self.main_win.findChild(QRadioButton, "viewPlots")
-        self.set_image_view = self.main_win.findChild(QRadioButton, "viewImages")     
-
-        # connect their toggled signals to our updater        
-        self.set_img_augmentation.toggled.connect(self._update_settings)
-        self.set_shuffle.toggled.connect(self._update_settings)
-        self.set_mixed_precision.toggled.connect(self._update_settings)
-        self.set_JIT_compiler.toggled.connect(self._update_settings)
-        self.set_tensorboard.toggled.connect(self._update_settings)
-        self.set_real_time_history.toggled.connect(self._update_settings)
-        self.set_checkpoints.toggled.connect(self._update_settings)
-        self.set_LR_scheduler.toggled.connect(self._update_settings)
-        self.get_image_stats.toggled.connect(self._update_settings)
-        self.get_pixels_dist.toggled.connect(self._update_settings)
-        self.set_CPU.toggled.connect(self._update_settings)
-        self.set_GPU.toggled.connect(self._update_settings)
-
-        self.set_general_seed.valueChanged.connect(self._update_settings)
-        self.set_split_seed.valueChanged.connect(self._update_settings)
-        self.set_train_seed.valueChanged.connect(self._update_settings)
-        self.set_shuffle_size.valueChanged.connect(self._update_settings)
-        self.set_epochs.valueChanged.connect(self._update_settings)
-        self.set_batch_size.valueChanged.connect(self._update_settings)
-        self.set_device_ID.valueChanged.connect(self._update_settings)
-        self.save_cp_frequency.valueChanged.connect(self._update_settings)
-        self.set_num_workers.valueChanged.connect(self._update_settings)
-        self.set_constant_steps.valueChanged.connect(self._update_settings)
-        self.set_decay_steps.valueChanged.connect(self._update_settings)
-        self.set_sample_size.valueChanged.connect(self._update_settings)
-        self.set_train_sample_size.valueChanged.connect(self._update_settings)
-        self.set_validation_size.valueChanged.connect(self._update_settings)
-        self.set_initial_LR.valueChanged.connect(self._update_settings)
-        self.set_target_LR.valueChanged.connect(self._update_settings)        
-
-        self.set_plot_view.toggled.connect(self._update_graphics_view)
-        self.set_image_view.toggled.connect(self._update_graphics_view)
+    def _setup_configurations(self, widget_defs):
+        for cls, name, attr in widget_defs:
+            w = self.main_win.findChild(cls, name)
+            setattr(self, attr, w)
+            self.widgets[attr] = w
 
     #--------------------------------------------------------------------------
-    def _connect_signals(self):        
-        self._connect_combo_box("backendJIT", self.update_JIT_backend)        
-        self._connect_button("getImgMetrics", self.compute_image_metrics)
-        self._connect_button("previousImg", self.show_previous_figure)
-        self._connect_button("nextImg", self.show_next_figure)    
-        self._connect_button("clearImg", self.show_next_figure)    
-
-        self._connect_button("startTraining", self.start_training)
-        self._connect_button("resumeTraining", self.resume_training)
-           
+    def _connect_signals(self, connections):
+        for attr, signal, slot in connections:
+            widget = self.widgets[attr]
+            getattr(widget, signal).connect(slot)   
        
     # [SLOT]
     ###########################################################################
@@ -193,6 +201,7 @@ class MainWindow:
     def _update_settings(self):        
         self.config_manager.update_value('use_img_augmentation', self.set_img_augmentation.isChecked())
         self.config_manager.update_value('shuffle_dataset', self.set_shuffle.isChecked())
+        self.config_manager.update_value('num_workers', self.set_num_workers.value())
         self.config_manager.update_value('mixed_precision', self.set_mixed_precision.isChecked())
         self.config_manager.update_value('use_jit_compiler', self.set_JIT_compiler.isChecked())
         self.config_manager.update_value('run_tensorboard', self.set_tensorboard.isChecked())
@@ -211,18 +220,14 @@ class MainWindow:
         self.config_manager.update_value('validation_size', self.set_validation_size.value())
 
         self.device = 'GPU' if self.set_GPU.isChecked() else 'CPU'
-        self.config_manager.update_value('device', self.device)
-
-        self.view_subject = 'plot' if self.set_plot_view.isChecked() else 'image'
-        self.config_manager.update_value('view_type', self.view_subject)
+        self.config_manager.update_value('device', self.device)        
 
         for name, box in [('image_stats', self.get_image_stats), 
                           ('pixels_distribution', self.get_pixels_dist)]:
             if box.isChecked():
                 self.metrics.append(name) if name not in self.metrics else None                    
             else:
-                self.metrics.remove(name) if name in self.metrics else None
-                   
+                self.metrics.remove(name) if name in self.metrics else None                   
 
     #--------------------------------------------------------------------------
     @Slot()
@@ -260,15 +265,14 @@ class MainWindow:
         self._send_message("Training FEXT Autoencoder model from scratch...") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
-        self._validation_worker = Worker(self.training_handler.train_model_instance)
-                            
+        self._validation_worker = Worker(self.training_handler.train_model)                            
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
         self.data_progress_bar.setValue(0)    
         worker.signals.progress.connect(self.data_progress_bar.setValue)
-        worker.signals.finished.connect(self.on_metrics_calculated)
-        worker.signals.error.connect(self.on_metrics_error)
+        worker.signals.finished.connect(self.on_train_finished)
+        worker.signals.error.connect(self.on_train_error)
         self.threadpool.start(worker)    
 
     #--------------------------------------------------------------------------
@@ -338,10 +342,20 @@ class MainWindow:
         self.images = []
         self.image_pixmaps = None
 
-
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
     def on_metrics_calculated(self, plots):   
+        self.plots.extend(plots) if plots else None
+        self.plot_pixmaps = [
+            self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
+        self.current_fig = 0
+        self._update_graphics_view()
+        self.validation_handler.handle_success(
+            self.main_win, 'Figures have been generated')
+        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True) 
+
+    #--------------------------------------------------------------------------
+    def on_train_finished(self, plots):   
         self.plots.extend(plots) if plots else None
         self.plot_pixmaps = [
             self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
@@ -355,8 +369,17 @@ class MainWindow:
     ########################################################################### #    
     @Slot(tuple)
     def on_metrics_error(self, err_tb):
-        self.validation_handler.handle_error(self.main_win, err_tb) 
-        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True) 
+        self.training_handler.handle_error(self.main_win, err_tb) 
+        self.main_win.findChild(QPushButton, "startTraining").setEnabled(True) 
+        self.main_win.findChild(QPushButton, "resumeTraining").setEnabled(True) 
+
+    @Slot(tuple)
+    #--------------------------------------------------------------------------
+    def on_train_error(self, err_tb):
+        self.training_handler.handle_error(self.main_win, err_tb) 
+        self.main_win.findChild(QPushButton, "startTraining").setEnabled(True) 
+        self.main_win.findChild(QPushButton, "resumeTraining").setEnabled(True)
+
         
 
     

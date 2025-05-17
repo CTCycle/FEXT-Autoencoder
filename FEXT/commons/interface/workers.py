@@ -1,6 +1,6 @@
 import traceback
 import inspect
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import QObject, Signal, QRunnable, QThread, Slot
 
 from FEXT.commons.constants import ROOT_DIR, DATA_PATH
 from FEXT.commons.logger import logger
@@ -40,14 +40,17 @@ class Worker(QRunnable):
     #--------------------------------------------------------------------------
     @Slot()
     def run(self):
-        try:
-            # If we didn’t inject in __init__, ensure we don’t accidentally pass it
+        try:            
             if "progress_callback" in self.kwargs and \
                "progress_callback" not in inspect.signature(self.fn).parameters:
                 self.kwargs.pop("progress_callback")
-
             result = self.fn(*self.args, **self.kwargs)
             self.signals.finished.emit(result)
         except Exception as e:
             tb = traceback.format_exc()
             self.signals.error.emit((e, tb))
+
+
+
+
+

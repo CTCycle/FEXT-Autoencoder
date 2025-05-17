@@ -11,7 +11,7 @@ class TrainingDataLoaderProcessor:
     def __init__(self, configuration):                
         self.img_shape = (128, 128)   
         self.num_channels = 3   
-        self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
+        self.augmentation = configuration.get('use_img_augmentation')
         self.configuration = configuration    
 
     # load and preprocess a single image
@@ -19,7 +19,7 @@ class TrainingDataLoaderProcessor:
     def load_image(self, path): 
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
-            image, channels=3, expand_animations=False)        
+            image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)        
         
         return rgb_image      
@@ -73,7 +73,7 @@ class InferenceDataLoaderProcessor:
     def load_image(self, path): 
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
-            image, channels=3, expand_animations=False)        
+            image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)        
         
         return rgb_image      
@@ -91,9 +91,7 @@ class InferenceDataLoaderProcessor:
     def image_normalization(self, image):
         normalize_image = image/255.0        
                 
-        return normalize_image         
-
-    
+        return normalize_image     
 
    
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
