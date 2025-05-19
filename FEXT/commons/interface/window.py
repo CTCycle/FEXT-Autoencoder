@@ -25,17 +25,18 @@ class MainWindow:
         ui_file = QFile(ui_file_path)
         ui_file.open(QIODevice.ReadOnly)
         self.main_win = loader.load(ui_file)
-        ui_file.close()  
+        ui_file.close()         
        
-        self.text_dataset = None
-        self.tokenizers = None        
         self.plots = []       
         self.images = []
         self.metrics = []
         self.image_pixmaps = None
         self.plot_pixmaps = None
         self.current_fig = 0
-
+             
+        # Internal state for checkpoints        
+        self.selected_checkpoint = None
+        
         # initial settings
         self.config_manager = Configuration()
         self.configuration = self.config_manager.get_configuration()
@@ -68,6 +69,7 @@ class MainWindow:
             (QSpinBox,'trainSeed','train_seed'),
             (QSpinBox,'shuffleSize','shuffle_size'),
             (QSpinBox,'numEpochs','epochs'),
+            (QSpinBox,'numAdditionalEpochs','additional_epochs'),
             (QSpinBox,'batchSize','batch_size'),
             (QSpinBox,'deviceID','device_ID'),
             (QSpinBox,'saveCPFrequency','save_cp_frequency'),
@@ -84,10 +86,12 @@ class MainWindow:
             (QRadioButton,'viewPlots','set_plot_view'),
             (QRadioButton,'viewImages','set_image_view'),            
             (QComboBox,'backendJIT','backend_jit'),
+            (QComboBox,'checkpointsList','checkpoints_list'),
             (QPushButton,'getImgMetrics','get_img_metrics'),
             (QPushButton,'previousImg','prev_img'),
             (QPushButton,'nextImg','next_img'),
             (QPushButton,'clearImg','clear_img'),
+            (QPushButton,'refreshCPList','refresh_checkpoints'),
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),
             (QProgressBar,'dataProgressBar','data_progress_bar'),
@@ -98,12 +102,11 @@ class MainWindow:
             ('use_shuffle','toggled',self._update_settings),                           
             ('use_mixed_precision','toggled',self._update_settings),
             ('use_JIT_compiler','toggled',self._update_settings),
+            ('backend_jit','currentTextChanged',self._update_settings),
             ('use_tensorboard','toggled',self._update_settings),
             ('get_real_time_history','toggled',self._update_settings),
             ('save_checkpoints','toggled',self._update_settings),
-            ('LR_scheduler','toggled',self._update_settings),
-            ('get_image_stats','toggled',self._update_settings),
-            ('get_pixels_dist','toggled',self._update_settings),
+            ('LR_scheduler','toggled',self._update_settings),            
             ('use_CPU','toggled',self._update_settings),
             ('use_GPU','toggled',self._update_settings),
             ('general_seed','valueChanged',self._update_settings),
@@ -111,6 +114,7 @@ class MainWindow:
             ('train_seed','valueChanged',self._update_settings),
             ('shuffle_size','valueChanged',self._update_settings),            
             ('epochs','valueChanged',self._update_settings),
+            ('additional_epochs','valueChanged',self._update_settings),
             ('batch_size','valueChanged',self._update_settings),
             ('device_ID','valueChanged',self._update_settings),
             ('save_cp_frequency','valueChanged',self._update_settings),
@@ -121,16 +125,23 @@ class MainWindow:
             ('train_sample_size','valueChanged',self._update_settings),
             ('validation_size','valueChanged',self._update_settings),
             ('initial_LR','valueChanged',self._update_settings),
-            ('target_LR','valueChanged',self._update_settings),
+            ('target_LR','valueChanged',self._update_settings),   
+            ('get_image_stats','toggled',self._update_metrics),
+            ('get_pixels_dist','toggled',self._update_metrics),         
             ('set_plot_view','toggled',self._update_graphics_view),
-            ('set_image_view','toggled',self._update_graphics_view),
-            ('backend_jit','currentTextChanged',self.update_JIT_backend),
+            ('set_image_view','toggled',self._update_graphics_view), 
+
+            ('refresh_checkpoints','clicked',self.load_checkpoints), 
+            ('checkpoints_list','currentTextChanged',self.select_checkpoint),         
             ('get_img_metrics','clicked',self.compute_image_metrics),
             ('prev_img','clicked',self.show_previous_figure),
             ('next_img','clicked',self.show_next_figure),
             ('clear_img','clicked',self.clear_figures),
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint)]) 
+        
+        # Initial population of dynamic UI elements
+        self.load_checkpoints()
 
         # --- prepare graphics view for figures ---
         self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
@@ -200,6 +211,7 @@ class MainWindow:
         self.config_manager.update_value('num_workers', self.num_workers.value())
         self.config_manager.update_value('mixed_precision', self.use_mixed_precision.isChecked())
         self.config_manager.update_value('use_jit_compiler', self.use_JIT_compiler.isChecked())
+        self.config_manager.update_value('jit_backend', self.backend_jit.currentText())
         self.config_manager.update_value('run_tensorboard', self.use_tensorboard.isChecked())
         self.config_manager.update_value('real_time_history', self.get_real_time_history.isChecked())
         self.config_manager.update_value('save_checkpoints', self.save_checkpoints.isChecked())
@@ -209,21 +221,25 @@ class MainWindow:
         self.config_manager.update_value('train_seed', self.train_seed.value())
         self.config_manager.update_value('shuffle_size', self.shuffle_size.value())
         self.config_manager.update_value('epochs', self.epochs.value())
+        self.config_manager.update_value('additional_epochs', self.additional_epochs.value())
         self.config_manager.update_value('batch_size', self.batch_size.value())
         self.config_manager.update_value('device_id', self.device_ID.value())
         self.config_manager.update_value('sample_size', self.sample_size.value())
         self.config_manager.update_value('train_sample_size', self.train_sample_size.value())
-        self.config_manager.update_value('validation_size', self.validation_size.value())
+        self.config_manager.update_value('validation_size', self.validation_size.value())       
 
         self.device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
-        self.config_manager.update_value('device', self.device)        
+        self.config_manager.update_value('device', self.device)
 
+    #--------------------------------------------------------------------------
+    @Slot()
+    def _update_metrics(self):
         for name, box in [('image_stats', self.get_image_stats), 
                           ('pixels_distribution', self.get_pixels_dist)]:
             if box.isChecked():
                 self.metrics.append(name) if name not in self.metrics else None                    
             else:
-                self.metrics.remove(name) if name in self.metrics else None                   
+                self.metrics.remove(name) if name in self.metrics else None               
 
     #--------------------------------------------------------------------------
     @Slot()
@@ -296,9 +312,22 @@ class MainWindow:
         self.threadpool.start(worker)          
 
     #--------------------------------------------------------------------------
+    @Slot()
+    def load_checkpoints(self):       
+        checkpoints = self.training_handler.get_available_checkpoints()
+        self.checkpoints_list.clear()
+        if checkpoints:
+            self.checkpoints_list.addItems(checkpoints)
+            self.selected_checkpoint = checkpoints[0]
+            self.checkpoints_list.setCurrentText(checkpoints[0])
+        else:
+            self.selected_checkpoint = None
+            logger.warning("No checkpoints available")
+
+    #--------------------------------------------------------------------------
     @Slot(str)
-    def update_JIT_backend(self, backend: str):
-        self.config_manager.update_value('jit_backend', backend)
+    def select_checkpoint(self, name: str):
+        self.selected_checkpoint = name if name else None        
 
     #--------------------------------------------------------------------------
     @Slot()
@@ -351,8 +380,7 @@ class MainWindow:
         self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True) 
 
     #--------------------------------------------------------------------------
-    def on_train_finished(self, session):   
-        
+    def on_train_finished(self, session):          
         self.training_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
         self.main_win.findChild(QPushButton, "startTraining").setEnabled(True) 

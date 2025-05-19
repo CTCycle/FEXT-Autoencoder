@@ -39,16 +39,7 @@ class ModelTraining:
             self.device = torch.device('cpu')
             logger.info('CPU is set as active device')
 
-    #--------------------------------------------------------------------------
-    def get_training_history(self, train_history, val_history, epochs):   
-        # use the real time history callback data to retrieve current loss and metric values
-        # this allows to correctly resume the training metrics plot if training from checkpoint        
-        session = {'history' : train_history, 
-                   'val_history' : val_history,
-                   'total_epochs' : epochs}
-        
-        return session
-        
+           
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
                     checkpoint_path, from_checkpoint=False, progress_callback=None):
@@ -70,13 +61,12 @@ class ModelTraining:
             self.configuration, checkpoint_path, history, progress_callback)       
         
         # run model fit using keras API method.             
-        training = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
+        session = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
                              callbacks=callbacks_list, initial_epoch=from_epoch)
-
-        self.get_training_history(None, None, epochs)           
+                   
         self.serializer.save_pretrained_model(model, checkpoint_path)       
         self.serializer.save_training_configurationn(
-            checkpoint_path, history, self.configuration)
+            checkpoint_path, session, self.configuration)
 
         
 

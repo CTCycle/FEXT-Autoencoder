@@ -994,6 +994,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                <item>
                 <widget class="QComboBox" name="checkpointsList"/>
                </item>
+               <item>
+                <widget class="QPushButton" name="refreshCPList">
+                 <property name="text">
+                  <string>Refresh</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
              <item>

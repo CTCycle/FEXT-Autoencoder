@@ -75,9 +75,14 @@ class TrainingEvents:
         self.splitter = TrainValidationSplit(configuration)
         self.builder = TrainingDataLoader(configuration)        
         self.trainer = ModelTraining(configuration)  
-        self.autoencoder = FeXTAutoEncoder(configuration)          
-        self.configuration = configuration    
-        
+        self.autoencoder = FeXTAutoEncoder(configuration) 
+        self.modelserializer = ModelSerializer()         
+        self.configuration = configuration 
+
+    #--------------------------------------------------------------------------
+    def get_available_checkpoints(self):
+        return self.modelserializer.scan_checkpoints_folder()
+            
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None):  
         logger.info('Preparing dataset of images based on splitting sizes')  
@@ -94,11 +99,9 @@ class TrainingEvents:
         logger.info('Setting device for training operations based on user configuration')         
         self.trainer.set_device()
 
-        self.modelserializer = ModelSerializer() 
-        checkpoint_path = self.modelserializer.create_checkpoint_folder()                 
-
         # build the autoencoder model 
-        logger.info('Building FeXT AutoEncoder model based on user configuration')         
+        logger.info('Building FeXT AutoEncoder model based on user configuration') 
+        checkpoint_path = self.modelserializer.create_checkpoint_folder()          
         model = self.autoencoder.get_model(model_summary=True) 
 
         # generate training log report and graphviz plot for the model layout         
@@ -109,6 +112,33 @@ class TrainingEvents:
         self.trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
             progress_callback=progress_callback)
+        
+    #--------------------------------------------------------------------------
+    def resume_training_pipeline(self, selected_checkpoint, progress_callback=None):
+        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
+        model, configuration, session, checkpoint_path = self.modelserializer.load_checkpoint()    
+        model.summary(expand_nested=True)  
+        
+        # set device for training operations based on user configuration
+        logger.info('Setting device for training operations based on user configuration')         
+        self.trainer.set_device() 
+
+        logger.info('Preparing dataset of images based on splitting sizes')  
+        sample_size = self.configuration.get("train_sample_size", 1.0)
+        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size) 
+        train_data, validation_data = self.splitter.split_train_and_validation(images_paths)       
+
+        # create the tf.datasets using the previously initialized generators 
+        logger.info('Building model data loaders with prefetching and parallel processing')            
+        train_dataset, validation_dataset = self.builder.build_training_dataloader(
+            train_data, validation_data)        
+                            
+        # resume training from pretrained model    
+        logger.info('Resuming FeXT AutoEncoder training from checkpoint') 
+        self.trainer.train_model(
+            model, train_dataset, validation_dataset, checkpoint_path,
+            from_checkpoint=True)
+
 
         
     # define the logic to handle successfull data retrieval outside the main UI loop
