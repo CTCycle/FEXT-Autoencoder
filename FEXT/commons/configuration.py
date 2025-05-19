@@ -1,18 +1,19 @@
 
 
 ###############################################################################
-class Configurations:
+class Configuration:
     
     def __init__(self):
-        self.configurations = {            
+        self.configuration = {            
             'general_seed': 42,
             'split_seed': 76,
-            'training_seed': 42,         
+            'train_seed': 42,         
 
             # Dataset
             'sample_size': 1.0,
             'validation_size': 0.2,
-            'use_img_augmentation': False,
+            'img_augmentation': False,
+            'shuffle_dataset': True,
             'shuffle_size': 1024,
 
             # Model 
@@ -26,6 +27,7 @@ class Configurations:
             'num_workers': 0,
 
             # Training
+            'train_sample_size': 1.0,
             'epochs': 100,
             'additional_epochs': 10,
             'batch_size': 32,
@@ -47,9 +49,9 @@ class Configurations:
         }
 
     #--------------------------------------------------------------------------  
-    def get_configurations(self):
-        return self.configurations
+    def get_configuration(self):
+        return self.configuration
     
     #--------------------------------------------------------------------------
     def update_value(self, key: str, value: bool):       
-        self.configurations[key] = value
+        self.configuration[key] = value

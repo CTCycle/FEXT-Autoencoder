@@ -1,5 +1,4 @@
 import keras
-import torch
 
 from FEXT.commons.utils.learning.callbacks import initialize_callbacks_handler
 from FEXT.commons.utils.data.serializer import ModelSerializer
@@ -22,6 +21,7 @@ class ModelTraining:
     # set device
     #--------------------------------------------------------------------------
     def set_device(self):
+        import torch
         if self.selected_device == 'GPU':
             if not torch.cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
@@ -29,10 +29,12 @@ class ModelTraining:
             else:
                 self.device = torch.device(f'cuda:{self.device_id}')
                 torch.cuda.set_device(self.device)  
+                torch.set_default_tensor_type(torch.cuda.FloatTensor)
                 logger.info('GPU is set as active device')            
                 if self.mixed_precision:
                     keras.mixed_precision.set_global_policy("mixed_float16")
-                    logger.info('Mixed precision policy is active during training')                   
+                    logger.info('Mixed precision policy is active during training')               
+                                  
         else:
             self.device = torch.device('cpu')
             logger.info('CPU is set as active device')
@@ -49,17 +51,17 @@ class ModelTraining:
         
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    checkpoint_path, from_checkpoint=False, progress_callback=None):         
-
+                    checkpoint_path, from_checkpoint=False, progress_callback=None):
+        
         # perform different initialization duties based on state of session:
         # training from scratch vs resumed training
         # calculate number of epochs taking into account possible training resumption
         if not from_checkpoint:            
-            epochs = self.configuration.get('num_epochs', 10) 
+            epochs = self.configuration.get('epochs', 10) 
             from_epoch = 0
             history = None
         else:
-            _, history = self.serializer.load_session_configuration(checkpoint_path)                     
+            _, history = self.serializer.load_training_configurationn(checkpoint_path)                     
             epochs = history['total_epochs'] + self.configuration.get('additional_epochs', 10) 
             from_epoch = history['total_epochs']           
        
@@ -73,7 +75,7 @@ class ModelTraining:
 
         self.get_training_history(None, None, epochs)           
         self.serializer.save_pretrained_model(model, checkpoint_path)       
-        self.serializer.save_session_configuration(
+        self.serializer.save_training_configurationn(
             checkpoint_path, history, self.configuration)
 
         

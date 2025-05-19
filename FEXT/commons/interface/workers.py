@@ -1,6 +1,6 @@
 import traceback
 import inspect
-from PySide6.QtCore import QObject, Signal, QRunnable, QThread, Slot
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from FEXT.commons.constants import ROOT_DIR, DATA_PATH
 from FEXT.commons.logger import logger
@@ -49,8 +49,5 @@ class Worker(QRunnable):
         except Exception as e:
             tb = traceback.format_exc()
             self.signals.error.emit((e, tb))
-
-
-
 
 

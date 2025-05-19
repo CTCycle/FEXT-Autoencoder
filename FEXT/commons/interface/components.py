@@ -5,7 +5,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
 
 from FEXT.commons.variables import EnvironmentVariables
-from FEXT.commons.configurations import Configurations
+from FEXT.commons.configuration import Configuration
 from FEXT.commons.interface.events import ValidationEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import UI_PATH
@@ -31,8 +31,8 @@ class MainWindow:
         self.pixmaps = None
 
         # initial settings
-        self.config_manager = Configurations()
-        self.configurations = self.config_manager.get_configurations()
+        self.config_manager = Configuration()
+        self.configuration = self.config_manager.get_configuration()
     
         self.threadpool = QThreadPool.globalInstance()
         self._validation_worker = None
@@ -44,10 +44,10 @@ class MainWindow:
 
         # --- Create persistent handlers ---
         # These objects will live as long as the MainWindow instance lives
-        self.validation_handler = ValidationEvents(self.configurations)                   
+        self.validation_handler = ValidationEvents(self.configuration)                   
         
         # setup UI elements
-        self._setup_configurations()
+        self._setup_configuration()
         self._connect_signals()
         self._set_states()
 
@@ -87,7 +87,7 @@ class MainWindow:
 
     # [SETUP]
     ###########################################################################
-    def _setup_configurations(self):              
+    def _setup_configuration(self):              
         self.set_img_augmentation = self.main_win.findChild(QCheckBox, "imgAugment")
         self.set_shuffle = self.main_win.findChild(QCheckBox, "setShuffle")
         self.set_mixed_precision = self.main_win.findChild(QCheckBox, "mixedPrecision")
@@ -182,8 +182,8 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def calculate_image_statistics(self):         
-        self.configurations = self.config_manager.get_configurations() 
-        self.validation_handler = ValidationEvents(self.configurations) 
+        self.configuration = self.config_manager.get_configuration() 
+        self.validation_handler = ValidationEvents(self.configuration) 
         
         # send message to status bar
         self._send_message("Calculating image statistics...")        
@@ -206,8 +206,8 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def compute_pixel_distribution_histogram(self):         
-        self.configurations = self.config_manager.get_configurations() 
-        self.validation_handler = ValidationEvents(self.configurations) 
+        self.configuration = self.config_manager.get_configuration() 
+        self.validation_handler = ValidationEvents(self.configuration) 
         
         # send message to status bar
         self._send_message("Computing pixel distribution...")
