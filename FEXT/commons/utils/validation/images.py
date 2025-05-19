@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.database import FEXTDatabase
-from FEXT.commons.constants import DATA_PATH, EVALUATION_PATH
+from FEXT.commons.constants import EVALUATION_PATH
 from FEXT.commons.logger import logger
 
 

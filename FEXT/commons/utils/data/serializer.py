@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import numpy as np
 import keras
 from datetime import datetime
 
@@ -41,18 +40,17 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration.get('general_seed', 42)   
-        self.sample_size = configuration.get("sample_size", 1.0)
+        self.seed = configuration.get('general_seed', 42)         
         self.configuration = configuration
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path):            
+    def get_images_path_from_directory(self, path, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):
-            if self.sample_size < 1.0:
-                files = files[:int(self.sample_size * len(files))]           
+            if sample_size < 1.0:
+                files = files[:int(sample_size * len(files))]           
             for file in files:                
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
@@ -87,14 +85,14 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
-    def save_session_configuration(self, path, history : dict, configurations : dict):         
-        os.makedirs(os.path.join(path, 'configurations'), exist_ok=True)        
-        config_path = os.path.join(path, 'configurations', 'configurations.json')
-        history_path = os.path.join(path, 'configurations', 'session_history.json')
+    def save_training_configurationn(self, path, history : dict, configuration : dict):         
+        os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
+        config_path = os.path.join(path, 'configuration', 'configuration.json')
+        history_path = os.path.join(path, 'configuration', 'session_history.json')
 
-        # Save training and model configurations
+        # Save training and model configuration
         with open(config_path, 'w') as f:
-            json.dump(configurations, f)
+            json.dump(configuration, f)
             
         # Save session history
         with open(history_path, 'w') as f:
@@ -112,18 +110,18 @@ class ModelSerializer:
         return model_folders     
 
     #--------------------------------------------------------------------------
-    def load_session_configuration(self, path):
+    def load_training_configurationn(self, path):
         config_path = os.path.join(
-            path, 'configurations', 'configurations.json')        
+            path, 'configuration', 'configuration.json')        
         with open(config_path, 'r') as f:
-            configurations = json.load(f)        
+            configuration = json.load(f)        
 
         history_path = os.path.join(
-            path, 'configurations', 'session_history.json')
+            path, 'configuration', 'session_history.json')
         with open(history_path, 'r') as f:
             history = json.load(f)
 
-        return configurations, history
+        return configuration, history
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
@@ -165,6 +163,6 @@ class ModelSerializer:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         model = self.load_checkpoint(checkpoint_path)       
-        configuration, history = self.load_session_configuration(checkpoint_path)        
+        configuration, history = self.load_training_configurationn(checkpoint_path)        
             
         return model, configuration, checkpoint_path
