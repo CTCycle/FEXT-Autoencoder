@@ -24,8 +24,9 @@ class ValidationEvents:
         self.configuration = configuration    
         
     #--------------------------------------------------------------------------
-    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):                  
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH)  
+    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):
+        sample_size = self.configuration.get("sample_size", 1.0)
+        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')
         
         images = []        
@@ -144,6 +145,58 @@ class TrainingEvents:
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback)
         
+    # define the logic to handle successfull data retrieval outside the main UI loop
+    #--------------------------------------------------------------------------
+    def handle_success(self, window, message):
+        # send message to status bar
+        window.statusBar().showMessage(message)
+    
+    # define the logic to handle error during data retrieval outside the main UI loop
+    #--------------------------------------------------------------------------
+    def handle_error(self, window, err_tb):
+        exc, tb = err_tb
+        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
+
+   
+
+
+
+###############################################################################
+class InferenceEvents:
+
+    def __init__(self, configuration):        
+        self.serializer = DataSerializer(configuration)        
+        self.modser = ModelSerializer()         
+        self.configuration = configuration 
+
+    #--------------------------------------------------------------------------
+    def get_available_checkpoints(self):
+        return self.modser.scan_checkpoints_folder()
+            
+    #--------------------------------------------------------------------------
+    def run_inference_pipeline(self, selected_checkpoint, progress_callback=None):
+        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
+        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+            selected_checkpoint)    
+        model.summary(expand_nested=True)  
+
+        # setting device for training    
+        trainer = ModelTraining(configuration)    
+        trainer.set_device() 
+
+        # select images from the inference folder and retrieve current paths        
+        images_paths = dataserializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
+        logger.info(f'{len(images_paths)} images have been found')
+
+        # 3. [ENCODE IMAGES]
+        #--------------------------------------------------------------------------    
+        logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
+        # extract features from images using the encoder output, the image encoder
+        # takes the list of images path from inference as input    
+        encoder = ImageEncoding(model, configuration, checkpoint_path)    
+        encoder.encode_images_features(images_paths)
+        logger.info('Encoded images have been saved as .npy')
+           
     # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
     def handle_success(self, window, message):

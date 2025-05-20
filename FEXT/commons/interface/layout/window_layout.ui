@@ -513,13 +513,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="0">
+    <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="accessibleName">
        <string/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="dataTab">
        <property name="toolTipDuration">
@@ -710,13 +710,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
               </layout>
              </widget>
             </item>
-            <item>
-             <widget class="QProgressBar" name="dataProgressBar">
-              <property name="value">
-               <number>24</number>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
          </layout>
@@ -727,14 +720,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        <attribute name="title">
         <string>Model training</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_2" rowminimumheight="0,0,0">
-        <item row="2" column="0">
-         <widget class="QProgressBar" name="trainingProgressBar">
-          <property name="value">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
+       <layout class="QGridLayout" name="gridLayout_2" rowminimumheight="0,0,0,0,0">
         <item row="1" column="0">
          <layout class="QGridLayout" name="gridLayout" rowstretch="4,0" columnstretch="0,0,0">
           <property name="horizontalSpacing">
@@ -862,27 +848,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_20">
-               <item>
-                <widget class="QLabel" name="label_19">
-                 <property name="text">
-                  <string>Available checkpoints</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="checkpointsList"/>
-               </item>
-               <item>
-                <widget class="QPushButton" name="refreshCPList">
-                 <property name="text">
-                  <string>Refresh</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
               <layout class="QHBoxLayout" name="horizontalLayout_10">
                <item>
                 <widget class="QLabel" name="label_7">
@@ -893,6 +858,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </item>
                <item>
                 <widget class="QSpinBox" name="numAdditionalEpochs">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
                  <property name="maximum">
                   <number>1000000</number>
                  </property>
@@ -1473,17 +1441,53 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
          <string>Parameters</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QGraphicsView" name="modelEvalCanvas">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>270</y>
-          <width>271</width>
+          <x>460</x>
+          <y>40</y>
+          <width>641</width>
+          <height>681</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton">
+        <property name="geometry">
+         <rect>
+          <x>50</x>
+          <y>290</y>
+          <width>89</width>
           <height>30</height>
          </rect>
         </property>
         <property name="text">
-         <string>Create checkpoints summary</string>
+         <string>PushButton</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>340</y>
+          <width>89</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_3">
+        <property name="geometry">
+         <rect>
+          <x>50</x>
+          <y>420</y>
+          <width>89</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
         </property>
        </widget>
       </widget>
@@ -1504,7 +1508,58 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
          <string>Parameters</string>
         </property>
        </widget>
+       <widget class="QPushButton" name="encodeImages">
+        <property name="geometry">
+         <rect>
+          <x>70</x>
+          <y>370</y>
+          <width>181</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Encode images</string>
+        </property>
+       </widget>
+       <widget class="QGraphicsView" name="inferenceImgCanvas">
+        <property name="geometry">
+         <rect>
+          <x>460</x>
+          <y>40</y>
+          <width>651</width>
+          <height>681</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_20">
+      <item>
+       <widget class="QLabel" name="label_19">
+        <property name="text">
+         <string>Available checkpoints</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="checkpointsList"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="refreshCheckpoints">
+        <property name="text">
+         <string>Refresh</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="0">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
      </widget>
     </item>
    </layout>

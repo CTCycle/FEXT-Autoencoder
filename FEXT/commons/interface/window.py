@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QGraphicsPixmapItem, QGraphicsView)
 
 from FEXT.commons.configuration import Configuration
-from FEXT.commons.interface.events import ValidationEvents, TrainingEvents
+from FEXT.commons.interface.events import ValidationEvents, TrainingEvents, InferenceEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.logger import logger
 
@@ -24,11 +24,13 @@ class MainWindow:
         self.main_win = loader.load(ui_file)
         ui_file.close()         
        
-        self.plots = []       
+        self.plots = []
         self.images = []
         self.metrics = []
         self.image_pixmaps = None
         self.plot_pixmaps = None
+        self.inference_pixmaps = None
+        self.model_eval_pixmaps = None
         self.current_fig = 0
              
         # Internal state for checkpoints        
@@ -46,6 +48,7 @@ class MainWindow:
         # These objects will live as long as the MainWindow instance lives
         self.validation_handler = ValidationEvents(self.configuration)
         self.training_handler = TrainingEvents(self.configuration)
+        self.inference_handler = InferenceEvents(self.configuration)
 
         # setup UI elements
         self._set_states()
@@ -93,10 +96,15 @@ class MainWindow:
             (QSpinBox,'bottleneckNeurons','bottleneck_neurons'),
             (QSpinBox,'numAdditionalEpochs','additional_epochs'),
             (QComboBox,'checkpointsList','checkpoints_list'),           
-            (QPushButton,'refreshCPList','refresh_checkpoints'),
+            (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
-            (QProgressBar,'trainingProgressBar','train_progress_bar')])
+            (QProgressBar,'trainingProgressBar','train_progress_bar'),
+            
+            
+            # 4. inference tab page        
+            (QPushButton,'encodeImages','encode_images'),
+            ])
         
         self._connect_signals([
             # 1. dataset tab page
@@ -105,11 +113,11 @@ class MainWindow:
             ('get_img_metrics','clicked',self.compute_image_metrics),
             ('general_seed','valueChanged',self._update_settings),
             ('sample_size','valueChanged',self._update_settings),
-            ('prev_img','clicked',self.show_previous_figure),
-            ('next_img','clicked',self.show_next_figure),
-            ('clear_img','clicked',self.clear_figures),
-            ('set_plot_view','toggled',self._update_graphics_view),
-            ('set_image_view','toggled',self._update_graphics_view),
+            ('prev_img', 'clicked', lambda: self.show_previous_figure("imageCanvas")),
+            ('next_img', 'clicked', lambda: self.show_next_figure("imageCanvas")),
+            ('clear_img', 'clicked', lambda: self.clear_figures("imageCanvas")),
+            ('set_plot_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
+            ('set_image_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
             # 2. training tab page
             ('img_augmentation','toggled',self._update_settings),
             ('use_shuffle','toggled',self._update_settings),
@@ -142,36 +150,48 @@ class MainWindow:
             ('checkpoints_list','currentTextChanged',self.select_checkpoint),
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('start_training','clicked',self.train_from_scratch),
-            ('resume_training','clicked',self.resume_training_from_checkpoint)]) 
+            ('resume_training','clicked',self.resume_training_from_checkpoint),
+
+            # 4. inference tab page
+            ('encode_images','clicked',self.encode_images_with_checkpoint),
+            ]) 
             
         # Initial population of dynamic UI elements
         self.load_checkpoints()
+        self._set_graphics()       
 
-        # --- prepare graphics view for figures ---
-        self.view = self.main_win.findChild(QGraphicsView, "imageCanvas")
-        self.scene = QGraphicsScene()
-        self.pixmap_item = QGraphicsPixmapItem()
-        # make pixmap scaling use smooth interpolation
-        self.pixmap_item.setTransformationMode(Qt.SmoothTransformation)
-        self.scene.addItem(self.pixmap_item)
-        self.view.setScene(self.scene)
-        # set canvas hints
-        self.view.setRenderHint(QPainter.Antialiasing, True)
-        self.view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.view.setRenderHint(QPainter.TextAntialiasing, True) 
+        
 
     # [SHOW WINDOW]
     ###########################################################################
     def show(self):        
-        self.main_win.show()    
+        self.main_win.show()   
 
     # [HELPERS FOR SETTING CONNECTIONS]
     ###########################################################################
-    def _set_states(self): 
-        self.data_progress_bar = self.main_win.findChild(QProgressBar, "dataProgressBar")
-        self.train_progress_bar = self.main_win.findChild(QProgressBar, "trainingProgressBar")
-        self.data_progress_bar.setValue(0)  
-        self.train_progress_bar.setValue(0)   
+    def _set_states(self):         
+        self.progress_bar = self.main_win.findChild(QProgressBar, "progressBar")        
+        self.progress_bar.setValue(0) 
+
+    #--------------------------------------------------------------------------
+    def _set_graphics(self):
+        self.graphics = {}
+        CANVAS_NAMES = ["imageCanvas", "inferenceImgCanvas", "modelEvalCanvas"]
+        for canvas_name in CANVAS_NAMES:
+            view = self.main_win.findChild(QGraphicsView, canvas_name)
+            scene = QGraphicsScene()
+            pixmap_item = QGraphicsPixmapItem()
+            pixmap_item.setTransformationMode(Qt.SmoothTransformation)
+            scene.addItem(pixmap_item)
+            view.setScene(scene)
+            view.setRenderHint(QPainter.Antialiasing, True)
+            view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            view.setRenderHint(QPainter.TextAntialiasing, True)
+            self.graphics[canvas_name] = {
+                'view': view,
+                'scene': scene,
+                'pixmap_item': pixmap_item
+            }
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -252,7 +272,7 @@ class MainWindow:
         if not self.metrics:
             return None
         
-        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(False)
+        self.get_img_metrics.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)       
         # send message to status bar
@@ -265,8 +285,8 @@ class MainWindow:
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
-        self.data_progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.data_progress_bar.setValue)
+        self.progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.progress_bar.setValue)
         worker.signals.finished.connect(self.on_metrics_calculated)
         worker.signals.error.connect(self.on_metrics_error)
         self.threadpool.start(worker)       
@@ -274,7 +294,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def train_from_scratch(self):  
-        self.main_win.findChild(QPushButton, "startTraining").setEnabled(False)
+        self.start_training.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
         self.training_handler = TrainingEvents(self.configuration)         
   
@@ -286,8 +306,8 @@ class MainWindow:
         worker = self._training_worker
 
         # inject the progress signal into the worker   
-        self.train_progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.train_progress_bar.setValue)
+        self.progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.progress_bar.setValue)
         worker.signals.finished.connect(self.on_train_finished)
         worker.signals.error.connect(self.on_train_error)
         self.threadpool.start(worker)    
@@ -295,12 +315,12 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def resume_training_from_checkpoint(self):  
-        self.main_win.findChild(QPushButton, "resumeTraining").setEnabled(False)
+        self.resume_training.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
         self.training_handler = TrainingEvents(self.configuration)   
 
         # send message to status bar
-        self._send_message(f"Resume training from checkpoint {self.select_checkpoint}") 
+        self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
         self._training_worker = Worker(
@@ -309,8 +329,8 @@ class MainWindow:
         worker = self._training_worker
 
         # inject the progress signal into the worker   
-        self.train_progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.train_progress_bar.setValue)
+        self.progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.progress_bar.setValue)
         worker.signals.finished.connect(self.on_train_finished)
         worker.signals.error.connect(self.on_train_error)
         self.threadpool.start(worker)    
@@ -331,45 +351,88 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot(str)
     def select_checkpoint(self, name: str):
-        self.selected_checkpoint = name if name else None        
+        self.selected_checkpoint = name if name else None 
 
     #--------------------------------------------------------------------------
     @Slot()
-    def _update_graphics_view(self):
-        source = self.plot_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
-        if source:            
+    def encode_images_with_checkpoint(self):  
+        self.encode_images.setEnabled(False)
+        self.configuration = self.config_manager.get_configuration() 
+        self.training_handler = InferenceEvents(self.configuration)   
+
+        # send message to status bar
+        self._send_message(f"Encoding images with {self.selected_checkpoint}") 
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._training_worker = Worker(
+            self.training_handler.run_inference_pipeline,
+            self.selected_checkpoint)                            
+        worker = self._training_worker
+
+        # inject the progress signal into the worker   
+        self.progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.progress_bar.setValue)
+        worker.signals.finished.connect(self.on_inference_finished)
+        worker.signals.error.connect(self.on_inference_error)
+        self.threadpool.start(worker)           
+
+    #--------------------------------------------------------------------------
+    @Slot(str)
+    def _update_graphics_view(self, canvas_name="imageCanvas"):
+        if canvas_name == "imageCanvas":
+            source = self.plot_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
+        elif canvas_name == "inferenceImgCanvas":
+            source = self.inference_pixmaps
+        elif canvas_name == "modelEvalCanvas":
+            source = self.model_eval_pixmaps
+        else:
+            return
+        if source:
             raw_pix = source[self.current_fig]
-            view_size = self.view.viewport().size()
-            # scale images to the canvas pixel dimensions with smooth filtering
+            view = self.graphics[canvas_name]['view']
+            pixmap_item = self.graphics[canvas_name]['pixmap_item']
+            scene = self.graphics[canvas_name]['scene']
+            view_size = view.viewport().size()
             scaled = raw_pix.scaled(
                 view_size,
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation)
-            self.pixmap_item.setPixmap(scaled)
-            self.scene.setSceneRect(scaled.rect())
+            pixmap_item.setPixmap(scaled)
+            scene.setSceneRect(scaled.rect())
 
     #--------------------------------------------------------------------------
-    @Slot()
-    def show_previous_figure(self):             
+    @Slot(str)
+    def show_previous_figure(self, canvas_name="imageCanvas"):
         if self.current_fig > 0:
             self.current_fig -= 1
-            self._update_graphics_view()
+            self._update_graphics_view(canvas_name)
 
     #--------------------------------------------------------------------------
-    @Slot()
-    def show_next_figure(self): 
-        elements = len(self.plot_pixmaps) if self.set_plot_view.isChecked() \
-                   else len(self.image_pixmaps)  
-            
+    @Slot(str)
+    def show_next_figure(self, canvas_name="imageCanvas"):
+        if canvas_name == "imageCanvas":
+            elements = len(self.plot_pixmaps) if self.set_plot_view.isChecked() \
+                       else len(self.image_pixmaps)
+        elif canvas_name == "inferenceImgCanvas":
+            elements = len(self.inference_pixmaps)
+        elif canvas_name == "modelEvalCanvas":
+            elements = len(self.model_eval_pixmaps)       
+
         if self.current_fig < elements - 1:
             self.current_fig += 1
-            self._update_graphics_view()
+            self._update_graphics_view(canvas_name)
 
     #--------------------------------------------------------------------------
-    @Slot()
-    def clear_figures(self):       
-        self.images = []
-        self.image_pixmaps = None
+    @Slot(str)
+    def clear_figures(self, canvas_name="imageCanvas"):
+        if canvas_name == "imageCanvas":
+            self.images = []
+            self.image_pixmaps = None
+        elif canvas_name == "inferenceImgCanvas":
+            self.inference_pixmaps = None
+        elif canvas_name == "modelEvalCanvas":
+            self.model_eval_pixmaps = None
+            
 
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
@@ -378,31 +441,44 @@ class MainWindow:
         self.plot_pixmaps = [
             self.validation_handler.convert_fig_to_qpixmap(p) for p in self.plots]
         self.current_fig = 0
-        self._update_graphics_view()
-        self.validation_handler.handle_success(
-            self.main_win, 'Figures have been generated')
-        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True) 
+        self._update_graphics_view("imageCanvas")
+        self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
+        self.get_img_metrics.setEnabled(True)
 
     #--------------------------------------------------------------------------
     def on_train_finished(self, session):          
         self.training_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
-        self.main_win.findChild(QPushButton, "startTraining").setEnabled(True) 
-        self.main_win.findChild(QPushButton, "resumeTraining").setEnabled(True)     
+        self.start_training.setEnabled(True) 
+        self.resume_training.setEnabled(True)
+
+    #--------------------------------------------------------------------------
+    def on_inference_finished(self, session):          
+        self.training_handler.handle_success(
+            self.main_win, 'Training session is over. Model has been saved')
+        self.encode_images.setEnabled(True)         
 
     # [NEGATIVE OUTCOME HANDLERS]
     ########################################################################### #    
     @Slot(tuple)
     def on_metrics_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.main_win.findChild(QPushButton, "getImgMetrics").setEnabled(True)
+        self.get_img_metrics.setEnabled(True)
 
     @Slot(tuple)
     #--------------------------------------------------------------------------
     def on_train_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.main_win.findChild(QPushButton, "startTraining").setEnabled(True) 
-        self.main_win.findChild(QPushButton, "resumeTraining").setEnabled(True)
+        self.start_training.setEnabled(True) 
+        self.resume_training.setEnabled(True)  
+
+    @Slot(tuple)
+    #--------------------------------------------------------------------------
+    def on_inference_error(self, err_tb):
+        self.inference_handler.handle_error(self.main_win, err_tb) 
+        self.encode_images.setEnabled(True) 
+         
+
 
         
 
