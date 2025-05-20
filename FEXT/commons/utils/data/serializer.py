@@ -62,7 +62,7 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
-    def save_training_configurationn(self, path, session, configuration : dict):         
+    def save_training_configuration(self, path, session, configuration : dict):         
         os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
         config_path = os.path.join(path, 'configuration', 'configuration.json')
         history_path = os.path.join(path, 'configuration', 'session_history.json')
@@ -87,7 +87,7 @@ class ModelSerializer:
         return model_folders     
 
     #--------------------------------------------------------------------------
-    def load_training_configurationn(self, path):
+    def load_training_configuration(self, path):
         config_path = os.path.join(
             path, 'configuration', 'configuration.json')        
         with open(config_path, 'r') as f:
@@ -126,6 +126,6 @@ class ModelSerializer:
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path, custom_objects=custom_objects)       
-        configuration, session = self.load_training_configurationn(checkpoint_path)        
+        configuration, session = self.load_training_configuration(checkpoint_path)        
             
         return model, configuration, session, checkpoint_path
