@@ -25,7 +25,7 @@ class ImageEncoding:
             inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths):        
+    def encode_images_features(self, images_paths, progress_callback=None):        
         features = {}
         for pt in tqdm(images_paths, desc='Encoding images', total=len(images_paths)):
             image_name = os.path.basename(pt)
@@ -37,6 +37,11 @@ class ImageEncoding:
             except Exception as e:
                 features[pt] = f'Error during encoding: {str(e)}'
                 logger.error(f'Could not encode image {image_name}: {str(e)}')
+            
+            if progress_callback is not None:
+                total = len(tokenizers.items())
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(
