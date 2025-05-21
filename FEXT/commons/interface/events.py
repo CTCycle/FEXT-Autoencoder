@@ -1,3 +1,4 @@
+import cv2
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPixmap
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -21,7 +22,15 @@ class ValidationEvents:
     def __init__(self, configuration):        
         self.serializer = DataSerializer(configuration)   
         self.analyzer = ImageAnalysis(configuration)     
-        self.configuration = configuration    
+        self.configuration = configuration  
+
+    #--------------------------------------------------------------------------
+    def load_images_path(self):
+        sample_size = self.configuration.get("sample_size", 1.0)
+        images_paths = self.serializer.get_images_path_from_directory(
+            IMG_PATH, sample_size) 
+        
+        return images_paths 
         
     #--------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):
@@ -51,6 +60,25 @@ class ValidationEvents:
         buf = canvas.buffer_rgba()
         # construct a QImage pointing at that memory (no PNG decoding)
         qimg = QImage(buf, width, height, QImage.Format_RGBA8888)
+
+        return QPixmap.fromImage(qimg)
+    
+    #--------------------------------------------------------------------------    
+    def load_image_as_pixmap(self, path):    
+        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        # Handle grayscale, RGB, or RGBA
+        if len(img.shape) == 2:  # Grayscale
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        elif img.shape[2] == 4:  # BGRA
+            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+        else:  # BGR
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        h, w = img.shape[:2]
+        if img.shape[2] == 3:
+            qimg = QImage(img.data, w, h, 3 * w, QImage.Format_RGB888)
+        else:  # RGBA
+            qimg = QImage(img.data, w, h, 4 * w, QImage.Format_RGBA8888)
 
         return QPixmap.fromImage(qimg)
 

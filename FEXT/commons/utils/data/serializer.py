@@ -1,7 +1,8 @@
 import os
-import sys
 import json
 import keras
+import numpy as np
+from PIL import Image
 from datetime import datetime
 
 from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
@@ -32,8 +33,7 @@ class DataSerializer:
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
 
-        return images_path      
-               
+        return images_path                
     
     
 # [MODEL SERIALIZATION]
