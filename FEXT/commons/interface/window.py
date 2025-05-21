@@ -1,7 +1,7 @@
-from functools import partial
 from FEXT.commons.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
+from functools import partial
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
 from PySide6.QtGui import QPainter
@@ -104,7 +104,8 @@ class MainWindow:
             (QPushButton,'evalTabPreviousImg','eval_tab_prev_img'),
             (QPushButton,'evalTabNextImg','eval_tab_next_img'),
             (QPushButton,'evalTabClearImg','eval_tab_clear_img'),    
-            # 4. inference tab page        
+            # 4. inference tab page  
+            (QCheckBox,'runInferenceGPU','use_GPU_inference'),      
             (QPushButton,'encodeImages','encode_images'),
             (QPushButton,'loadInferenceImages','load_inference_images'),
             (QPushButton,'inferTabPreviousImg','infer_tab_prev_img'),
@@ -113,7 +114,7 @@ class MainWindow:
             ])
         
         self._connect_signals([
-            # dataset tab
+            # 1. dataset tab page
             ('get_image_stats','toggled',self._update_metrics),
             ('get_pixels_dist','toggled',self._update_metrics),
             ('get_img_metrics','clicked',self.compute_image_metrics),
@@ -123,16 +124,16 @@ class MainWindow:
             ('data_tab_clear_img', 'clicked', lambda: self.clear_figures("imageCanvas")),
             ('set_plot_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
             ('set_image_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
-            # training tab
+            # 2. training tab page   
             ('checkpoints_list','currentTextChanged',self.select_checkpoint),
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
-            # model evaluation tab
+            # 3. model evaluation tab page
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),            
             ('eval_tab_next_img','clicked', lambda: self.show_next_figure("modelEvalCanvas")),
             ('eval_tab_clear_img','clicked', lambda: self.clear_figures("modelEvalCanvas")),
-            # inference tab
+            # 4. inference tab page  
             ('encode_images','clicked',self.encode_images_with_checkpoint),
             ('load_inference_images','clicked', self.load_image_dataset),
             ('infer_tab_prev_img','clicked', lambda: self.show_previous_figure("inferenceImgCanvas")),
@@ -148,7 +149,7 @@ class MainWindow:
         self.load_checkpoints()
         self._set_graphics()           
 
-    # ------------------- Helpers for Per-Setting Updates -------------------
+    # ------------------- Helpers for configuration updates -------------------
     def connect_update_setting(self, widget, signal_name, config_key, getter=None):
         if getter is None:
             if isinstance(widget, (QCheckBox, QRadioButton)):
@@ -169,6 +170,10 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def _auto_connect_settings(self):
         connections = [
+            # 1. dataset tab page
+            ('general_seed', 'valueChanged', 'general_seed'),
+            ('sample_size', 'valueChanged', 'sample_size'),
+            # 2. training tab page   
             ('img_augmentation', 'toggled', 'img_augmentation'),
             ('use_shuffle', 'toggled', 'shuffle_dataset'),
             ('num_workers', 'valueChanged', 'num_workers'),
@@ -179,7 +184,6 @@ class MainWindow:
             ('get_real_time_history', 'toggled', 'real_time_history'),
             ('save_checkpoints', 'toggled', 'save_checkpoints'),
             ('LR_scheduler', 'toggled', 'use_lr_scheduler'),
-            ('general_seed', 'valueChanged', 'general_seed'),
             ('split_seed', 'valueChanged', 'split_seed'),
             ('train_seed', 'valueChanged', 'train_seed'),
             ('shuffle_size', 'valueChanged', 'shuffle_size'),
@@ -189,10 +193,11 @@ class MainWindow:
             ('bottleneck_neurons', 'valueChanged', 'bottleneck_neurons'),
             ('batch_size', 'valueChanged', 'batch_size'),
             ('device_ID', 'valueChanged', 'device_id'),
-            ('sample_size', 'valueChanged', 'sample_size'),
-            ('train_sample_size', 'valueChanged', 'train_sample_size'),
-            ('validation_size', 'valueChanged', 'validation_size'),
-        ]
+            # 3. model evaluation tab page
+            
+            # 4. inference tab page           
+            ('validation_size', 'valueChanged', 'validation_size')]        
+
         for attr, signal_name, config_key in connections:
             widget = self.widgets[attr]
             self.connect_update_setting(widget, signal_name, config_key)
@@ -230,8 +235,7 @@ class MainWindow:
             self.graphics[canvas_name] = {
                 'view': view,
                 'scene': scene,
-                'pixmap_item': pixmap_item
-            }
+                'pixmap_item': pixmap_item}
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -375,15 +379,16 @@ class MainWindow:
     def encode_images_with_checkpoint(self):  
         self.encode_images.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
-        self.training_handler = InferenceEvents(self.configuration)   
-
+        self.training_handler = InferenceEvents(self.configuration)  
+        device = 'GPU' if self.run_GPU_inference.isChecked() else 'CPU'
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
         self._training_worker = Worker(
             self.training_handler.run_inference_pipeline,
-            self.selected_checkpoint)                            
+            self.selected_checkpoint,
+            device)                            
         worker = self._training_worker
 
         # inject the progress signal into the worker   

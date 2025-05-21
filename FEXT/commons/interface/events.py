@@ -10,8 +10,9 @@ from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
+from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.reports import log_training_report
-from FEXT.commons.constants import DATA_PATH, IMG_PATH
+from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 
@@ -202,27 +203,26 @@ class InferenceEvents:
         return self.modser.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
-    def run_inference_pipeline(self, selected_checkpoint, progress_callback=None):
+    def run_inference_pipeline(self, selected_checkpoint, device='CPU', progress_callback=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
-        # setting device for training    
-        trainer = ModelTraining(configuration)    
+        # setting device for training   
+        self.configuration['device'] = device 
+        trainer = ModelTraining(self.configuration)    
         trainer.set_device() 
 
         # select images from the inference folder and retrieve current paths        
-        images_paths = dataserializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
-        logger.info(f'{len(images_paths)} images have been found')
-
-        # 3. [ENCODE IMAGES]
-        #--------------------------------------------------------------------------    
-        logger.info(f'Start encoding images using model {os.path.basename(checkpoint_path)}')
+        images_paths = self.serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
+        logger.info(f'{len(images_paths)} images have been found as inference input')
+       
+        logger.info(f'Start encoding images using model {selected_checkpoint}')
         # extract features from images using the encoder output, the image encoder
         # takes the list of images path from inference as input    
-        encoder = ImageEncoding(model, configuration, checkpoint_path)    
-        encoder.encode_images_features(images_paths)
+        encoder = ImageEncoding(model, self.configuration, checkpoint_path)    
+        encoder.encode_images_features(images_paths, progress_callback) 
         logger.info('Encoded images have been saved as .npy')
            
     # define the logic to handle successfull data retrieval outside the main UI loop
