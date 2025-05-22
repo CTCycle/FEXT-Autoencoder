@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
 from FEXT.commons.configuration import Configuration
 from FEXT.commons.interface.events import ValidationEvents, TrainingEvents, InferenceEvents
 from FEXT.commons.interface.workers import Worker
+from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 ###############################################################################
@@ -27,10 +28,11 @@ class MainWindow:
         
         self.images_path = {'data' : [], 'inference' : []}
         self.image_pixmaps = []
-        self.plot_pixmaps = []
+        self.dataset_pixmaps = []
         self.inference_pixmaps = []
-        self.model_eval_pixmaps = []
-        self.current_fig = 0
+        self.model_eval_pixmaps = []        
+        self.canvas = ["imageCanvas", "modelEvalCanvas", "inferenceCanvas"]
+        self.current_fig = {name: 0 for name in self.canvas}
              
         # Internal state for checkpoints        
         self.selected_checkpoint = None
@@ -104,6 +106,7 @@ class MainWindow:
             # 3. model evaluation tab page
             (QPushButton,'evaluateModel','model_evaluation'),
             (QCheckBox,'runEvaluationGPU','use_GPU_evaluation'), 
+            (QCheckBox,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'imgReconstruction','image_reconstruction'),      
             (QSpinBox,'numImages','num_evaluation_images'),
             (QPushButton,'evalTabPreviousImg','eval_tab_prev_img'),
@@ -122,7 +125,7 @@ class MainWindow:
             # 1. dataset tab page
             ('get_image_stats','toggled',self._update_metrics),
             ('get_pixels_dist','toggled',self._update_metrics),
-            ('get_img_metrics','clicked',self.compute_image_metrics),
+            ('get_img_metrics','clicked',self.run_dataset_evaluation_pipeline),
             ('load_source_images','clicked', self.load_image_dataset),
             ('data_tab_prev_img', 'clicked', lambda: self.show_previous_figure("imageCanvas")),
             ('data_tab_next_img', 'clicked', lambda: self.show_next_figure("imageCanvas")),
@@ -135,7 +138,8 @@ class MainWindow:
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
             # 3. model evaluation tab page
-            ('model_evaluation','clicked', self.run_model_evaluation_pipeline), 
+            ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
+            ('checkpoints_summary','toggled',self._update_metrics),     
             ('image_reconstruction','toggled',self._update_metrics),    
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),     
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),            
@@ -143,10 +147,10 @@ class MainWindow:
             ('eval_tab_clear_img','clicked', lambda: self.clear_figures("modelEvalCanvas")),
             # 4. inference tab page  
             ('encode_images','clicked',self.encode_images_with_checkpoint),
-            ('load_inference_images','clicked', self.load_image_dataset),
-            ('infer_tab_prev_img','clicked', lambda: self.show_previous_figure("inferenceImgCanvas")),
-            ('infer_tab_next_img','clicked', lambda: self.show_next_figure("inferenceImgCanvas")),
-            ('infer_tab_clear_img','clicked', lambda: self.clear_figures("inferenceImgCanvas")),
+            ('load_inference_images','clicked', self.load_inference_dataset),
+            ('infer_tab_prev_img','clicked', lambda: self.show_previous_figure("inferenceCanvas")),
+            ('infer_tab_next_img','clicked', lambda: self.show_next_figure("inferenceCanvas")),
+            ('infer_tab_clear_img','clicked', lambda: self.clear_figures("inferenceCanvas")),
         ]) 
         
         self._auto_connect_settings() 
@@ -155,9 +159,15 @@ class MainWindow:
         
         # Initial population of dynamic UI elements
         self.load_checkpoints()
-        self._set_graphics()           
+        self._set_graphics() 
 
-    # ------------------- Helpers for configuration updates -------------------
+    # [SHOW WINDOW]
+    ###########################################################################
+    def show(self):        
+        self.main_win.show()           
+
+    # [HELPERS]
+    ###########################################################################
     def connect_update_setting(self, widget, signal_name, config_key, getter=None):
         if getter is None:
             if isinstance(widget, (QCheckBox, QRadioButton)):
@@ -215,11 +225,7 @@ class MainWindow:
     def _update_device(self):
         device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
         self.config_manager.update_value('device', device)
-
-    # [SHOW WINDOW]
-    ###########################################################################
-    def show(self):        
-        self.main_win.show()   
+      
 
     # [HELPERS FOR SETTING CONNECTIONS]
     ###########################################################################
@@ -229,9 +235,8 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     def _set_graphics(self):
-        self.graphics = {}
-        CANVAS_NAMES = ["imageCanvas", "inferenceImgCanvas", "modelEvalCanvas"]
-        for canvas_name in CANVAS_NAMES:
+        self.graphics = {}        
+        for canvas_name in self.canvas:
             view = self.main_win.findChild(QGraphicsView, canvas_name)
             scene = QGraphicsScene()
             pixmap_item = QGraphicsPixmapItem()
@@ -245,6 +250,17 @@ class MainWindow:
                 'view': view,
                 'scene': scene,
                 'pixmap_item': pixmap_item}
+            
+    #--------------------------------------------------------------------------
+    def _load_single_pixmap(self, canvas_name, idx):    
+        if canvas_name == "imageCanvas":
+            self.image_pixmaps.clear()
+            self.image_pixmaps.append(
+                self.validation_handler.load_image_as_pixmap(self.images_path['data'][idx]))
+        elif canvas_name == "inferenceCanvas":
+            self.inference_pixmaps.clear()
+            self.inference_pixmaps.append(
+                self.validation_handler.load_image_as_pixmap(self.images_path['inference'][idx]))
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -277,13 +293,15 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def select_image_source(self, canvas_name: str):
         if canvas_name == "imageCanvas":
-            source = self.plot_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
-        elif canvas_name == "inferenceImgCanvas":
+            source = self.dataset_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
+        elif canvas_name == "inferenceCanvas":
             source = self.inference_pixmaps
         elif canvas_name == "modelEvalCanvas":
             source = self.model_eval_pixmaps 
 
-        return source         
+        return source 
+    
+            
    
     # [SLOT]
     ###########################################################################
@@ -320,7 +338,8 @@ class MainWindow:
             else:
                 self.data_metrics.remove(name) if name in self.data_metrics else None
 
-        for name, box in [('image_reconstruction', self.image_reconstruction)]:
+        for name, box in [('checkpoints_summary', self.checkpoints_summary),
+                          ('image_reconstruction', self.image_reconstruction)]:
             if box.isChecked():
                 self.model_metrics.append(name) if name not in self.model_metrics else None                    
             else:
@@ -330,12 +349,12 @@ class MainWindow:
     # [GRAPHICS]
     #--------------------------------------------------------------------------
     @Slot(str)
-    def _update_graphics_view(self, canvas_name="imageCanvas"): 
+    def _update_graphics_view(self, canvas_name="imageCanvas"):         
         source = self.select_image_source(canvas_name)        
         if not source:
             return
         
-        raw_pix = source[self.current_fig] if len(source) > 1 else source[0]       
+        raw_pix = source[self.current_fig[canvas_name]] if len(source) > 1 else source[0]       
         view = self.graphics[canvas_name]['view']
         pixmap_item = self.graphics[canvas_name]['pixmap_item']
         scene = self.graphics[canvas_name]['scene']
@@ -345,51 +364,55 @@ class MainWindow:
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation)
         pixmap_item.setPixmap(scaled)
-        scene.setSceneRect(scaled.rect())
+        scene.setSceneRect(scaled.rect())    
 
     #--------------------------------------------------------------------------
     @Slot(str)
-    def show_previous_figure(self, canvas_name="imageCanvas"):        
-        if self.current_fig > 0:            
-            self.current_fig -= 1
-            if self.set_image_view.isChecked():
-                self.image_pixmaps.clear()
-                self.image_pixmaps.append(
-                self.validation_handler.load_image_as_pixmap(
-                self.images_path['data'][self.current_fig])) 
-            
-            self._update_graphics_view(canvas_name)
+    def show_previous_figure(self, canvas_name="imageCanvas"):             
+        if self.current_fig[canvas_name] == 0:
+            return  
+
+        self.current_fig[canvas_name] -= 1        
+        # Decide what to show depending on canvas and view mode
+        if canvas_name == "imageCanvas" and self.set_image_view.isChecked():
+            self._load_single_pixmap(canvas_name, self.current_fig[canvas_name])
+        elif canvas_name == "inferenceCanvas":
+            self._load_single_pixmap(canvas_name, self.current_fig[canvas_name])        
+
+        self._update_graphics_view(canvas_name)
 
     #--------------------------------------------------------------------------
     @Slot(str)
     def show_next_figure(self, canvas_name="imageCanvas"):
-        source = self.select_image_source(canvas_name)
-        if len(source) > 1 and self.current_fig < len(source):
-            self.current_fig += 1
-            self._update_graphics_view(canvas_name)
+        if canvas_name == "imageCanvas" and self.set_image_view.isChecked() \
+            and self.current_fig[canvas_name] < len(self.images_path['data']):            
+            self.current_fig[canvas_name] += 1 
+            self._load_single_pixmap(canvas_name, self.current_fig[canvas_name])
+        elif canvas_name == "inferenceCanvas" \
+            and self.current_fig[canvas_name] < len(self.images_path['inference']): 
+            self.current_fig[canvas_name] += 1 
+            self._load_single_pixmap(canvas_name, self.current_fig[canvas_name])
+        else:
+            source = self.select_image_source(canvas_name)
+            if self.current_fig[canvas_name] < len(source):             
+                self.current_fig[canvas_name] += 1
         
-        elif self.set_image_view.isChecked() and len(source) == 1:
-            self.current_fig += 1
-            self.image_pixmaps.clear()
-            self.image_pixmaps.append(
-            self.validation_handler.load_image_as_pixmap(
-            self.images_path['data'][self.current_fig]))              
-            self._update_graphics_view(canvas_name)
+        self._update_graphics_view(canvas_name)
 
     #--------------------------------------------------------------------------
     @Slot(str)
     def clear_figures(self, canvas_name="imageCanvas"):
         if canvas_name == "imageCanvas":
             self.image_pixmaps.clear()
-            self.plot_pixmaps.clear()
+            self.dataset_pixmaps.clear()
             self.images_path['data'].clear()
-        elif canvas_name == "inferenceImgCanvas":
+        elif canvas_name == "inferenceCanvas":
             self.inference_pixmaps.clear()
             self.images_path['inference'].clear()
         elif canvas_name == "modelEvalCanvas":
             self.model_eval_pixmaps.clear()
 
-        self.current_fig = 0
+        self.current_fig[canvas_name] = 0
         # Blank out the graphics scene 
         gfx = self.graphics[canvas_name]
         # set the existing pixmap_item to an empty QPixmap
@@ -406,19 +429,19 @@ class MainWindow:
     def load_image_dataset(self):        
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)
-        self.images_path['data'].clear()        
-        self.images_path['data'].extend(self.validation_handler.load_images_path()) 
-        self.current_fig = 0
+        self.images_path['data'].clear()             
+        self.images_path['data'].extend(self.validation_handler.load_images_path(IMG_PATH)) 
+        self.current_fig["imageCanvas"] = 0
         self.image_pixmaps.clear()        
         self.image_pixmaps.append(
             self.validation_handler.load_image_as_pixmap(
-                self.images_path['data'][self.current_fig])) 
+                self.images_path['data'][0])) 
         self._update_graphics_view("imageCanvas")            
 
     #--------------------------------------------------------------------------
     @Slot()
-    def compute_image_metrics(self):  
-        if not self.metrics:
+    def run_dataset_evaluation_pipeline(self):  
+        if not self.data_metrics:
             return None
         
         self.get_img_metrics.setEnabled(False)
@@ -436,8 +459,8 @@ class MainWindow:
         # inject the progress signal into the worker   
         self.progress_bar.setValue(0)    
         worker.signals.progress.connect(self.progress_bar.setValue)
-        worker.signals.finished.connect(self.on_metrics_calculated)
-        worker.signals.error.connect(self.on_metrics_error)
+        worker.signals.finished.connect(self.on_dataset_evaluation_finished)
+        worker.signals.error.connect(self.on_dataset_evaluation_error)
         self.threadpool.start(worker) 
 
     #--------------------------------------------------------------------------
@@ -491,31 +514,46 @@ class MainWindow:
     #-------------------------------------------------------------------------- 
     @Slot()
     def run_model_evaluation_pipeline(self):  
-        self.encode_images.setEnabled(False)
+        self.model_evaluation.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
-        self.training_handler = InferenceEvents(self.configuration)  
-        device = 'GPU' if self.use_GPU_inference.isChecked() else 'CPU'
+        self.validation_handler = ValidationEvents(self.configuration)    
+        device = 'GPU' if self.use_GPU_evaluation.isChecked() else 'CPU'   
         # send message to status bar
-        self._send_message(f"Encoding images with {self.selected_checkpoint}") 
+        self._send_message(f"Evaluating {self.select_checkpoint} performances... ") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
-        self._training_worker = Worker(
-            self.training_handler.run_inference_pipeline,
-            self.selected_checkpoint,
-            device)                            
-        worker = self._training_worker
+        self._validation_worker = Worker(
+            self.validation_handler.run_model_evaluation_pipeline,
+            self.model_metrics,
+            self.selected_checkpoint)                
+        worker = self._validation_worker
 
         # inject the progress signal into the worker   
         self.progress_bar.setValue(0)    
         worker.signals.progress.connect(self.progress_bar.setValue)
-        worker.signals.finished.connect(self.on_inference_finished)
-        worker.signals.error.connect(self.on_inference_error)
-        self.threadpool.start(worker)
+        worker.signals.finished.connect(self.on_model_evaluation_finished)
+        worker.signals.error.connect(self.on_model_evaluation_error)
+        self.threadpool.start(worker) 
 
     #--------------------------------------------------------------------------
     # [INFERENCE TAB]
-    #-------------------------------------------------------------------------- 
+    #--------------------------------------------------------------------------
     @Slot()
+    def load_inference_dataset(self):        
+        self.configuration = self.config_manager.get_configuration() 
+        self.validation_handler = ValidationEvents(self.configuration)        
+        self.images_path['inference'].clear()        
+        self.images_path['inference'].extend(self.validation_handler.load_images_path(
+            INFERENCE_INPUT_PATH)) 
+        self.current_fig["inferenceCanvas"] = 0
+        self.inference_pixmaps.clear()        
+        self.inference_pixmaps.append(
+            self.validation_handler.load_image_as_pixmap(
+                self.images_path['inference'][0])) 
+        self._update_graphics_view("inferenceCanvas")            
+
+    @Slot()
+    #--------------------------------------------------------------------------
     def encode_images_with_checkpoint(self):  
         self.encode_images.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
@@ -545,12 +583,12 @@ class MainWindow:
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
-    def on_metrics_calculated(self, plots): 
-        self.plot_pixmaps = []
-        self.plot_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
+    def on_dataset_evaluation_finished(self, plots): 
+        self.dataset_pixmaps = []
+        self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
                 for p in plots if plots is not None])
             
-        self.current_fig = 0
+        self.current_fig["imageCanvas"] = 0
         self._update_graphics_view("imageCanvas")
         self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
         self.get_img_metrics.setEnabled(True)
@@ -563,6 +601,17 @@ class MainWindow:
         self.resume_training.setEnabled(True)
 
     #--------------------------------------------------------------------------
+    def on_model_evaluation_finished(self, plots): 
+        self.dataset_pixmaps = []
+        self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
+                for p in plots if plots is not None])
+            
+        self.current_fig["modelEvalCanvas"] = 0
+        self._update_graphics_view("modelEvalCanvas")
+        self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
+        self.get_img_metrics.setEnabled(True)
+
+    #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
         self.training_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
@@ -572,16 +621,21 @@ class MainWindow:
     # [NEGATIVE OUTCOME HANDLERS]
     ###########################################################################    
     @Slot(tuple)
-    def on_metrics_error(self, err_tb):
+    def on_dataset_evaluation_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.get_img_metrics.setEnabled(True)
+        self.get_img_metrics.setEnabled(True)    
 
     @Slot(tuple)
     #--------------------------------------------------------------------------
     def on_train_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
         self.start_training.setEnabled(True) 
-        self.resume_training.setEnabled(True)  
+        self.resume_training.setEnabled(True) 
+
+    @Slot(tuple)
+    def on_model_evaluation_error(self, err_tb):
+        self.training_handler.handle_error(self.main_win, err_tb) 
+        self.get_img_metrics.setEnabled(True) 
 
     @Slot(tuple)
     #--------------------------------------------------------------------------

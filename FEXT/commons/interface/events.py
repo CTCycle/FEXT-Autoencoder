@@ -21,21 +21,63 @@ from FEXT.commons.logger import logger
 class ValidationEvents:
 
     def __init__(self, configuration):        
-        self.serializer = DataSerializer(configuration)   
+        self.serializer = DataSerializer(configuration)            
         self.analyzer = ImageAnalysis(configuration)     
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
-    def load_images_path(self):
-        sample_size = self.configuration.get("sample_size", 1.0)
+    def load_images_path(self, path, sample_size=1.0):        
         images_paths = self.serializer.get_images_path_from_directory(
-            IMG_PATH, sample_size) 
+            path, sample_size) 
         
         return images_paths 
         
     #--------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):
         sample_size = self.configuration.get("sample_size", 1.0)
+        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        logger.info(f'The image dataset is composed of {len(images_paths)} images')
+        
+        images = []        
+        if 'image_stats' in metrics:
+            logger.info('Current metric: image dataset statistics')
+            image_statistics = self.analyzer.calculate_image_statistics(
+                images_paths, progress_callback=progress_callback)
+             
+        if 'pixels_distribution' in metrics:
+            logger.info('Current metric: pixel intensity distribution')
+            images.append(self.analyzer.calculate_pixel_intensity_distribution(
+                images_paths, progress_callback=progress_callback))       
+
+        return images     
+    
+    #--------------------------------------------------------------------------
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, device='CPU', progress_callback=None):
+        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
+        modser = ModelSerializer()       
+        model, train_config, session, checkpoint_path = modser.load_checkpoint(
+            selected_checkpoint)    
+        model.summary(expand_nested=True)  
+        
+        # set device for training operations based on user configuration
+        logger.info('Setting device for training operations based on user configuration')       
+               
+        trainer = ModelTraining(train_config)    
+        trainer.set_device(device_override=device)
+
+        logger.info('Preparing dataset of images based on splitting sizes')  
+        sample_size = train_config.get("train_sample_size", 1.0)
+        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        splitter = TrainValidationSplit(train_config) 
+        train_data, validation_data = splitter.split_train_and_validation(images_paths)     
+
+        # create the tf.datasets using the previously initialized generators 
+        logger.info('Building model data loaders with prefetching and parallel processing') 
+        builder = TrainingDataLoader(train_config)           
+        train_dataset, validation_dataset = builder.build_training_dataloader(
+            train_data, validation_data)        
+        
+       
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')
         
@@ -210,7 +252,7 @@ class InferenceEvents:
         model.summary(expand_nested=True)  
 
         # setting device for training         
-        trainer = ModelTraining(self.configuration)    
+        trainer = ModelTraining(train_config)    
         trainer.set_device(device_override=device)
 
         # select images from the inference folder and retrieve current paths        
@@ -218,7 +260,7 @@ class InferenceEvents:
         logger.info(f'{len(images_paths)} images have been found as inference input')       
         # extract features from images using the encoder output, the image encoder
         # takes the list of images path from inference as input    
-        encoder = ImageEncoding(model, self.configuration, checkpoint_path)  
+        encoder = ImageEncoding(model, train_config, checkpoint_path)  
         logger.info(f'Start encoding images using model {selected_checkpoint}')  
         encoder.encode_images_features(images_paths, progress_callback) 
         logger.info('Encoded images have been saved as .npy')
