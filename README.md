@@ -32,30 +32,35 @@ This includes Keras 3 (with PyTorch support as the backend) and the required CUD
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. For Windows users, a precompiled Triton wheel is bundled with the installation, ensuring seamless integration and performance improvements.
 
 ## 5. How to use
-On Windows, run *start_on_windows.bat* to launch the main navigation menu and browse through the various options. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
+On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
-### 5.1 Navigation menu
+![main_UI](TokenBenchy/commons/assets/main_window.png)
 
-**1) Analyze image dataset:** analyze and validate the image dataset using different metrics. At first, a summary of images statistics is generated and saved in the database. This summary includes mean pixel values, pixel standard deviation, pixel values range and noise ratio and standard deviation. The following analysis are then performed on the image dataset (saved in *resources/database/validation*):
-- Calculation of images statistics (pixels mean values, standard deviation, values range, noise ratio)
-- Calculation of average pixel distribution 
-- Average pixel distribution of train versus validation   
+The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Model training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
-**2) Model training and evaluation:** open the machine learning menu to explore various options for model training and validation.
+**Dataset validation:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
 
-**train from scratch:** start training an instance of the autoencoder model from scratch. 
+- **Calculation of images statistics**: pixels mean values, standard deviation, values range, noise ratio
+- **Calculation of average pixel distribution**
+- **Average pixel distribution of train versus validation**   
 
-**train from checkpoint:** resume training from a pretrained checkpoint for an additional amount of epochs, using pretrained model settings and data.  
+**Model training:**
 
-**model evaluation:** evaluate the performance of pretrained model checkpoints using different metrics. These are the following:
-- Calculation of average mean squared error and mean average error for training and validation datasets
-- Visual comparison of random reconstructed images 
 
-**3) Encode images:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*. 
+**Model evaluation:** the model is evaluated using different metrics, such as:
+- **Average mean squared error and mean average error of reconstruction** 
+- **Visual comparison of random reconstructed images** 
 
-**4) Setup and Maintenance:** execute optional commands such as *Install project into environment* to reinstall the project within your environment, *update project* to pull the last updates from github, and *remove logs* to remove all logs saved in *resources/logs*. 
+**Model inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
 
-**5) Exit:** close the program immediately 
+
+**Setup and Maintenance:** you can run *setup/setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
+
+- Run installation: run the application installer for Windows
+- Enable root path imports: Enable root path imports if the main folder has been moved or renamed
+- Update project: check for updates from Github
+- Remove logs: remove all logs file from *resources/logs*
+
 
 ### 5.2 Resources
 This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. By default, all data is stored within an SQLite database. To visualize and interact with SQLite database files, we recommend downloading and installing the DB Browser for SQLite, available at: https://sqlitebrowser.org/dl/. The directory structure includes the following folders:
@@ -67,68 +72,6 @@ This folder organizes data and results across various stages of the project, suc
 - **logs:** log files are saved here
 
 - **templates:** reference template files can be found here
-
-## 6. Configuration
-For customization, you can modify the main configuration parameters using *settings/configuration.json*. 
-
-#### General Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| SEED               | Global seed for all numerical operations                 |
-
-#### Dataset Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| SAMPLE_SIZE        | Number of samples to use from the dataset                |
-| VALIDATION_SIZE    | Proportion of the dataset to use for validation          |
-| IMG_AUGMENTATION   | Whether to apply data augmentation to images             |
-| SPLIT_SEED         | Seed for random splitting of the dataset                 |
-
-#### Model Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| JIT_COMPILE        | Apply Just-In_time (JIT) compiler for model optimization |
-| JIT_BACKEND        | Just-In_time (JIT) backend                               |
-
-#### Device Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| DEVICE             | Device to use for training (e.g., GPU)                   |
-| DEVICE ID          | ID of the device (only used if GPU is selected)          |
-| MIXED_PRECISION    | Whether to use mixed precision training                  |
-| NUM_PROCESSORS     | Number of processors to use for data loading             |
-
-#### Training Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| EPOCHS             | Number of epochs to train the model                      |
-| ADDITIONAL EPOCHS  | Number of epochs to train the model from checkpoint      |
-| BATCH_SIZE         | Number of samples per batch                              |
-| USE_TENSORBOARD    | Whether to use TensorBoard for logging                   |
-| SAVE_CHECKPOINTS   | Save checkpoints during training (at each epoch)         |
-
-#### LR Scheduler Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| INITIAL_LR         | Initial value of learning rate                           |
-| CONSTANT_STEPS     | Number of steps (batch) to keep the learning rate stable |
-| DECAY_STEPS        | Number of steps (batch) to decay learning rate           |
-| FINAL_LR           | Final value of learning rate (target)                    |
-
-#### Validation Configuration
-
-| Parameter          | Description                                              |
-|--------------------|----------------------------------------------------------|
-| BATCH_SIZE         | Number of samples per batch                              |
-| NUM_IMAGES         | Max number of images to compare during evaluation        |
-| DPI                | Resolution of figures from validation                    |
-
  
 **Environmental variables** are stored in *setup/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *setup/variables* directory.
 
@@ -137,6 +80,5 @@ For customization, you can modify the main configuration parameters using *setti
 | KERAS_BACKEND         | Sets the backend for Keras, default is PyTorch           |
 | TF_CPP_MIN_LOG_LEVEL  | TensorFlow logging verbosity                             |
 
-
-## 7. License
+## 6. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.
