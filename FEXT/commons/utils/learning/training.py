@@ -21,8 +21,9 @@ class ModelTraining:
 
     # set device
     #--------------------------------------------------------------------------
-    def set_device(self):        
-        if self.selected_device == 'GPU':
+    def set_device(self, device_override=None):
+        selected_device = device_override if device_override else self.selected_device
+        if selected_device == 'GPU':
             if not torch.cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
                 self.device = torch.device('cpu')

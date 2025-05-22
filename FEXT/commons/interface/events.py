@@ -209,19 +209,17 @@ class InferenceEvents:
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
-        # setting device for training   
-        self.configuration['device'] = device 
+        # setting device for training         
         trainer = ModelTraining(self.configuration)    
-        trainer.set_device() 
+        trainer.set_device(device_override=device)
 
         # select images from the inference folder and retrieve current paths        
         images_paths = self.serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
-        logger.info(f'{len(images_paths)} images have been found as inference input')
-       
-        logger.info(f'Start encoding images using model {selected_checkpoint}')
+        logger.info(f'{len(images_paths)} images have been found as inference input')       
         # extract features from images using the encoder output, the image encoder
         # takes the list of images path from inference as input    
-        encoder = ImageEncoding(model, self.configuration, checkpoint_path)    
+        encoder = ImageEncoding(model, self.configuration, checkpoint_path)  
+        logger.info(f'Start encoding images using model {selected_checkpoint}')  
         encoder.encode_images_features(images_paths, progress_callback) 
         logger.info('Encoded images have been saved as .npy')
            

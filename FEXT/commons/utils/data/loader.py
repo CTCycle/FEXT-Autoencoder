@@ -130,8 +130,7 @@ class TrainingDataLoader:
 class InferenceDataLoader:
 
     def __init__(self, configuration):      
-        self.processor = InferenceDataLoaderProcessor(configuration)             
-        self.batch_size = configuration['validation']["BATCH_SIZE"]    
+        self.processor = InferenceDataLoaderProcessor(configuration)           
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]           
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY                    

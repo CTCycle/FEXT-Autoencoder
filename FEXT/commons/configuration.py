@@ -44,8 +44,7 @@ class Configuration:
 
             # Validation
             'val_batch_size': 20,
-            'num_images': 6,
-            'dpi': 400,
+            'num_evaluation_images': 6            
         }
 
     #--------------------------------------------------------------------------  
