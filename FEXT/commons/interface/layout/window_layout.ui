@@ -513,41 +513,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_20">
-      <item>
-       <widget class="QLabel" name="label_19">
-        <property name="text">
-         <string>Available checkpoints</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="checkpointsList"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="refreshCheckpoints">
-        <property name="text">
-         <string>Refresh</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="2" column="0">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>0</number>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="accessibleName">
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="dataTab">
        <property name="toolTipDuration">
@@ -1465,103 +1437,106 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_34">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="1,3">
+         <layout class="QVBoxLayout" name="verticalLayout_20">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_20">
-            <item>
-             <widget class="QGroupBox" name="groupBox_9">
-              <property name="title">
-               <string>Configuration</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_19">
+           <widget class="QGroupBox" name="groupBox_9">
+            <property name="title">
+             <string>Configuration</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <item>
+              <widget class="QCheckBox" name="runEvaluationGPU">
+               <property name="text">
+                <string>Run validation on GPU</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_32">
                <item>
-                <widget class="QCheckBox" name="checkBox_2">
+                <widget class="QLabel" name="label_15">
                  <property name="text">
-                  <string>CheckBox</string>
+                  <string>Number of images</string>
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QSpinBox" name="numImages"/>
+               </item>
               </layout>
-             </widget>
-            </item>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="imgReconstruction">
+            <property name="text">
+             <string>Image reconstruction</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="evaluateModel">
+            <property name="text">
+             <string>Evaluate model</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_12">
             <item>
-             <widget class="QPushButton" name="pushButton">
-              <property name="text">
-               <string>PushButton</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_2">
-              <property name="text">
-               <string>PushButton</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_3">
-              <property name="text">
-               <string>PushButton</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_9">
-              <property name="orientation">
-               <enum>Qt::Orientation::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
+             <layout class="QHBoxLayout" name="horizontalLayout_30">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_30">
-                <item>
-                 <widget class="QPushButton" name="evalTabPreviousImg">
-                  <property name="text">
-                   <string>Previous</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="evalTabNextImg">
-                  <property name="text">
-                   <string>Next</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="evalTabPreviousImg">
+                <property name="text">
+                 <string>Previous</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="evalTabClearImg">
+               <widget class="QPushButton" name="evalTabNextImg">
                 <property name="text">
-                 <string>Clear</string>
+                 <string>Next</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
+            <item>
+             <widget class="QPushButton" name="evalTabClearImg">
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_7">
-            <property name="title">
-             <string>Images</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_31">
-             <item>
-              <widget class="QGraphicsView" name="modelEvalCanvas"/>
-             </item>
-            </layout>
-           </widget>
-          </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_7">
+          <property name="title">
+           <string>Images</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_31">
+           <item>
+            <widget class="QGraphicsView" name="modelEvalCanvas"/>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -1665,6 +1640,34 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        </layout>
       </widget>
      </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_20">
+      <item>
+       <widget class="QLabel" name="label_19">
+        <property name="text">
+         <string>Available checkpoints</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="checkpointsList"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="refreshCheckpoints">
+        <property name="text">
+         <string>Refresh</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
