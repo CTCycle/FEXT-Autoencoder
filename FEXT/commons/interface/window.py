@@ -36,9 +36,8 @@ class MainWindow:
              
         # Internal state for checkpoints        
         self.selected_checkpoint = None
-        self.data_metrics = []
-        self.model_metrics = []
-        
+        self.selected_metrics = {'dataset' : [], 'model' : []}
+          
         # initial settings
         self.config_manager = Configuration()
         self.configuration = self.config_manager.get_configuration()
@@ -106,7 +105,7 @@ class MainWindow:
             # 3. model evaluation tab page
             (QPushButton,'evaluateModel','model_evaluation'),
             (QCheckBox,'runEvaluationGPU','use_GPU_evaluation'), 
-            (QCheckBox,'checkpointSummary','checkpoints_summary'),
+            (QPushButton,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'imgReconstruction','image_reconstruction'),      
             (QSpinBox,'numImages','num_evaluation_images'),
             (QPushButton,'evalTabPreviousImg','eval_tab_prev_img'),
@@ -139,7 +138,7 @@ class MainWindow:
             ('resume_training','clicked',self.resume_training_from_checkpoint),
             # 3. model evaluation tab page
             ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
-            ('checkpoints_summary','toggled',self._update_metrics),     
+            ('checkpoints_summary','clicked',self.get_checkpoints_summary),     
             ('image_reconstruction','toggled',self._update_metrics),    
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),     
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),            
@@ -221,6 +220,10 @@ class MainWindow:
             widget = self.widgets[attr]
             self.connect_update_setting(widget, signal_name, config_key)
 
+        self.data_metrics = [('image_stats', self.get_image_stats), 
+                             ('pixels_distribution', self.get_pixels_dist)]
+        self.model_metrics = [('image_reconstruction', self.image_reconstruction)]
+
     #--------------------------------------------------------------------------
     def _update_device(self):
         device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
@@ -300,8 +303,6 @@ class MainWindow:
             source = self.model_eval_pixmaps 
 
         return source 
-    
-            
    
     # [SLOT]
     ###########################################################################
@@ -330,20 +331,18 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def _update_metrics(self):
-        for name, box in [('image_stats', self.get_image_stats), 
-                          ('pixels_distribution', self.get_pixels_dist)]:
+    def _update_metrics(self):        
+        for name, box in self.data_metrics:
             if box.isChecked():
-                self.data_metrics.append(name) if name not in self.data_metrics else None                    
+                self.selected_metrics['dataset'].append(name) if name not in self.selected_metrics['dataset'] else None                    
             else:
-                self.data_metrics.remove(name) if name in self.data_metrics else None
+                self.selected_metrics['dataset'].remove(name) if name in self.selected_metrics['dataset'] else None
 
-        for name, box in [('checkpoints_summary', self.checkpoints_summary),
-                          ('image_reconstruction', self.image_reconstruction)]:
+        for name, box in self.model_metrics:
             if box.isChecked():
-                self.model_metrics.append(name) if name not in self.model_metrics else None                    
+                self.selected_metrics['model'].append(name) if name not in self.selected_metrics['model'] else None                    
             else:
-                self.data_metrics.remove(name) if name in self.model_metrics else None
+                self.selected_metrics['model'].remove(name) if name in self.selected_metrics['model'] else None
 
     #--------------------------------------------------------------------------
     # [GRAPHICS]
@@ -453,7 +452,7 @@ class MainWindow:
         # functions that are passed to the worker will be executed in a separate thread
         self._validation_worker = Worker(
             self.validation_handler.run_dataset_evaluation_pipeline,
-            self.data_metrics)                
+            self.selected_metrics['dataset'])                
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
@@ -524,8 +523,7 @@ class MainWindow:
         # functions that are passed to the worker will be executed in a separate thread
         self._validation_worker = Worker(
             self.validation_handler.run_model_evaluation_pipeline,
-            self.model_metrics,
-            self.selected_checkpoint)                
+            self.selected_metrics['model'], self.selected_checkpoint, device)                
         worker = self._validation_worker
 
         # inject the progress signal into the worker   
@@ -534,6 +532,27 @@ class MainWindow:
         worker.signals.finished.connect(self.on_model_evaluation_finished)
         worker.signals.error.connect(self.on_model_evaluation_error)
         self.threadpool.start(worker) 
+
+    #-------------------------------------------------------------------------- 
+    @Slot()
+    def get_checkpoints_summary(self):
+        self.checkpoints_summary.setEnabled(False)
+        self.configuration = self.config_manager.get_configuration() 
+        self.validation_handler = ValidationEvents(self.configuration)           
+        # send message to status bar
+        self._send_message("Generating checkpoints summary...") 
+        # initialize worker for asynchronous loading of the dataset
+        # functions that are passed to the worker will be executed in a separate thread
+        self._validation_worker = Worker(
+            self.validation_handler.get_checkpoints_summary)                
+        worker = self._validation_worker
+
+        # inject the progress signal into the worker   
+        self.progress_bar.setValue(0)    
+        worker.signals.progress.connect(self.progress_bar.setValue)
+        worker.signals.finished.connect(self.on_model_evaluation_finished)
+        worker.signals.error.connect(self.on_model_evaluation_error)
+        self.threadpool.start(worker)  
 
     #--------------------------------------------------------------------------
     # [INFERENCE TAB]
@@ -574,19 +593,16 @@ class MainWindow:
         worker.signals.progress.connect(self.progress_bar.setValue)
         worker.signals.finished.connect(self.on_inference_finished)
         worker.signals.error.connect(self.on_inference_error)
-        self.threadpool.start(worker)
-
-    
-
-    
+        self.threadpool.start(worker)    
             
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
     def on_dataset_evaluation_finished(self, plots): 
         self.dataset_pixmaps = []
-        self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
-                for p in plots if plots is not None])
+        if plots is not None:
+            self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
+                                        for p in plots])
             
         self.current_fig["imageCanvas"] = 0
         self._update_graphics_view("imageCanvas")
@@ -602,14 +618,15 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots): 
-        self.dataset_pixmaps = []
-        self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
-                for p in plots if plots is not None])
+        self.model_pixmaps = []
+        if plots is not None:
+            self.model_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p)
+                                       for p in plots])
             
         self.current_fig["modelEvalCanvas"] = 0
         self._update_graphics_view("modelEvalCanvas")
-        self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
-        self.get_img_metrics.setEnabled(True)
+        self.validation_handler.handle_success(self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
+        self.model_evaluation.setEnabled(True)
 
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
@@ -633,6 +650,7 @@ class MainWindow:
         self.resume_training.setEnabled(True) 
 
     @Slot(tuple)
+    #--------------------------------------------------------------------------
     def on_model_evaluation_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
         self.get_img_metrics.setEnabled(True) 

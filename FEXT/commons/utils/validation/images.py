@@ -57,7 +57,7 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, validation_data):       
+    def visualize_reconstructed_images(self, validation_data, progress_callback=None):        
         val_images = self.get_images(validation_data)
         logger.info(
         f'Comparing {self.num_images} reconstructed images from validation dataset')
@@ -74,12 +74,19 @@ class ImageReconstruction:
             axs[i, 1].imshow(pred)
             axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
             axs[i, 1].axis('off')
+
+            if progress_callback is not None:
+                total = len(val_images)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)   
         
         plt.tight_layout()
         plt.savefig(
             os.path.join(self.validation_path, 'images_recostruction.jpeg'), 
             dpi=self.DPI)
-        plt.close()    
+        plt.close() 
+
+        return fig    
                  
 
 # [VALIDATION OF PRETRAINED MODELS]
