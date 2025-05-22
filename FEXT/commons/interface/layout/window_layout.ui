@@ -1476,16 +1476,16 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkpointSummary">
+           <widget class="QCheckBox" name="imgReconstruction">
             <property name="text">
-             <string>Checkpoints summary</string>
+             <string>Image reconstruction</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="imgReconstruction">
+           <widget class="QPushButton" name="checkpointSummary">
             <property name="text">
-             <string>Image reconstruction</string>
+             <string>Checkpoints summary</string>
             </property>
            </widget>
           </item>

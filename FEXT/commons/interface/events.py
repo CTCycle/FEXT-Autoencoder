@@ -4,14 +4,15 @@ from PySide6.QtGui import QImage, QPixmap
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from FEXT.commons.utils.data.serializer import DataSerializer
-from FEXT.commons.utils.validation.images import ImageAnalysis
-from FEXT.commons.utils.data.loader import TrainingDataLoader
+from FEXT.commons.utils.validation.images import ImageAnalysis, ImageReconstruction
+from FEXT.commons.utils.data.loader import TrainingDataLoader, InferenceDataLoader
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
-from FEXT.commons.utils.validation.reports import log_training_report
+from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
+from FEXT.commons.utils.validation.reports import log_training_report, evaluation_report
 from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
@@ -49,48 +50,57 @@ class ValidationEvents:
             images.append(self.analyzer.calculate_pixel_intensity_distribution(
                 images_paths, progress_callback=progress_callback))       
 
-        return images     
+        return images 
+
+    #--------------------------------------------------------------------------
+    def get_checkpoints_summary(self, progress_callback=None): 
+        summarizer = ModelEvaluationSummary(self.configuration)    
+        checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback) 
+        logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
     def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, device='CPU', progress_callback=None):
-        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
-        modser = ModelSerializer()       
-        model, train_config, session, checkpoint_path = modser.load_checkpoint(
-            selected_checkpoint)    
-        model.summary(expand_nested=True)  
-        
-        # set device for training operations based on user configuration
-        logger.info('Setting device for training operations based on user configuration')       
-               
-        trainer = ModelTraining(train_config)    
-        trainer.set_device(device_override=device)
+        if 'checkpoints_summary' in metrics:            
+            summarizer = ModelEvaluationSummary(self.configuration)    
+            checkpoints_summary = summarizer.checkpoints_summary(progress_callback) 
+            logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')
 
-        logger.info('Preparing dataset of images based on splitting sizes')  
-        sample_size = train_config.get("train_sample_size", 1.0)
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
-        splitter = TrainValidationSplit(train_config) 
-        train_data, validation_data = splitter.split_train_and_validation(images_paths)     
+        images = []
+        if 'image_reconstruction' in metrics:
+            logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
+            modser = ModelSerializer()       
+            model, train_config, session, checkpoint_path = modser.load_checkpoint(
+                selected_checkpoint)    
+            model.summary(expand_nested=True)  
+            
+            # set device for training operations based on user configuration
+            logger.info('Setting device for training operations based on user configuration')                
+            trainer = ModelTraining(train_config)    
+            trainer.set_device(device_override=device)
 
-        # create the tf.datasets using the previously initialized generators 
-        logger.info('Building model data loaders with prefetching and parallel processing') 
-        builder = TrainingDataLoader(train_config)           
-        train_dataset, validation_dataset = builder.build_training_dataloader(
-            train_data, validation_data)        
-        
-       
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
-        logger.info(f'The image dataset is composed of {len(images_paths)} images')
-        
-        images = []        
-        if 'image_stats' in metrics:
-            logger.info('Current metric: image dataset statistics')
-            image_statistics = self.analyzer.calculate_image_statistics(
-                images_paths, progress_callback=progress_callback)
-             
-        if 'pixels_distribution' in metrics:
-            logger.info('Current metric: pixel intensity distribution')
-            images.append(self.analyzer.calculate_pixel_intensity_distribution(
-                images_paths, progress_callback=progress_callback))       
+            # isolate the encoder from the autoencoder model   
+            encoder = ImageEncoding(model, train_config, checkpoint_path)
+            encoder_model = encoder.encoder_model 
+
+            logger.info('Preparing dataset of images based on splitting sizes')  
+            sample_size = train_config.get("train_sample_size", 1.0)
+            images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+            splitter = TrainValidationSplit(train_config) 
+            _, validation_images = splitter.split_train_and_validation(images_paths)     
+
+            # create the tf.datasets using the previously initialized generators 
+            logger.info('Building model data loaders with prefetching and parallel processing') 
+            # use tf.data.Dataset to build the model dataloader with a larger batch size
+            # the dataset is built on top of the training and validation data
+            loader = InferenceDataLoader(train_config)    
+            validation_dataset = loader.build_inference_dataloader(validation_images)
+
+            # evaluate model performance over the training and validation dataset        
+            evaluation_report(model, validation_dataset)   
+
+            validator = ImageReconstruction(train_config, model, checkpoint_path)      
+            images.append(validator.visualize_reconstructed_images(
+                validation_images, progress_callback))       
 
         return images     
 
