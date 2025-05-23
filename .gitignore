@@ -3,6 +3,7 @@ FEXT/resources/database/validation/*
 FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
+!FEXT/commons/assets/*
 setup/environment/*
 setup/miniconda/*
 setup/variables/.env
