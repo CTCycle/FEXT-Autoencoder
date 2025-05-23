@@ -23,13 +23,12 @@ class ImageReconstruction:
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
-        self.loader = InferenceDataLoader(configuration) 
-
+        self.loader = InferenceDataLoader(configuration)        
+        self.num_images = configuration.get('num_evaluation_images', 6)
+        self.DPI = 400 
+        self.file_type = 'jpeg'
         self.model = model  
         self.configuration = configuration
-        self.num_images = configuration['validation']['NUM_IMAGES']
-        self.DPI = configuration['validation']['DPI']  
-        self.file_type = 'jpeg'
 
     #-------------------------------------------------------------------------- 
     def get_images(self, data):

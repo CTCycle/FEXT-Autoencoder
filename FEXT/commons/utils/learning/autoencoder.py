@@ -16,11 +16,18 @@ class FeXTAutoEncoder:
 
     def __init__(self, configuration : dict):  
         self.image_shape = (128, 128, 3)
-        self.seed = configuration.get('training_seed', 42)      
+        self.seed = configuration.get('training_seed', 42) 
+        self.dropout_rate = configuration.get('dropout_rate', 0.2)           
         self.jit_compile = configuration.get('jit_compile', False)
         self.jit_backend = configuration.get('jit_backend', 'inductor')
         self.has_LR_scheduler = configuration.get('use_scheduler', False)  
-        self.initial_lr = configuration.get('initial_LR', 0.001)        
+        self.initial_lr = configuration.get('initial_LR', 0.001)
+
+        self.initial_neurons = configuration.get('initial_neurons', 64)  
+        self.low_depth_neurons = self.initial_neurons * 2
+        self.mid_depth_neurons = self.initial_neurons * 4  
+        self.high_depth_neurons = self.initial_neurons * 8       
+
         self.configuration = configuration  
   
     #--------------------------------------------------------------------------
@@ -54,26 +61,28 @@ class FeXTAutoEncoder:
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = ResidualConvolutivePooling(64, num_layers=3)(inputs)              
-        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(units=128, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(units=256, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(units=512, num_layers=5)(layer)        
+        layer = ResidualConvolutivePooling(self.initial_neurons, num_layers=3)(inputs)              
+        layer = ResidualConvolutivePooling(self.initial_neurons, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(self.low_depth_neurons, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(self.low_depth_neurons, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(self.mid_depth_neurons, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(self.mid_depth_neurons, num_layers=5)(layer)        
 
         # [BOTTLENECK SUBMODEL]
         #--------------------------------------------------------------------
-        encoder_output = CompressionLayer(units=512, dropout_rate=0.2, num_layers=5)(layer) 
-        decoder_input = DecompressionLayer(units=512, num_layers=5)(encoder_output)
+        encoder_output = CompressionLayer(
+            self.high_depth_neurons, dropout_rate=self.dropout_rate, num_layers=5)(layer) 
+        decoder_input = DecompressionLayer(
+            self.high_depth_neurons, num_layers=5)(encoder_output)
         
         # [DECODER SUBMODEL]
         #----------------------------------------------------------------------          
-        layer = ResidualTransConvolutiveUpsampling(512, num_layers=5)(decoder_input)       
-        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer) 
+        layer = ResidualTransConvolutiveUpsampling(self.mid_depth_neurons, num_layers=5)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(self.mid_depth_neurons, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(self.low_depth_neurons, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(self.low_depth_neurons, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer) 
 
         output = layers.Dense(3, kernel_initializer='he_uniform')(layer) 
         output = layers.BatchNormalization()(output)       
