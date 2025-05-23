@@ -1,5 +1,3 @@
-
-
 ###############################################################################
 class Configuration:
     
@@ -17,6 +15,8 @@ class Configuration:
             'shuffle_size': 1024,
 
             # Model 
+            'initial_neurons': 64,
+            'dropout_rate': 0.2,
             'jit_compile': False,
             'jit_backend': 'inductor',
 

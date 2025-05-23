@@ -133,7 +133,9 @@ class InferenceDataLoader:
         self.processor = InferenceDataLoaderProcessor(configuration)           
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]           
-        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY                    
+        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY
+        self.batch_size = configuration.get('batch_size', 32)
+        self.configuration = configuration                    
 
     #--------------------------------------------------------------------------
     def load_image_as_array(self, path, normalization=True):       
@@ -159,8 +161,8 @@ class InferenceDataLoader:
         return dataset         
       
     #--------------------------------------------------------------------------
-    def build_inference_dataloader(self, train_data, batch_size=None):       
-        dataset = self.compose_tensor_dataset(train_data, batch_size)             
+    def build_inference_dataloader(self, data, batch_size=None):       
+        dataset = self.compose_tensor_dataset(data, batch_size)             
 
         return dataset          
       

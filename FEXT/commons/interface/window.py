@@ -54,7 +54,8 @@ class MainWindow:
         # setup UI elements
         self._set_states()
         self.widgets = {}
-        self._setup_configuration([            
+        self._setup_configuration([ 
+            (QPushButton,'stopThread','stop_run'),           
             # 1. dataset tab page
             (QCheckBox,'getStatsAnalysis','get_image_stats'),
             (QCheckBox,'getPixDist','get_pixels_dist'),
@@ -95,7 +96,7 @@ class MainWindow:
             (QCheckBox,'compileJIT','use_JIT_compiler'),   
             (QComboBox,'backendJIT','jit_backend'),         
             (QSpinBox,'initialNeurons','initial_neurons'),
-            (QSpinBox,'bottleneckNeurons','bottleneck_neurons'),
+            (QDoubleSpinBox,'dropoutRate','dropout_rate'),                    
             (QSpinBox,'numAdditionalEpochs','additional_epochs'),
             (QComboBox,'checkpointsList','checkpoints_list'),           
             (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
@@ -106,6 +107,7 @@ class MainWindow:
             (QPushButton,'evaluateModel','model_evaluation'),
             (QCheckBox,'runEvaluationGPU','use_GPU_evaluation'), 
             (QPushButton,'checkpointSummary','checkpoints_summary'),
+            (QCheckBox,'evalReport','get_evaluation_report'), 
             (QCheckBox,'imgReconstruction','image_reconstruction'),      
             (QSpinBox,'numImages','num_evaluation_images'),
             (QPushButton,'evalTabPreviousImg','eval_tab_prev_img'),
@@ -120,7 +122,8 @@ class MainWindow:
             (QPushButton,'inferTabClearImg','infer_tab_clear_img'),
             ])
         
-        self._connect_signals([            
+        self._connect_signals([  
+            ('checkpoints_list','currentTextChanged',self.select_checkpoint),          
             # 1. dataset tab page
             ('get_image_stats','toggled',self._update_metrics),
             ('get_pixels_dist','toggled',self._update_metrics),
@@ -131,15 +134,15 @@ class MainWindow:
             ('data_tab_clear_img', 'clicked', lambda: self.clear_figures("imageCanvas")),
             ('set_plot_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
             ('set_image_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
-            # 2. training tab page   
-            ('checkpoints_list','currentTextChanged',self.select_checkpoint),
+            # 2. training tab page            
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
             # 3. model evaluation tab page
+            ('image_reconstruction','toggled',self._update_metrics),
+            ('get_evaluation_report','toggled',self._update_metrics), 
             ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
-            ('checkpoints_summary','clicked',self.get_checkpoints_summary),     
-            ('image_reconstruction','toggled',self._update_metrics),    
+            ('checkpoints_summary','clicked',self.get_checkpoints_summary),                   
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),     
             ('eval_tab_prev_img','clicked', lambda: self.show_previous_figure("modelEvalCanvas")),            
             ('eval_tab_next_img','clicked', lambda: self.show_next_figure("modelEvalCanvas")),
@@ -206,8 +209,8 @@ class MainWindow:
             ('shuffle_size', 'valueChanged', 'shuffle_size'),
             ('epochs', 'valueChanged', 'epochs'),
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
-            ('initial_neurons', 'valueChanged', 'initial_neurons'),
-            ('bottleneck_neurons', 'valueChanged', 'bottleneck_neurons'),
+            ('initial_neurons', 'valueChanged', 'initial_neurons'),      
+            ('dropout_rate', 'valueChanged', 'dropout_rate'),            
             ('batch_size', 'valueChanged', 'batch_size'),
             ('device_ID', 'valueChanged', 'device_id'),
             # 3. model evaluation tab page
@@ -222,7 +225,8 @@ class MainWindow:
 
         self.data_metrics = [('image_stats', self.get_image_stats), 
                              ('pixels_distribution', self.get_pixels_dist)]
-        self.model_metrics = [('image_reconstruction', self.image_reconstruction)]
+        self.model_metrics = [('evaluation_report', self.get_evaluation_report),
+                              ('image_reconstruction', self.image_reconstruction)]
 
     #--------------------------------------------------------------------------
     def _update_device(self):
@@ -334,15 +338,19 @@ class MainWindow:
     def _update_metrics(self):        
         for name, box in self.data_metrics:
             if box.isChecked():
-                self.selected_metrics['dataset'].append(name) if name not in self.selected_metrics['dataset'] else None                    
+                self.selected_metrics['dataset'].append(name) \
+                if name not in self.selected_metrics['dataset'] else None                    
             else:
-                self.selected_metrics['dataset'].remove(name) if name in self.selected_metrics['dataset'] else None
+                self.selected_metrics['dataset'].remove(name) \
+                if name in self.selected_metrics['dataset'] else None
 
         for name, box in self.model_metrics:
             if box.isChecked():
-                self.selected_metrics['model'].append(name) if name not in self.selected_metrics['model'] else None                    
+                self.selected_metrics['model'].append(name) \
+                if name not in self.selected_metrics['model'] else None                    
             else:
-                self.selected_metrics['model'].remove(name) if name in self.selected_metrics['model'] else None
+                self.selected_metrics['model'].remove(name) \
+                if name in self.selected_metrics['model'] else None
 
     #--------------------------------------------------------------------------
     # [GRAPHICS]
@@ -618,9 +626,9 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots): 
-        self.model_pixmaps = []
+        self.model_eval_pixmaps = []
         if plots is not None:
-            self.model_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p)
+            self.model_eval_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p)
                                        for p in plots])
             
         self.current_fig["modelEvalCanvas"] = 0
