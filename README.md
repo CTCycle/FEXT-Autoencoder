@@ -34,9 +34,9 @@ This project leverages Just-In-Time model compilation through `torch.compile`, e
 ## 5. How to use
 On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
-![main_UI](FEXT/commons/assets/dataset_tab.png)
+![dataset_tab](FEXT/commons/assets/dataset_tab.png)
 
-![main_UI](FEXT/commons/assets/train_tab.png)
+![train_tab](FEXT/commons/assets/train_tab.png)
 
 The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Model training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
