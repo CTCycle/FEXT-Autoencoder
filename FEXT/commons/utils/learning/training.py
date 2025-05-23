@@ -1,7 +1,7 @@
 import keras
 import torch
 
-from FEXT.commons.utils.learning.callbacks import callbacks_handler
+from FEXT.commons.utils.learning.callbacks import initialize_callbacks_handler
 from FEXT.commons.utils.data.serializer import ModelSerializer
 from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
@@ -11,65 +11,69 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ModelTraining:    
        
-    def __init__(self, configuration):        
-        keras.utils.set_random_seed(configuration["SEED"])        
-        self.selected_device = CONFIG["device"]["DEVICE"]
-        self.device_id = CONFIG["device"]["DEVICE_ID"]
-        self.mixed_precision = CONFIG["device"]["MIXED_PRECISION"]         
-        self.serializer = ModelSerializer()
+    def __init__(self, configuration : dict):
+        self.serializer = ModelSerializer()        
+        keras.utils.set_random_seed(configuration.get('training_seed', 42))        
+        self.selected_device = configuration.get('device', 'CPU')
+        self.device_id = configuration.get('device_ID', 0)
+        self.mixed_precision = configuration.get('use_mixed_precision', False)        
         self.configuration = configuration     
 
     # set device
     #--------------------------------------------------------------------------
-    def set_device(self):
-        if self.selected_device == 'GPU':
+    def set_device(self, device_override=None):
+        selected_device = device_override if device_override else self.selected_device
+        if selected_device == 'GPU':
             if not torch.cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
                 self.device = torch.device('cpu')
             else:
                 self.device = torch.device(f'cuda:{self.device_id}')
-                torch.cuda.set_device(self.device)  
+                torch.cuda.set_device(self.device)                 
                 logger.info('GPU is set as active device')            
                 if self.mixed_precision:
                     keras.mixed_precision.set_global_policy("mixed_float16")
-                    logger.info('Mixed precision policy is active during training')                   
+                    logger.info('Mixed precision policy is active during training')                                  
         else:
             self.device = torch.device('cpu')
-            logger.info('CPU is set as active device')         
-
+            logger.info('CPU is set as active device')
+           
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    checkpoint_path, from_checkpoint=False):       
-
-        # perform different initialization duties based on state of session:
-        # training from scratch vs resumed training
-        # calculate number of epochs taking into account possible training resumption
-        if not from_checkpoint:            
-            epochs = self.configuration["training"]["EPOCHS"] 
-            from_epoch = 0
-            history = None
-        else:
-            _, history = self.serializer.load_session_configuration(checkpoint_path)                     
-            epochs = history['total_epochs'] + CONFIG["training"]["ADDITIONAL_EPOCHS"] 
-            from_epoch = history['total_epochs']           
-       
+                    checkpoint_path, progress_callback=None):       
+        epochs = self.configuration.get('epochs', 10)      
         # add all callbacks to the callback list
-        RTH_callback, callbacks_list = callbacks_handler(
-            self.configuration, checkpoint_path, history)       
+        callbacks_list = initialize_callbacks_handler(
+            self.configuration, checkpoint_path, session=None, 
+            progress_callback=progress_callback)       
         
         # run model fit using keras API method.             
-        training = model.fit(train_data, epochs=epochs, validation_data=validation_data, 
-                             callbacks=callbacks_list, initial_epoch=from_epoch)
-        
-        # use the real time history callback data to retrieve current loss and metric values
-        # this allows to correctly resume the training metrics plot if training from checkpoint
-        history = {'history' : RTH_callback.history, 
-                   'val_history' : RTH_callback.val_history,
-                   'total_epochs' : epochs}
-        
+        session = model.fit(
+            train_data, epochs=epochs, validation_data=validation_data, 
+            callbacks=callbacks_list)
+                   
         self.serializer.save_pretrained_model(model, checkpoint_path)       
-        self.serializer.save_session_configuration(
-            checkpoint_path, history, self.configuration)
+        self.serializer.save_training_configuration(
+            checkpoint_path, session, self.configuration)
+        
+    #--------------------------------------------------------------------------
+    def resume_training(self, model : keras.Model, train_data, validation_data, 
+                        checkpoint_path, session=None, progress_callback=None): 
+        
+        from_epoch = 0 if not session else session['epochs']     
+        total_epochs = from_epoch + self.configuration.get('additional_epochs', 10)           
+        # add all callbacks to the callback list
+        callbacks_list = initialize_callbacks_handler(
+            self.configuration, checkpoint_path, session, progress_callback)       
+        
+        # run model fit using keras API method.             
+        session = model.fit(
+            train_data, epochs=total_epochs, validation_data=validation_data, 
+            callbacks=callbacks_list, initial_epoch=from_epoch)
+                   
+        self.serializer.save_pretrained_model(model, checkpoint_path)       
+        self.serializer.save_training_configuration(
+            checkpoint_path, session, self.configuration)
 
         
 

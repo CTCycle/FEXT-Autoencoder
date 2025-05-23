@@ -1,36 +1,13 @@
 import os
-import sys
 import json
-import numpy as np
 import keras
+import numpy as np
+from PIL import Image
 from datetime import datetime
 
 from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
 from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
 from FEXT.commons.logger import logger
-
-
-###############################################################################
-def checkpoint_selection_menu(models_list):
-    # display an interactive menu to select a pretrained model from a numbered list
-    # uses all checkpoints found in resources/checkpoints
-    index_list = [idx + 1 for idx, item in enumerate(models_list)]     
-    print('Currently available pretrained models:')             
-    for i, directory in enumerate(models_list):
-        print(f'{i + 1} - {directory}')                         
-    while True:
-        try:
-            selection_index = int(input('\nSelect the pretrained model: '))
-            print()
-        except ValueError:
-            logger.error('Invalid choice for the pretrained model, asking again')
-            continue
-        if selection_index in index_list:
-            break
-        else:
-            logger.warning('Model does not exist, please select a valid index')
-
-    return selection_index
 
 
 # [DATA SERIALIZATION]
@@ -41,27 +18,22 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration['SEED']   
-        self.parameters = configuration["dataset"]
+        self.seed = configuration.get('general_seed', 42)         
         self.configuration = configuration
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path, sample_size=None): 
-        # get sample size reduction from configurations if not directly provided
-        sample_size = self.parameters["SAMPLE_SIZE"] if sample_size is None else sample_size       
+    def get_images_path_from_directory(self, path, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):
-            if sample_size is not None:
-                files = files[:int(sample_size*len(files))]           
-            for file in files:
-                # only consider files with valid image extensions
+            if sample_size < 1.0:
+                files = files[:int(sample_size * len(files))]           
+            for file in files:                
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
 
-        return images_path      
-               
+        return images_path                
     
     
 # [MODEL SERIALIZATION]
@@ -90,21 +62,21 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
-    def save_session_configuration(self, path, history : dict, configurations : dict):         
-        os.makedirs(os.path.join(path, 'configurations'), exist_ok=True)        
-        config_path = os.path.join(path, 'configurations', 'configurations.json')
-        history_path = os.path.join(path, 'configurations', 'session_history.json')
+    def save_training_configuration(self, path, session, configuration : dict):         
+        os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
+        config_path = os.path.join(path, 'configuration', 'configuration.json')
+        history_path = os.path.join(path, 'configuration', 'session_history.json')
+        history = {'history' : session.history,
+                   'epochs': session.epoch[-1] + 1}
 
-        # Save training and model configurations
+        # Save training and model configuration
         with open(config_path, 'w') as f:
-            json.dump(configurations, f)
+            json.dump(configuration, f)
             
         # Save session history
         with open(history_path, 'w') as f:
             json.dump(history, f)
-
-        logger.debug(f'Model configuration and session history saved for {os.path.basename(path)}') 
-
+        
     #-------------------------------------------------------------------------- 
     def scan_checkpoints_folder(self):
         model_folders = []
@@ -115,18 +87,18 @@ class ModelSerializer:
         return model_folders     
 
     #--------------------------------------------------------------------------
-    def load_session_configuration(self, path):
+    def load_training_configuration(self, path):
         config_path = os.path.join(
-            path, 'configurations', 'configurations.json')        
+            path, 'configuration', 'configuration.json')        
         with open(config_path, 'r') as f:
-            configurations = json.load(f)        
+            configuration = json.load(f)        
 
         history_path = os.path.join(
-            path, 'configurations', 'session_history.json')
+            path, 'configuration', 'session_history.json')
         with open(history_path, 'r') as f:
             history = json.load(f)
 
-        return configurations, history
+        return configuration, history
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
@@ -146,28 +118,14 @@ class ModelSerializer:
         return model       
             
     #-------------------------------------------------------------------------- 
-    def select_and_load_checkpoint(self):        
-        # look into checkpoint folder to get pretrained model names      
-        model_folders = self.scan_checkpoints_folder()
-        # quit the script if no pretrained models are found 
-        if len(model_folders) == 0:
-            logger.error('No pretrained model checkpoints in resources')
-            sys.exit()
-
-        # select model if multiple checkpoints are available
-        if len(model_folders) > 1:
-            selection_index = checkpoint_selection_menu(model_folders)                    
-            checkpoint_path = os.path.join(
-                CHECKPOINT_PATH, model_folders[selection_index-1])
-
-        # load directly the pretrained model if only one is available 
-        elif len(model_folders) == 1:
-            checkpoint_path = os.path.join(CHECKPOINT_PATH, model_folders[0])
-            logger.info(f'Since only checkpoint {os.path.basename(checkpoint_path)} is available, it will be loaded directly')
-           
+    def load_checkpoint(self, checkpoint_name):       
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)             
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
-        model = self.load_checkpoint(checkpoint_path)       
-        configuration, history = self.load_session_configuration(checkpoint_path)        
+        custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
+        model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
+        model = keras.models.load_model(model_path, custom_objects=custom_objects)       
+        configuration, session = self.load_training_configuration(checkpoint_path)        
             
-        return model, configuration, history, checkpoint_path
+        return model, configuration, session, checkpoint_path

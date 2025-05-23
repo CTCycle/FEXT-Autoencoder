@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.database import FEXTDatabase
-from FEXT.commons.constants import DATA_PATH, VALIDATION_PATH
+from FEXT.commons.constants import EVALUATION_PATH
 from FEXT.commons.logger import logger
 
 
@@ -21,26 +21,21 @@ class ImageReconstruction:
 
     def __init__(self, configuration : dict, model : keras.Model, checkpoint_path : str):       
         self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(VALIDATION_PATH, self.checkpoint_name)       
+        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
-        self.loader = InferenceDataLoader(configuration) 
-
+        self.loader = InferenceDataLoader(configuration)        
+        self.num_images = configuration.get('num_evaluation_images', 6)
+        self.DPI = 400 
+        self.file_type = 'jpeg'
         self.model = model  
         self.configuration = configuration
-        self.num_images = configuration['validation']['NUM_IMAGES']
-        self.DPI = configuration['validation']['DPI']  
-        self.file_type = 'jpeg'
 
     #-------------------------------------------------------------------------- 
-    def get_images(self, train_data, validation_data):
-        train_images = [
-            self.loader.load_image_as_array(path) for path in 
-            random.sample(train_data, self.num_images)]
-        validation_images = [
-            self.loader.load_image_as_array(path) for path in 
-            random.sample(validation_data, self.num_images)]
+    def get_images(self, data):
+        images = [self.loader.load_image_as_array(path) for path in 
+                  random.sample(data, self.num_images)]        
                 
-        return train_images, validation_images
+        return images
 
     #-------------------------------------------------------------------------- 
     def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
@@ -61,31 +56,11 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, train_data, validation_data):       
-        train_images, val_images = self.get_images(train_data, validation_data)
+    def visualize_reconstructed_images(self, validation_data, progress_callback=None):        
+        val_images = self.get_images(validation_data)
         logger.info(
-        f'Comparing {self.num_images} reconstructed images from both training and validation dataset')
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
-        for i, img in enumerate(train_images):           
-            expanded_img = np.expand_dims(img, axis=0)                 
-            reconstructed_image = self.model.predict(
-                expanded_img, verbose=0, batch_size=1)[0]              
-            real = np.clip(img, 0, 1)
-            pred = np.clip(reconstructed_image, 0, 1)          
-            axs[i, 0].imshow(real)
-            axs[i, 0].set_title('Original Picture' if i == 0 else "")
-            axs[i, 0].axis('off')            
-            axs[i, 1].imshow(pred)
-            axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
-            axs[i, 1].axis('off')
-        
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(self.validation_path, 'training_images_recostruction.jpeg'), 
-            dpi=self.DPI)
-        plt.close()
-       
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
+        f'Comparing {self.num_images} reconstructed images from validation dataset')
+        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
         for i, img in enumerate(val_images):           
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
@@ -98,28 +73,46 @@ class ImageReconstruction:
             axs[i, 1].imshow(pred)
             axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
             axs[i, 1].axis('off')
+
+            if progress_callback is not None:
+                total = len(val_images)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)   
         
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.validation_path, 'validation_images_recostruction.jpeg'), 
+            os.path.join(self.validation_path, 'images_recostruction.jpeg'), 
             dpi=self.DPI)
-        plt.close()    
+        plt.close() 
+
+        return fig    
                  
 
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):                          
-        self.DPI = configuration['validation']['DPI']  
-        self.configuration = configuration 
-        self.database = FEXTDatabase(configuration)       
+    def __init__(self, configuration):           
+        self.database = FEXTDatabase(configuration)
+        self.save_images = configuration.get('save_images', True)          
+        self.configuration = configuration      
+        self.DPI = 400 
+
+    #--------------------------------------------------------------------------
+    def save_image(self, fig, name):        
+        out_path = os.path.join(EVALUATION_PATH, name)
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI) 
+
+    #--------------------------------------------------------------------------
+    def save_image(self, fig, name):        
+        out_path = os.path.join(EVALUATION_PATH, name)
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path : list):          
+    def calculate_image_statistics(self, images_path : list, progress_callback=None):          
         results= []     
-        for path in tqdm(
-            images_path, desc="Processing images", total=len(images_path), ncols=100):                  
+        for i, path in enumerate(tqdm(
+            images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
             img = cv2.imread(path)            
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -152,17 +145,24 @@ class ImageAnalysis:
                             'max': max_val,
                             'pixel_range': pixel_range,
                             'noise_std': noise_std,
-                            'noise_ratio': noise_ratio})    
+                            'noise_ratio': noise_ratio})
+
+            if progress_callback is not None:
+                total = len(images_path)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)            
 
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics(stats_dataframe)       
+        self.database.save_image_statistics_table(stats_dataframe)       
         
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path : list):            
+    def calculate_pixel_intensity_distribution(self, images_path : list, progress_callback=None):                
         image_histograms = np.zeros(256, dtype=np.int64)        
-        for path in tqdm(images_path, desc="Processing image histograms", total=len(images_path), ncols=100):            
+        for i, path in enumerate(
+            tqdm(images_path, desc="Processing image histograms", 
+            total=len(images_path), ncols=100)):                        
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
@@ -172,19 +172,22 @@ class ImageAnalysis:
             hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
             image_histograms += hist.astype(np.int64)
 
-        # Plot the combined histogram
-        plt.figure(figsize=(14, 12))
-        plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        plt.title('Combined Pixel Intensity Histogram', fontsize=16)
-        plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency', fontsize=12)
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram.jpeg'), 
-            dpi=self.DPI)
-        plt.close()        
+            if progress_callback is not None:
+                total = len(images_path)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)
 
-        return image_histograms
+        # Plot the combined histogram
+        fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
+        plt.bar(np.arange(256),image_histograms, alpha=0.7)
+        ax.set_title('Combined Pixel Intensity Histogram', fontsize=20)
+        ax.set_xlabel('Pixel Intensity', fontsize=12)
+        ax.set_ylabel('Frequency', fontsize=12)
+        plt.tight_layout()        
+        self.save_image(fig, "pixels_intensity_histogram.jpeg") if self.save_images else None
+        plt.close()          
+
+        return fig              
     
     #--------------------------------------------------------------------------
     def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list):
@@ -222,7 +225,7 @@ class ImageAnalysis:
         plt.ylabel('Frequency', fontsize=12)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(VALIDATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
+        plt.savefig(os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
                     dpi=self.DPI)
         plt.close()
 

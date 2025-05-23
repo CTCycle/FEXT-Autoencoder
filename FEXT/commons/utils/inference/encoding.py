@@ -13,7 +13,7 @@ from FEXT.commons.logger import logger
 class ImageEncoding:
     
     def __init__(self, model : keras.Model, configuration : dict, checkpoint_path : str):       
-        keras.utils.set_random_seed(configuration["SEED"])  
+        keras.utils.set_random_seed(configuration.get('train_seed', 42)) 
         self.dataloader = InferenceDataLoader(configuration)
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.configuration = configuration
@@ -25,9 +25,9 @@ class ImageEncoding:
             inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths):        
+    def encode_images_features(self, images_paths, progress_callback=None):        
         features = {}
-        for pt in tqdm(images_paths, desc='Encoding images', total=len(images_paths)):
+        for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
             image_name = os.path.basename(pt)
             try:
                 image = self.dataloader.load_image_as_array(pt)
@@ -37,6 +37,11 @@ class ImageEncoding:
             except Exception as e:
                 features[pt] = f'Error during encoding: {str(e)}'
                 logger.error(f'Could not encode image {image_name}: {str(e)}')
+            
+            if progress_callback is not None:
+                total = len(images_paths)
+                percent = int((i + 1) * 100 / total)
+                progress_callback(percent)
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(
