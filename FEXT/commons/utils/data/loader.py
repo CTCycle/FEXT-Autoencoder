@@ -11,7 +11,7 @@ class TrainingDataLoaderProcessor:
     def __init__(self, configuration):                
         self.img_shape = (128, 128)   
         self.num_channels = 3   
-        self.augmentation = configuration["dataset"]["IMG_AUGMENTATION"]
+        self.augmentation = configuration.get('use_img_augmentation')
         self.configuration = configuration    
 
     # load and preprocess a single image
@@ -19,7 +19,7 @@ class TrainingDataLoaderProcessor:
     def load_image(self, path): 
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
-            image, channels=3, expand_animations=False)        
+            image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)        
         
         return rgb_image      
@@ -73,7 +73,7 @@ class InferenceDataLoaderProcessor:
     def load_image(self, path): 
         image = tf.io.read_file(path)
         rgb_image = tf.image.decode_image(
-            image, channels=3, expand_animations=False)        
+            image, channels=self.num_channels, expand_animations=False)        
         rgb_image = tf.image.resize(rgb_image, self.img_shape)        
         
         return rgb_image      
@@ -91,9 +91,7 @@ class InferenceDataLoaderProcessor:
     def image_normalization(self, image):
         normalize_image = image/255.0        
                 
-        return normalize_image         
-
-    
+        return normalize_image     
 
    
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
@@ -102,8 +100,8 @@ class TrainingDataLoader:
 
     def __init__(self, configuration, shuffle=True):
         self.processor = TrainingDataLoaderProcessor(configuration) 
-        self.batch_size = configuration['training']["BATCH_SIZE"]
-        self.shuffle_samples = 1024
+        self.batch_size = configuration.get('batch_size', 32)
+        self.shuffle_samples = configuration.get('shuffle_size', 1024)
         self.configuration = configuration
         self.shuffle = shuffle             
 
@@ -132,11 +130,12 @@ class TrainingDataLoader:
 class InferenceDataLoader:
 
     def __init__(self, configuration):      
-        self.processor = InferenceDataLoaderProcessor(configuration)             
-        self.batch_size = configuration['validation']["BATCH_SIZE"]    
+        self.processor = InferenceDataLoaderProcessor(configuration)           
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]           
-        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY                    
+        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY
+        self.batch_size = configuration.get('batch_size', 32)
+        self.configuration = configuration                    
 
     #--------------------------------------------------------------------------
     def load_image_as_array(self, path, normalization=True):       
@@ -162,8 +161,8 @@ class InferenceDataLoader:
         return dataset         
       
     #--------------------------------------------------------------------------
-    def build_inference_dataloader(self, train_data, batch_size=None):       
-        dataset = self.compose_tensor_dataset(train_data, batch_size)             
+    def build_inference_dataloader(self, data, batch_size=None):       
+        dataset = self.compose_tensor_dataset(data, batch_size)             
 
         return dataset          
       
