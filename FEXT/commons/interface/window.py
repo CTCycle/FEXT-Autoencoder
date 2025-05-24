@@ -55,7 +55,7 @@ class MainWindow:
         self._set_states()
         self.widgets = {}
         self._setup_configuration([ 
-            (QPushButton,'stopThread','stop_run'),           
+            (QPushButton,'stopThread','stop_thread'),           
             # 1. dataset tab page
             (QCheckBox,'getStatsAnalysis','get_image_stats'),
             (QCheckBox,'getPixDist','get_pixels_dist'),
@@ -123,7 +123,8 @@ class MainWindow:
             ])
         
         self._connect_signals([  
-            ('checkpoints_list','currentTextChanged',self.select_checkpoint),          
+            ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
+            ('stop_thread','clicked',self.stop_running_worker),          
             # 1. dataset tab page
             ('get_image_stats','toggled',self._update_metrics),
             ('get_pixels_dist','toggled',self._update_metrics),
@@ -232,6 +233,15 @@ class MainWindow:
     def _update_device(self):
         device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
         self.config_manager.update_value('device', device)
+
+    #--------------------------------------------------------------------------
+    Slot()
+    def stop_running_worker(self):
+        if self._validation_worker is not None:
+            self._validation_worker.stop()
+        if self._training_worker is not None:
+            self._training_worker.stop()
+        self._send_message("Interrupt requested. Waiting for threads to stop...")
       
 
     # [HELPERS FOR SETTING CONNECTIONS]

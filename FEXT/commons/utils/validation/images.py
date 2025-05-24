@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.utils.data.database import FEXTDatabase
+from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.constants import EVALUATION_PATH
 from FEXT.commons.logger import logger
 
@@ -56,12 +57,12 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, validation_data, progress_callback=None):        
+    def visualize_reconstructed_images(self, validation_data, progress_callback=None, worker=None):        
         val_images = self.get_images(validation_data)
         logger.info(
         f'Comparing {self.num_images} reconstructed images from validation dataset')
         fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
-        for i, img in enumerate(val_images):           
+        for i, img in enumerate(val_images):                      
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
                 expanded_img, verbose=0, batch_size=1)[0]              
@@ -74,10 +75,9 @@ class ImageReconstruction:
             axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
             axs[i, 1].axis('off')
 
-            if progress_callback is not None:
-                total = len(val_images)
-                percent = int((i + 1) * 100 / total)
-                progress_callback(percent)   
+            # check for thread status and progress bar update
+            check_thread_status(worker)
+            update_progress_callback(i, val_images, progress_callback)
         
         plt.tight_layout()
         plt.savefig(
@@ -109,7 +109,7 @@ class ImageAnalysis:
         fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path : list, progress_callback=None):          
+    def calculate_image_statistics(self, images_path : list, progress_callback=None, worker=None):          
         results= []     
         for i, path in enumerate(tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
@@ -147,10 +147,9 @@ class ImageAnalysis:
                             'noise_std': noise_std,
                             'noise_ratio': noise_ratio})
 
-            if progress_callback is not None:
-                total = len(images_path)
-                percent = int((i + 1) * 100 / total)
-                progress_callback(percent)            
+            # check for thread status and progress bar update
+            check_thread_status(worker)
+            update_progress_callback(i, images_path, progress_callback)    
 
         stats_dataframe = pd.DataFrame(results) 
         self.database.save_image_statistics_table(stats_dataframe)       
@@ -158,7 +157,8 @@ class ImageAnalysis:
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path : list, progress_callback=None):                
+    def calculate_pixel_intensity_distribution(self, images_path : list, progress_callback=None, 
+                                               worker=None):                 
         image_histograms = np.zeros(256, dtype=np.int64)        
         for i, path in enumerate(
             tqdm(images_path, desc="Processing image histograms", 
@@ -171,11 +171,10 @@ class ImageAnalysis:
             # Calculate histogram for grayscale values [0, 255]
             hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
             image_histograms += hist.astype(np.int64)
-
-            if progress_callback is not None:
-                total = len(images_path)
-                percent = int((i + 1) * 100 / total)
-                progress_callback(percent)
+            
+            # check for thread status and progress bar update
+            check_thread_status(worker)
+            update_progress_callback(i, images_path, progress_callback)    
 
         # Plot the combined histogram
         fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
@@ -190,7 +189,8 @@ class ImageAnalysis:
         return fig              
     
     #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list):
+    def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list,
+                                         progress_callback=None, worker=None):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
         val_hist = np.zeros(256, dtype=np.int64)

@@ -3,7 +3,6 @@ import torch
 
 from FEXT.commons.utils.learning.callbacks import initialize_callbacks_handler
 from FEXT.commons.utils.data.serializer import ModelSerializer
-from FEXT.commons.constants import CONFIG
 from FEXT.commons.logger import logger
 
 
@@ -40,12 +39,12 @@ class ModelTraining:
            
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    checkpoint_path, progress_callback=None):       
+                    checkpoint_path, progress_callback=None, worker=None):         
         epochs = self.configuration.get('epochs', 10)      
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
-            self.configuration, checkpoint_path, session=None, 
-            progress_callback=progress_callback)       
+            self.configuration, checkpoint_path, 
+            progress_callback=progress_callback, worker=worker)       
         
         # run model fit using keras API method.             
         session = model.fit(
@@ -58,13 +57,14 @@ class ModelTraining:
         
     #--------------------------------------------------------------------------
     def resume_training(self, model : keras.Model, train_data, validation_data, 
-                        checkpoint_path, session=None, progress_callback=None): 
+                        checkpoint_path, session=None, progress_callback=None,
+                        worker=None):  
         
         from_epoch = 0 if not session else session['epochs']     
         total_epochs = from_epoch + self.configuration.get('additional_epochs', 10)           
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
-            self.configuration, checkpoint_path, session, progress_callback)       
+            self.configuration, checkpoint_path, session, progress_callback, worker)       
         
         # run model fit using keras API method.             
         session = model.fit(

@@ -27,6 +27,18 @@ class ProgressBarCallback(keras.callbacks.Callback):
         if self.progress_callback is not None:
             self.progress_callback(percent)
 
+# [CALLBACK FOR TRAIN INTERRUPTION]
+###############################################################################
+class InterruptTraining(keras.callbacks.Callback):
+    def __init__(self, worker=None):
+        super().__init__()
+        self.worker = worker
+
+    def on_batch_end(self, batch, logs=None):
+        if self.worker is not None and self.worker.is_interrupted():
+            logger.warning("Stopping training aas requested by the user")
+            self.model.stop_training = True
+
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 ###############################################################################
@@ -90,16 +102,19 @@ class RealTimeHistory(keras.callbacks.Callback):
 # [CALLBACKS HANDLER]
 ###############################################################################
 def initialize_callbacks_handler(configuration, checkpoint_path, session=None, 
-                                 progress_callback=None):
+                                 progress_callback=None, worker=None):
     
     from_epoch = 0
     total_epochs = configuration.get('epochs', 10)
+    callbacks_list = [
+        ProgressBarCallback(progress_callback, total_epochs, from_epoch),
+        InterruptTraining(worker)]  
+    
     additional_epochs = configuration.get('additional_epochs', 10)
     if session:
         from_epoch = session['epochs']
         total_epochs = additional_epochs + from_epoch
-
-    callbacks_list = [ProgressBarCallback(progress_callback, total_epochs, from_epoch)]
+    
     if configuration.get('plot_training_metrics', False):
         callbacks_list.append(RealTimeHistory(checkpoint_path, past_logs=session))
 
@@ -108,18 +123,15 @@ def initialize_callbacks_handler(configuration, checkpoint_path, session=None,
         log_path = os.path.join(checkpoint_path, 'tensorboard')
         callbacks_list.append(keras.callbacks.TensorBoard(
             log_dir=log_path, histogram_freq=1, write_images=True))          
-        start_tensorboard_subprocess(log_path)      
+        start_tensorboard_subprocess(log_path)   
 
-    # Add a checkpoint saving callback
     if configuration.get('save_checkpoints', False):
         logger.debug('Adding checkpoint saving callback')
         checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.weights.h5')
-        callbacks_list.append(keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath,
-                                                              save_weights_only=True,  
-                                                              monitor='val_loss',       
-                                                              save_best_only=True,      
-                                                              mode='auto',              
-                                                              verbose=0))
+        callbacks_list.append(keras.callbacks.ModelCheckpoint(
+            filepath=checkpoint_filepath, save_weights_only=True,  
+            monitor='val_loss', save_best_only=True, mode='auto', verbose=0))
+        
     return callbacks_list
 
 
