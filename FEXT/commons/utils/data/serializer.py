@@ -6,7 +6,7 @@ from PIL import Image
 from datetime import datetime
 
 from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
-from FEXT.commons.constants import CONFIG, CHECKPOINT_PATH
+from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 
