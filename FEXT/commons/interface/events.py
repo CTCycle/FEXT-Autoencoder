@@ -12,11 +12,15 @@ from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
-from FEXT.commons.utils.validation.reports import log_training_report, evaluation_report
+from FEXT.commons.utils.learning.callbacks import ProgressBarCallback, InterruptTraining
+from FEXT.commons.utils.validation.reports import log_training_report
+from FEXT.commons.interface.workers import check_thread_status
 from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 
+
+    
 
 ###############################################################################
 class ValidationEvents:
@@ -34,7 +38,7 @@ class ValidationEvents:
         return images_paths 
         
     #--------------------------------------------------------------------------
-    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None):
+    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')
@@ -43,23 +47,24 @@ class ValidationEvents:
         if 'image_stats' in metrics:
             logger.info('Current metric: image dataset statistics')
             image_statistics = self.analyzer.calculate_image_statistics(
-                images_paths, progress_callback=progress_callback)
+                images_paths, progress_callback, worker)                      
              
         if 'pixels_distribution' in metrics:
             logger.info('Current metric: pixel intensity distribution')
             images.append(self.analyzer.calculate_pixel_intensity_distribution(
-                images_paths, progress_callback=progress_callback))       
+                images_paths, progress_callback, worker))
 
         return images 
 
     #--------------------------------------------------------------------------
-    def get_checkpoints_summary(self, progress_callback=None): 
+    def get_checkpoints_summary(self, progress_callback=None, worker=None): 
         summarizer = ModelEvaluationSummary(self.configuration)    
         checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback) 
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
-    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, device='CPU', progress_callback=None):
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, device='CPU', 
+                                      progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
         modser = ModelSerializer()       
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -92,7 +97,7 @@ class ValidationEvents:
         images = []
         if 'evaluation_report' in metrics:
             # evaluate model performance over the training and validation dataset        
-            evaluation_report(model, validation_dataset)  
+            self.evaluation_report(model, validation_dataset)  
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
@@ -159,7 +164,7 @@ class TrainingEvents:
         return self.modser.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
-    def run_training_pipeline(self, progress_callback=None):  
+    def run_training_pipeline(self, progress_callback=None, worker=None):  
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
@@ -194,7 +199,8 @@ class TrainingEvents:
             progress_callback=progress_callback)
         
     #--------------------------------------------------------------------------
-    def resume_training_pipeline(self, selected_checkpoint, progress_callback=None):
+    def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, 
+                                 worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
@@ -235,9 +241,6 @@ class TrainingEvents:
         exc, tb = err_tb
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
 
-   
-
-
 
 ###############################################################################
 class InferenceEvents:
@@ -252,7 +255,8 @@ class InferenceEvents:
         return self.modser.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
-    def run_inference_pipeline(self, selected_checkpoint, device='CPU', progress_callback=None):
+    def run_inference_pipeline(self, selected_checkpoint, device='CPU', 
+                               progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    

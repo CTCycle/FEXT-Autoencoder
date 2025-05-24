@@ -34,10 +34,6 @@ This project leverages Just-In-Time model compilation through `torch.compile`, e
 ## 5. How to use
 On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
-![dataset_tab](FEXT/commons/assets/dataset_tab.png)
-
-![train_tab](FEXT/commons/assets/train_tab.png)
-
 The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Model training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
 **Dataset validation:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
@@ -46,7 +42,11 @@ The main interface streamlines navigation across the application's core services
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
 
-**Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models
+![dataset_tab](FEXT/commons/assets/dataset_tab.png)
+
+**Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
+
+![train_tab](FEXT/commons/assets/train_tab.png)
 
 **Model evaluation:** the model is evaluated using different metrics, such as:
 - **Average mean squared error and mean average error of reconstruction** 
