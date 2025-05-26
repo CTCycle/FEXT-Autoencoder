@@ -15,6 +15,7 @@ from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
+
 ###############################################################################
 class MainWindow:
     
@@ -231,15 +232,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def _update_device(self):
         device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
-        self.config_manager.update_value('device', device)
-
-    #--------------------------------------------------------------------------
-    Slot()
-    def stop_running_worker(self):
-        if self.worker is not None:
-            self.worker.stop()       
-        self._send_message("Interrupt requested. Waiting for threads to stop...")
-      
+        self.config_manager.update_value('device', device)  
 
     # [HELPERS FOR SETTING CONNECTIONS]
     ###########################################################################
@@ -321,7 +314,12 @@ class MainWindow:
     # that manages the UI elements. These slots can then call methods on the
     # handler objects. Using @Slot decorator is optional but good practice
     #--------------------------------------------------------------------------
-    # [GLOBAL]
+    Slot()
+    def stop_running_worker(self):
+        if self.worker is not None:
+            self.worker.stop()       
+        self._send_message("Interrupt requested. Waiting for threads to stop...")
+
     #--------------------------------------------------------------------------
     @Slot()
     def load_checkpoints(self):       
