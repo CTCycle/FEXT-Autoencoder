@@ -12,7 +12,6 @@ from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
-from FEXT.commons.utils.learning.callbacks import ProgressBarCallback, InterruptTraining
 from FEXT.commons.utils.validation.reports import log_training_report
 from FEXT.commons.interface.workers import check_thread_status
 from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
