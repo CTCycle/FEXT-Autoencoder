@@ -8,6 +8,7 @@ import webbrowser
 import subprocess
 import time
 
+from FEXT.commons.interface.workers import WorkerInterrupted
 from FEXT.commons.logger import logger
 
 # [CALLBACK FOR UI PROGRESS BAR]
@@ -34,10 +35,12 @@ class InterruptTraining(keras.callbacks.Callback):
         super().__init__()
         self.worker = worker
 
+    #--------------------------------------------------------------------------
     def on_batch_end(self, batch, logs=None):
         if self.worker is not None and self.worker.is_interrupted():
             logger.warning("Stopping training aas requested by the user")
             self.model.stop_training = True
+            raise WorkerInterrupted()
 
     
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]

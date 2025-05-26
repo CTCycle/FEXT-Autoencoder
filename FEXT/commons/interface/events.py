@@ -195,7 +195,7 @@ class TrainingEvents:
         logger.info('Starting FeXT AutoEncoder training') 
         trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
-            progress_callback=progress_callback)
+            progress_callback=progress_callback, worker=worker)
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, 
@@ -226,7 +226,7 @@ class TrainingEvents:
         logger.info('Resuming FeXT AutoEncoder training from checkpoint') 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
-            progress_callback=progress_callback)
+            progress_callback=progress_callback, worker=worker)
         
     # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
