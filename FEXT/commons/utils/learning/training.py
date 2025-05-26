@@ -39,7 +39,8 @@ class ModelTraining:
            
     #--------------------------------------------------------------------------
     def train_model(self, model : keras.Model, train_data, validation_data, 
-                    checkpoint_path, progress_callback=None, worker=None):         
+                    checkpoint_path, progress_callback=None, worker=None): 
+                
         epochs = self.configuration.get('epochs', 10)      
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
