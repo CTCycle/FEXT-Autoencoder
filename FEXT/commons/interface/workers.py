@@ -6,12 +6,17 @@ from FEXT.commons.constants import ROOT_DIR, DATA_PATH
 from FEXT.commons.logger import logger
 
 
+###############################################################################
+class WorkerInterrupted(Exception):
+    """Exception to indicate worker was intentionally interrupted."""
+    pass
 
 
 ###############################################################################
 class WorkerSignals(QObject):
     finished = Signal(object)      
     error = Signal(tuple) 
+    interrupted = Signal()
     progress = Signal(int)
 
     
@@ -67,6 +72,8 @@ class Worker(QRunnable):
                 self.kwargs.pop("worker")
             result = self.fn(*self.args, **self.kwargs)
             self.signals.finished.emit(result)
+        except WorkerInterrupted:
+            self.signals.interrupted.emit()
         except Exception as e:
             tb = traceback.format_exc()
             self.signals.error.emit((e, tb))
@@ -75,8 +82,8 @@ class Worker(QRunnable):
 #------------------------------------------------------------------------------
 def check_thread_status(worker : Worker):
     if worker is not None and worker.is_interrupted():
-        logger.warning('Operation interrupted before dataloader.')
-        return
+        logger.warning('Running thread interrupted by user')
+        raise WorkerInterrupted()    
 
 #------------------------------------------------------------------------------
 def update_progress_callback(progress, items, progress_callback=None):   
