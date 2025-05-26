@@ -467,8 +467,7 @@ class MainWindow:
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
             self.validation_handler.run_dataset_evaluation_pipeline,
-            self.selected_metrics['dataset'])                
-        
+            self.selected_metrics['dataset'])   
 
         # inject the progress signal into the worker   
         self.progress_bar.setValue(0)    
@@ -597,19 +596,18 @@ class MainWindow:
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
         # initialize worker for asynchronous loading of the dataset
         # functions that are passed to the worker will be executed in a separate thread
-        self._training_worker = Worker(
+        self.worker = Worker(
             self.training_handler.run_inference_pipeline,
             self.selected_checkpoint,
             device)                            
-        worker = self._training_worker
-
+       
         # inject the progress signal into the worker   
         self.progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.progress_bar.setValue)
-        worker.signals.finished.connect(self.on_inference_finished)
-        worker.signals.error.connect(self.on_inference_error)
-        worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(worker)    
+        self.worker.signals.progress.connect(self.progress_bar.setValue)
+        self.worker.signals.finished.connect(self.on_inference_finished)
+        self.worker.signals.error.connect(self.on_inference_error)
+        self.worker.signals.interrupted.connect(self.on_task_interrupted)
+        self.threadpool.start(self.worker)    
             
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
@@ -683,6 +681,8 @@ class MainWindow:
         self.encode_images.setEnabled(True)
         self.start_training.setEnabled(True) 
         self.resume_training.setEnabled(True) 
+        self.model_evaluation.setEnabled(True)
+        self.checkpoints_summary.setEnabled(True)
         self.progress_bar.setValue(0)
         self._send_message('Current task has been interrupted by user') 
         logger.warning('Current task has been interrupted by user')        
