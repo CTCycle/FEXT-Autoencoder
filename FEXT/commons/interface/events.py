@@ -58,7 +58,7 @@ class ValidationEvents:
     #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None): 
         summarizer = ModelEvaluationSummary(self.configuration)    
-        checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback) 
+        checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback, worker) 
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
@@ -95,13 +95,14 @@ class ValidationEvents:
 
         images = []
         if 'evaluation_report' in metrics:
-            # evaluate model performance over the training and validation dataset        
-            self.evaluation_report(model, validation_dataset)  
+            # evaluate model performance over the training and validation dataset 
+            summarizer = ModelEvaluationSummary(self.configuration)       
+            summarizer.evaluation_report(model, validation_dataset, worker=worker) 
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
             images.append(validator.visualize_reconstructed_images(
-                validation_images, progress_callback))       
+                validation_images, progress_callback, worker=worker))       
 
         return images     
 
@@ -272,7 +273,7 @@ class InferenceEvents:
         # takes the list of images path from inference as input    
         encoder = ImageEncoding(model, train_config, checkpoint_path)  
         logger.info(f'Start encoding images using model {selected_checkpoint}')  
-        encoder.encode_images_features(images_paths, progress_callback) 
+        encoder.encode_images_features(images_paths, progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            
     # define the logic to handle successfull data retrieval outside the main UI loop

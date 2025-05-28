@@ -12,8 +12,9 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
 from FEXT.commons.configuration import Configuration
 from FEXT.commons.interface.events import ValidationEvents, TrainingEvents, InferenceEvents
 from FEXT.commons.interface.workers import Worker
-from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
+
 
 ###############################################################################
 class MainWindow:
@@ -26,17 +27,20 @@ class MainWindow:
         self.main_win = loader.load(ui_file)
         ui_file.close()              
         
-        self.images_path = {'data' : [], 'inference' : []}
+        # Image data
+        self.images_path = {'data': [], 'inference': []}
         self.image_pixmaps = []
         self.dataset_pixmaps = []
         self.inference_pixmaps = []
-        self.model_eval_pixmaps = []        
+        self.model_eval_pixmaps = []
+
+        # Canvas state
         self.canvas = ["imageCanvas", "modelEvalCanvas", "inferenceCanvas"]
         self.current_fig = {name: 0 for name in self.canvas}
-             
-        # Internal state for checkpoints        
+
+        # Checkpoint & metrics state
         self.selected_checkpoint = None
-        self.selected_metrics = {'dataset' : [], 'model' : []}
+        self.selected_metrics = {'dataset': [], 'model': []}       
           
         # initial settings
         self.config_manager = Configuration()
@@ -231,18 +235,9 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def _update_device(self):
         device = 'GPU' if self.use_GPU.isChecked() else 'CPU'
-        self.config_manager.update_value('device', device)
+        self.config_manager.update_value('device', device)  
 
     #--------------------------------------------------------------------------
-    Slot()
-    def stop_running_worker(self):
-        if self.worker is not None:
-            self.worker.stop()       
-        self._send_message("Interrupt requested. Waiting for threads to stop...")
-      
-
-    # [HELPERS FOR SETTING CONNECTIONS]
-    ###########################################################################
     def _set_states(self):         
         self.progress_bar = self.main_win.findChild(QProgressBar, "progressBar")        
         self.progress_bar.setValue(0) 
@@ -287,6 +282,17 @@ class MainWindow:
         combo.currentTextChanged.connect(slot)
 
     #--------------------------------------------------------------------------
+    def _start_worker(self, worker : Worker, on_finished, on_error, on_interrupted,
+                      update_progress=True):
+        if update_progress:       
+            self.progress_bar.setValue(0)
+            worker.signals.progress.connect(self.progress_bar.setValue)
+        worker.signals.finished.connect(on_finished)
+        worker.signals.error.connect(on_error)        
+        worker.signals.interrupted.connect(on_interrupted)
+        self.threadpool.start(worker)
+
+    #--------------------------------------------------------------------------
     def _send_message(self, message): 
         self.main_win.statusBar().showMessage(message)    
 
@@ -307,7 +313,8 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def select_image_source(self, canvas_name: str):
         if canvas_name == "imageCanvas":
-            source = self.dataset_pixmaps if self.set_plot_view.isChecked() else self.image_pixmaps
+            source = self.dataset_pixmaps if self.set_plot_view.isChecked() \
+                     else self.image_pixmaps
         elif canvas_name == "inferenceCanvas":
             source = self.inference_pixmaps
         elif canvas_name == "modelEvalCanvas":
@@ -321,7 +328,12 @@ class MainWindow:
     # that manages the UI elements. These slots can then call methods on the
     # handler objects. Using @Slot decorator is optional but good practice
     #--------------------------------------------------------------------------
-    # [GLOBAL]
+    Slot()
+    def stop_running_worker(self):
+        if self.worker is not None:
+            self.worker.stop()       
+        self._send_message("Interrupt requested. Waiting for threads to stop...")
+
     #--------------------------------------------------------------------------
     @Slot()
     def load_checkpoints(self):       
@@ -345,19 +357,19 @@ class MainWindow:
     def _update_metrics(self):        
         for name, box in self.data_metrics:
             if box.isChecked():
-                self.selected_metrics['dataset'].append(name) \
-                if name not in self.selected_metrics['dataset'] else None                    
+                if name not in self.selected_metrics['dataset']:
+                    self.selected_metrics['dataset'].append(name)
             else:
-                self.selected_metrics['dataset'].remove(name) \
-                if name in self.selected_metrics['dataset'] else None
+                if name in self.selected_metrics['dataset']:
+                    self.selected_metrics['dataset'].remove(name)
 
         for name, box in self.model_metrics:
             if box.isChecked():
-                self.selected_metrics['model'].append(name) \
-                if name not in self.selected_metrics['model'] else None                    
+                if name not in self.selected_metrics['model']:
+                    self.selected_metrics['model'].append(name)
             else:
-                self.selected_metrics['model'].remove(name) \
-                if name in self.selected_metrics['model'] else None
+                if name in self.selected_metrics['model']:
+                   self.selected_metrics['model'].remove(name)
 
     #--------------------------------------------------------------------------
     # [GRAPHICS]
@@ -463,20 +475,17 @@ class MainWindow:
         self.validation_handler = ValidationEvents(self.configuration)       
         # send message to status bar
         self._send_message("Calculating image dataset evaluation metrics...") 
-        # initialize worker for asynchronous loading of the dataset
+        
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
             self.validation_handler.run_dataset_evaluation_pipeline,
-            self.selected_metrics['dataset'])                
-        
+            self.selected_metrics['dataset'])   
 
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        self.worker.signals.progress.connect(self.progress_bar.setValue)
-        self.worker.signals.finished.connect(self.on_dataset_evaluation_finished)
-        self.worker.signals.error.connect(self.on_dataset_evaluation_error)
-        self.worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(self.worker) 
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_dataset_evaluation_finished,
+            on_error=self.on_dataset_evaluation_error,
+            on_interrupted=self.on_task_interrupted)       
 
     #--------------------------------------------------------------------------
     # [TRAINING TAB]
@@ -488,18 +497,15 @@ class MainWindow:
         self.training_handler = TrainingEvents(self.configuration)         
   
         # send message to status bar
-        self._send_message("Training FEXT Autoencoder model from scratch...") 
-        # initialize worker for asynchronous loading of the dataset
+        self._send_message("Training FEXT Autoencoder model from scratch...")        
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(self.training_handler.run_training_pipeline)                            
        
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        self.worker.signals.progress.connect(self.progress_bar.setValue)
-        self.worker.signals.finished.connect(self.on_train_finished)
-        self.worker.signals.error.connect(self.on_train_error)
-        self.worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(self.worker)    
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_train_finished,
+            on_error=self.on_train_error,
+            on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
     @Slot()
@@ -509,20 +515,17 @@ class MainWindow:
         self.training_handler = TrainingEvents(self.configuration)   
 
         # send message to status bar
-        self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}") 
-        # initialize worker for asynchronous loading of the dataset
+        self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}")         
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
             self.training_handler.resume_training_pipeline,
             self.selected_checkpoint)   
 
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        self.worker.signals.progress.connect(self.progress_bar.setValue)
-        self.worker.signals.finished.connect(self.on_train_finished)
-        self.worker.signals.error.connect(self.on_train_error)
-        self.worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(self.worker)    
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_train_finished,
+            on_error=self.on_train_error,
+            on_interrupted=self.on_task_interrupted)
 
     #--------------------------------------------------------------------------
     # [MODEL EVALUATION TAB]
@@ -534,20 +537,18 @@ class MainWindow:
         self.validation_handler = ValidationEvents(self.configuration)    
         device = 'GPU' if self.use_GPU_evaluation.isChecked() else 'CPU'   
         # send message to status bar
-        self._send_message(f"Evaluating {self.select_checkpoint} performances... ") 
-        # initialize worker for asynchronous loading of the dataset
+        self._send_message(f"Evaluating {self.select_checkpoint} performances... ")
+
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
             self.validation_handler.run_model_evaluation_pipeline,
             self.selected_metrics['model'], self.selected_checkpoint, device)                
         
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        self.worker.signals.progress.connect(self.progress_bar.setValue)
-        self.worker.signals.finished.connect(self.on_model_evaluation_finished)
-        self.worker.signals.error.connect(self.on_model_evaluation_error)
-        self.worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(self.worker) 
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_model_evaluation_finished,
+            on_error=self.on_model_evaluation_error,
+            on_interrupted=self.on_task_interrupted)     
 
     #-------------------------------------------------------------------------- 
     @Slot()
@@ -557,17 +558,15 @@ class MainWindow:
         self.validation_handler = ValidationEvents(self.configuration)           
         # send message to status bar
         self._send_message("Generating checkpoints summary...") 
-        # initialize worker for asynchronous loading of the dataset
+        
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(self.validation_handler.get_checkpoints_summary) 
 
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        self.worker.signals.progress.connect(self.progress_bar.setValue)
-        self.worker.signals.finished.connect(self.on_model_evaluation_finished)
-        self.worker.signals.error.connect(self.on_model_evaluation_error)
-        self.worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(self.worker)  
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_model_evaluation_finished,
+            on_error=self.on_model_evaluation_error,
+            on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
     # [INFERENCE TAB]
@@ -577,8 +576,8 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)        
         self.images_path['inference'].clear()        
-        self.images_path['inference'].extend(self.validation_handler.load_images_path(
-            INFERENCE_INPUT_PATH)) 
+        self.images_path['inference'].extend(
+            self.validation_handler.load_images_path(INFERENCE_INPUT_PATH)) 
         self.current_fig["inferenceCanvas"] = 0
         self.inference_pixmaps.clear()        
         self.inference_pixmaps.append(
@@ -586,8 +585,8 @@ class MainWindow:
                 self.images_path['inference'][0])) 
         self._update_graphics_view("inferenceCanvas")            
 
-    @Slot()
     #--------------------------------------------------------------------------
+    @Slot()    
     def encode_images_with_checkpoint(self):  
         self.encode_images.setEnabled(False)
         self.configuration = self.config_manager.get_configuration() 
@@ -595,30 +594,28 @@ class MainWindow:
         device = 'GPU' if self.use_GPU_inference.isChecked() else 'CPU'
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
-        # initialize worker for asynchronous loading of the dataset
+        
         # functions that are passed to the worker will be executed in a separate thread
-        self._training_worker = Worker(
+        self.worker = Worker(
             self.training_handler.run_inference_pipeline,
             self.selected_checkpoint,
-            device)                            
-        worker = self._training_worker
+            device)
 
-        # inject the progress signal into the worker   
-        self.progress_bar.setValue(0)    
-        worker.signals.progress.connect(self.progress_bar.setValue)
-        worker.signals.finished.connect(self.on_inference_finished)
-        worker.signals.error.connect(self.on_inference_error)
-        worker.signals.interrupted.connect(self.on_task_interrupted)
-        self.threadpool.start(worker)    
-            
+        # start worker and inject signals
+        self._start_worker(
+            self.worker, on_finished=self.on_inference_finished,
+            on_error=self.on_inference_error,
+            on_interrupted=self.on_task_interrupted)
+
+
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
-    def on_dataset_evaluation_finished(self, plots): 
-        self.dataset_pixmaps = []
-        if plots is not None:
-            self.dataset_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p) 
-                                        for p in plots])
+    def on_dataset_evaluation_finished(self, plots):         
+        if plots:
+            self.dataset_pixmaps.extend(
+                [self.validation_handler.convert_fig_to_qpixmap(p) 
+                 for p in plots])
             
         self.current_fig["imageCanvas"] = 0
         self._update_graphics_view("imageCanvas")
@@ -633,15 +630,16 @@ class MainWindow:
         self.resume_training.setEnabled(True)
 
     #--------------------------------------------------------------------------
-    def on_model_evaluation_finished(self, plots): 
-        self.model_eval_pixmaps = []
+    def on_model_evaluation_finished(self, plots):         
         if plots is not None:
-            self.model_eval_pixmaps.extend([self.validation_handler.convert_fig_to_qpixmap(p)
-                                       for p in plots])
+            self.model_eval_pixmaps.extend(
+                [self.validation_handler.convert_fig_to_qpixmap(p)
+                for p in plots])
             
         self.current_fig["modelEvalCanvas"] = 0
         self._update_graphics_view("modelEvalCanvas")
-        self.validation_handler.handle_success(self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
+        self.validation_handler.handle_success(
+            self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
         self.model_evaluation.setEnabled(True)
 
     #--------------------------------------------------------------------------
@@ -658,21 +656,21 @@ class MainWindow:
         self.training_handler.handle_error(self.main_win, err_tb) 
         self.get_img_metrics.setEnabled(True)    
 
-    @Slot(tuple)
     #--------------------------------------------------------------------------
+    @Slot() 
     def on_train_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
         self.start_training.setEnabled(True) 
         self.resume_training.setEnabled(True) 
 
-    @Slot(tuple)
     #--------------------------------------------------------------------------
+    @Slot() 
     def on_model_evaluation_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
         self.get_img_metrics.setEnabled(True) 
 
-    @Slot(tuple)
     #--------------------------------------------------------------------------
+    @Slot() 
     def on_inference_error(self, err_tb):
         self.inference_handler.handle_error(self.main_win, err_tb) 
         self.encode_images.setEnabled(True)
@@ -683,6 +681,8 @@ class MainWindow:
         self.encode_images.setEnabled(True)
         self.start_training.setEnabled(True) 
         self.resume_training.setEnabled(True) 
+        self.model_evaluation.setEnabled(True)
+        self.checkpoints_summary.setEnabled(True)
         self.progress_bar.setValue(0)
         self._send_message('Current task has been interrupted by user') 
         logger.warning('Current task has been interrupted by user')        
