@@ -3,6 +3,7 @@ import numpy as np
 import keras
 from tqdm import tqdm
 
+from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.utils.data.loader import InferenceDataLoader
 from FEXT.commons.constants import INFERENCE_PATH
 from FEXT.commons.logger import logger
@@ -25,7 +26,7 @@ class ImageEncoding:
             inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths, progress_callback=None):        
+    def encode_images_features(self, images_paths, progress_callback=None, worker=None):        
         features = {}
         for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
             image_name = os.path.basename(pt)
@@ -38,10 +39,8 @@ class ImageEncoding:
                 features[pt] = f'Error during encoding: {str(e)}'
                 logger.error(f'Could not encode image {image_name}: {str(e)}')
             
-            if progress_callback is not None:
-                total = len(images_paths)
-                percent = int((i + 1) * 100 / total)
-                progress_callback(percent)
+            update_progress_callback(i, images_paths, progress_callback)
+            check_thread_status(worker)
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(
