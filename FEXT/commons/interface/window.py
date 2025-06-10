@@ -47,7 +47,8 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration()
     
         self.threadpool = QThreadPool.globalInstance()
-        self.worker = None                
+        self.worker = None
+        self.worker_running = False                
 
         # --- Create persistent handlers ---
         self.validation_handler = ValidationEvents(self.configuration)
@@ -291,6 +292,7 @@ class MainWindow:
         worker.signals.error.connect(on_error)        
         worker.signals.interrupted.connect(on_interrupted)
         self.threadpool.start(worker)
+        self.worker_running = True
 
     #--------------------------------------------------------------------------
     def _send_message(self, message): 
@@ -452,7 +454,10 @@ class MainWindow:
     # [DATASET TAB]
     #--------------------------------------------------------------------------    
     @Slot()
-    def load_image_dataset(self):        
+    def load_image_dataset(self):  
+        if self.worker_running:            
+            return 
+              
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)
         self.images_path['data'].clear()             
@@ -468,9 +473,11 @@ class MainWindow:
     @Slot()
     def run_dataset_evaluation_pipeline(self):  
         if not self.data_metrics:
-            return None
+            return 
         
-        self.get_img_metrics.setEnabled(False)
+        if self.worker_running:            
+            return         
+        
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)       
         # send message to status bar
@@ -491,8 +498,10 @@ class MainWindow:
     # [TRAINING TAB]
     #-------------------------------------------------------------------------- 
     @Slot()
-    def train_from_scratch(self):  
-        self.start_training.setEnabled(False)
+    def train_from_scratch(self):
+        if self.worker_running:            
+            return 
+                  
         self.configuration = self.config_manager.get_configuration() 
         self.training_handler = TrainingEvents(self.configuration)         
   
@@ -509,8 +518,10 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def resume_training_from_checkpoint(self):  
-        self.resume_training.setEnabled(False)
+    def resume_training_from_checkpoint(self): 
+        if self.worker_running:            
+            return 
+        
         self.configuration = self.config_manager.get_configuration() 
         self.training_handler = TrainingEvents(self.configuration)   
 
@@ -532,7 +543,9 @@ class MainWindow:
     #-------------------------------------------------------------------------- 
     @Slot()
     def run_model_evaluation_pipeline(self):  
-        self.model_evaluation.setEnabled(False)
+        if self.worker_running:            
+            return 
+
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)    
         device = 'GPU' if self.use_GPU_evaluation.isChecked() else 'CPU'   
@@ -552,8 +565,10 @@ class MainWindow:
 
     #-------------------------------------------------------------------------- 
     @Slot()
-    def get_checkpoints_summary(self):
-        self.checkpoints_summary.setEnabled(False)
+    def get_checkpoints_summary(self):       
+        if self.worker_running:            
+            return 
+        
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)           
         # send message to status bar
@@ -588,7 +603,9 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()    
     def encode_images_with_checkpoint(self):  
-        self.encode_images.setEnabled(False)
+        if self.worker_running:            
+            return 
+        
         self.configuration = self.config_manager.get_configuration() 
         self.training_handler = InferenceEvents(self.configuration)  
         device = 'GPU' if self.use_GPU_inference.isChecked() else 'CPU'
@@ -620,14 +637,13 @@ class MainWindow:
         self.current_fig["imageCanvas"] = 0
         self._update_graphics_view("imageCanvas")
         self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
-        self.get_img_metrics.setEnabled(True)
+        self.worker_running = False
 
     #--------------------------------------------------------------------------
     def on_train_finished(self, session):          
         self.training_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
-        self.start_training.setEnabled(True) 
-        self.resume_training.setEnabled(True)
+        self.worker_running = False
 
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots):         
@@ -640,13 +656,13 @@ class MainWindow:
         self._update_graphics_view("modelEvalCanvas")
         self.validation_handler.handle_success(
             self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
-        self.model_evaluation.setEnabled(True)
-
+        self.worker_running = False
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
         self.training_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
-        self.encode_images.setEnabled(True)         
+        self.worker_running = False
+
 
     ###########################################################################   
     # [NEGATIVE OUTCOME HANDLERS]
@@ -654,38 +670,32 @@ class MainWindow:
     @Slot(tuple)
     def on_dataset_evaluation_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.get_img_metrics.setEnabled(True)    
+        self.worker_running = False   
 
     #--------------------------------------------------------------------------
     @Slot() 
     def on_train_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.start_training.setEnabled(True) 
-        self.resume_training.setEnabled(True) 
+        self.worker_running = False
 
     #--------------------------------------------------------------------------
     @Slot() 
     def on_model_evaluation_error(self, err_tb):
         self.training_handler.handle_error(self.main_win, err_tb) 
-        self.get_img_metrics.setEnabled(True) 
+        self.worker_running = False 
 
     #--------------------------------------------------------------------------
     @Slot() 
     def on_inference_error(self, err_tb):
         self.inference_handler.handle_error(self.main_win, err_tb) 
-        self.encode_images.setEnabled(True)
+        self.worker_running = False
 
     #--------------------------------------------------------------------------
-    def on_task_interrupted(self): 
-        self.get_img_metrics.setEnabled(True) 
-        self.encode_images.setEnabled(True)
-        self.start_training.setEnabled(True) 
-        self.resume_training.setEnabled(True) 
-        self.model_evaluation.setEnabled(True)
-        self.checkpoints_summary.setEnabled(True)
+    def on_task_interrupted(self):         
         self.progress_bar.setValue(0)
         self._send_message('Current task has been interrupted by user') 
-        logger.warning('Current task has been interrupted by user')        
+        logger.warning('Current task has been interrupted by user')
+        self.worker_running = False        
         
           
          
