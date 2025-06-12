@@ -1,12 +1,11 @@
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
 import os
 import keras
 import webbrowser
 import subprocess
 import time
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from FEXT.commons.interface.workers import WorkerInterrupted
 from FEXT.commons.logger import logger
@@ -130,9 +129,9 @@ def initialize_callbacks_handler(configuration, checkpoint_path, session=None,
 
     if configuration.get('save_checkpoints', False):
         logger.debug('Adding checkpoint saving callback')
-        checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint.weights.h5')
+        checkpoint_filepath = os.path.join(checkpoint_path, 'model_checkpoint_E{epoch:02d}.keras')
         callbacks_list.append(keras.callbacks.ModelCheckpoint(
-            filepath=checkpoint_filepath, save_weights_only=True,  
+            filepath=checkpoint_filepath, save_weights_only=False,  
             monitor='val_loss', save_best_only=True, mode='auto', verbose=0))
         
     return callbacks_list

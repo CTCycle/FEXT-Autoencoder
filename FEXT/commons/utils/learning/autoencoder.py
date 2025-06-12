@@ -1,5 +1,4 @@
 import keras
-from keras import layers, activations, metrics, losses, Model
 import torch
 
 from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
@@ -31,7 +30,7 @@ class FeXTAutoEncoder:
         self.configuration = configuration  
   
     #--------------------------------------------------------------------------
-    def compile_model(self, model : Model, model_summary=True):
+    def compile_model(self, model, model_summary=True):
         lr_schedule = self.initial_lr        
         if self.has_LR_scheduler:            
             constant_lr_steps = self.configuration.get('constant_steps', 40000)   
@@ -41,8 +40,8 @@ class FeXTAutoEncoder:
                 self.initial_lr, constant_lr_steps, decay_steps, final_lr)  
                   
         opt = keras.optimizers.Adam(learning_rate=lr_schedule)
-        loss = losses.MeanAbsoluteError()        
-        metric = [metrics.CosineSimilarity()]
+        loss = keras.losses.MeanAbsoluteError()        
+        metric = [keras.metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)                 
   
         model.summary(expand_nested=True) if model_summary else None
@@ -57,7 +56,7 @@ class FeXTAutoEncoder:
        
         # [ENCODER SUBMODEL]
         #----------------------------------------------------------------------
-        inputs = layers.Input(shape=self.image_shape, name='image_input')        
+        inputs = keras.layers.Input(shape=self.image_shape, name='image_input')        
         
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
@@ -84,12 +83,12 @@ class FeXTAutoEncoder:
         layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer)       
         layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer) 
 
-        output = layers.Dense(3, kernel_initializer='he_uniform')(layer) 
-        output = layers.BatchNormalization()(output)       
-        output = activations.relu(output, max_value=1.0)  
+        output = keras.layers.Dense(3, kernel_initializer='he_uniform')(layer) 
+        output = keras.layers.BatchNormalization()(output)       
+        output = keras.activations.relu(output, max_value=1.0)  
         
         # define the model using the image as input and output       
-        model = Model(inputs=inputs, outputs=output, name='FEXT_model')
+        model = keras.Model(inputs=inputs, outputs=output, name='FEXT_model')
         model = self.compile_model(model, model_summary=model_summary)        
 
         return model
