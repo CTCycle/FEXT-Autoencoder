@@ -130,7 +130,8 @@ class TrainingDataLoader:
 class InferenceDataLoader:
 
     def __init__(self, configuration):      
-        self.processor = InferenceDataLoaderProcessor(configuration)           
+        self.processor = InferenceDataLoaderProcessor(configuration) 
+        self.buffer_size = tf.data.AUTOTUNE          
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]           
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY
@@ -150,13 +151,13 @@ class InferenceDataLoader:
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
-    def compose_tensor_dataset(self, images, batch_size, buffer_size=tf.data.AUTOTUNE):         
+    def compose_tensor_dataset(self, images, batch_size):         
         batch_size = self.batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)                
         dataset = dataset.map(
-            self.processor.load_and_process_image, num_parallel_calls=buffer_size)        
+            self.processor.load_and_process_image, num_parallel_calls=self.buffer_size)        
         dataset = dataset.batch(batch_size)
-        dataset = dataset.prefetch(buffer_size=buffer_size)
+        dataset = dataset.prefetch(buffer_size=self.buffer_size)
        
         return dataset         
       

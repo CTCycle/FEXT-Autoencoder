@@ -10,7 +10,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ModelTraining:    
        
-    def __init__(self, configuration : dict):
+    def __init__(self, configuration):
         self.serializer = ModelSerializer()        
         keras.utils.set_random_seed(configuration.get('training_seed', 42))        
         self.selected_device = configuration.get('device', 'CPU')
@@ -38,7 +38,7 @@ class ModelTraining:
             logger.info('CPU is set as active device')
            
     #--------------------------------------------------------------------------
-    def train_model(self, model : keras.Model, train_data, validation_data, 
+    def train_model(self, model, train_data, validation_data, 
                     checkpoint_path, progress_callback=None, worker=None): 
                 
         epochs = self.configuration.get('epochs', 10)      
@@ -57,7 +57,7 @@ class ModelTraining:
             checkpoint_path, session, self.configuration)
         
     #--------------------------------------------------------------------------
-    def resume_training(self, model : keras.Model, train_data, validation_data, 
+    def resume_training(self, model, train_data, validation_data, 
                         checkpoint_path, session=None, progress_callback=None,
                         worker=None):  
         

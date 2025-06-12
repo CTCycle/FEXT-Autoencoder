@@ -1,20 +1,19 @@
 import cv2
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPixmap
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from FEXT.commons.utils.data.serializer import DataSerializer
+from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.validation.images import ImageAnalysis, ImageReconstruction
 from FEXT.commons.utils.data.loader import TrainingDataLoader, InferenceDataLoader
-from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.splitting import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
 from FEXT.commons.utils.validation.reports import log_training_report
-from FEXT.commons.interface.workers import check_thread_status
-from FEXT.commons.constants import DATA_PATH, IMG_PATH, INFERENCE_INPUT_PATH
+
+from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 
