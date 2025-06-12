@@ -1,12 +1,10 @@
 import keras
-from keras import layers
-import torch
 
     
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
 @keras.saving.register_keras_serializable(package='CustomLayers', name='CompressionLayer')
-class CompressionLayer(layers.Layer):
+class CompressionLayer(keras.layers.Layer):
     
     def __init__(self, units, dropout_rate=0.2, num_layers=4, seed=42, **kwargs):
         super(CompressionLayer, self).__init__(**kwargs)
@@ -15,9 +13,9 @@ class CompressionLayer(layers.Layer):
         self.num_layers = num_layers
         self.seed = seed
         self.dense_layers = [
-            layers.Dense(units, kernel_initializer='he_uniform') for _ in range(num_layers)]
-        self.batch_norm_layers = [layers.BatchNormalization() for _ in range(num_layers)]        
-        self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
+            keras.layers.Dense(units, kernel_initializer='he_uniform') for _ in range(num_layers)]
+        self.batch_norm_layers = [keras.layers.BatchNormalization() for _ in range(num_layers)]        
+        self.dropout = keras.layers.Dropout(dropout_rate, seed=self.seed)
 
     #--------------------------------------------------------------------------
     def call(self, inputs, training=None):
@@ -53,7 +51,7 @@ class CompressionLayer(layers.Layer):
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
 ###############################################################################
 @keras.saving.register_keras_serializable(package='CustomLayers', name='DecompressionLayer')
-class DecompressionLayer(layers.Layer):
+class DecompressionLayer(keras.layers.Layer):
     
     def __init__(self, units=256, num_layers=3, seed=42, **kwargs):
         super(DecompressionLayer, self).__init__(**kwargs)        
@@ -61,10 +59,10 @@ class DecompressionLayer(layers.Layer):
         self.num_layers = num_layers
         self.seed = seed
         self.dense_layers = [
-            layers.Dense(units, kernel_initializer='he_uniform') 
+            keras.layers.Dense(units, kernel_initializer='he_uniform') 
             for _ in range(num_layers)]
         self.batch_norm_layers = [
-            layers.BatchNormalization() for _ in range(num_layers)]        
+            keras.layers.BatchNormalization() for _ in range(num_layers)]        
 
     #-------------------------------------------------------------------------- 
     def call(self, inputs, training=None):        
