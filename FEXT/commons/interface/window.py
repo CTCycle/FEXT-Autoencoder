@@ -59,7 +59,9 @@ class MainWindow:
         self._set_states()
         self.widgets = {}
         self._setup_configuration([ 
-            (QPushButton,'stopThread','stop_thread'),           
+            (QPushButton,'stopThread','stop_thread'),  
+            (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
+            (QProgressBar,'progressBar','progress_bar'),         
             # 1. dataset tab page
             (QCheckBox,'getStatsAnalysis','get_image_stats'),
             (QCheckBox,'getPixDist','get_pixels_dist'),
@@ -103,10 +105,10 @@ class MainWindow:
             (QDoubleSpinBox,'dropoutRate','dropout_rate'),                    
             (QSpinBox,'numAdditionalEpochs','additional_epochs'),
             (QComboBox,'checkpointsList','checkpoints_list'),           
-            (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
+            
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
-            (QProgressBar,'trainingProgressBar','train_progress_bar'),
+            
             # 3. model evaluation tab page
             (QPushButton,'evaluateModel','model_evaluation'),
             (QCheckBox,'runEvaluationGPU','use_GPU_evaluation'), 
@@ -128,6 +130,7 @@ class MainWindow:
         
         self._connect_signals([  
             ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
+            ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. dataset tab page
             ('get_image_stats','toggled',self._update_metrics),
@@ -139,8 +142,7 @@ class MainWindow:
             ('data_tab_clear_img', 'clicked', lambda: self.clear_figures("imageCanvas")),
             ('set_plot_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
             ('set_image_view', 'toggled', lambda: self._update_graphics_view("imageCanvas")),
-            # 2. training tab page            
-            ('refresh_checkpoints','clicked',self.load_checkpoints),
+            # 2. training tab page               
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
             # 3. model evaluation tab page
