@@ -56,7 +56,7 @@ goto :dependencies
 echo.
 echo Install python libraries and packages
 call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-call pip install tensorflow==2.19.0 keras==3.8.0 scikit-learn==1.6.1 scikit-image==0.25.1 
+call pip install tensorflow==2.19.0 keras==3.10.0 scikit-learn==1.6.1 scikit-image==0.25.1 
 call pip install PySide6==6.9.0 matplotlib==3.10.1 numpy==2.1.3 pandas==2.2.3 opencv-python==4.11.0.86 
 call pip install python-dotenv==1.1.0
 

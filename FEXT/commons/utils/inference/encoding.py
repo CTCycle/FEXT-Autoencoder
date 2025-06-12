@@ -13,7 +13,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ImageEncoding:
     
-    def __init__(self, model : keras.Model, configuration : dict, checkpoint_path : str):       
+    def __init__(self, model, configuration, checkpoint_path):       
         keras.utils.set_random_seed(configuration.get('train_seed', 42)) 
         self.dataloader = InferenceDataLoader(configuration)
         self.checkpoint_name = os.path.basename(checkpoint_path)        

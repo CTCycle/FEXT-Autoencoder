@@ -3,8 +3,6 @@ import cv2
 import random
 import pandas as pd
 import numpy as np
-import keras
-import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from tqdm import tqdm
@@ -20,7 +18,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, configuration : dict, model : keras.Model, checkpoint_path : str):       
+    def __init__(self, configuration, model, checkpoint_path):       
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
         os.makedirs(self.validation_path, exist_ok=True)
@@ -39,10 +37,11 @@ class ImageReconstruction:
         return images
 
     #-------------------------------------------------------------------------- 
-    def visualize_3D_latent_space(self, model : keras.Model, dataset : tf.data.Dataset, num_images=10):
+    def visualize_3D_latent_space(self, model, dataset, num_images=10):
         # Extract latent representations
         latent_representations = model.predict(dataset)
-        latent_representations = latent_representations.reshape(len(latent_representations), -1)
+        latent_representations = latent_representations.reshape(
+            len(latent_representations), -1)
         # Apply the selected transformation
         reduced_latent = PCA(n_components=3).fit_transform(latent_representations)       
         fig = plt.figure(figsize=(10, 8))
@@ -59,8 +58,7 @@ class ImageReconstruction:
     #-------------------------------------------------------------------------- 
     def visualize_reconstructed_images(self, validation_data, progress_callback=None, worker=None):        
         val_images = self.get_images(validation_data)
-        logger.info(
-        f'Comparing {self.num_images} reconstructed images from validation dataset')
+        logger.info(f'Comparing {self.num_images} reconstructed images from validation dataset')
         fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
         for i, img in enumerate(val_images):                      
             expanded_img = np.expand_dims(img, axis=0)                 
@@ -101,15 +99,10 @@ class ImageAnalysis:
     #--------------------------------------------------------------------------
     def save_image(self, fig, name):        
         out_path = os.path.join(EVALUATION_PATH, name)
-        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI) 
-
-    #--------------------------------------------------------------------------
-    def save_image(self, fig, name):        
-        out_path = os.path.join(EVALUATION_PATH, name)
-        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)     
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path : list, progress_callback=None, worker=None):          
+    def calculate_image_statistics(self, images_path, progress_callback=None, worker=None):          
         results= []     
         for i, path in enumerate(tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
@@ -157,8 +150,7 @@ class ImageAnalysis:
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path : list, progress_callback=None, 
-                                               worker=None):                 
+    def calculate_pixel_intensity_distribution(self, images_path, progress_callback=None, worker=None):                 
         image_histograms = np.zeros(256, dtype=np.int64)        
         for i, path in enumerate(
             tqdm(images_path, desc="Processing image histograms", 
@@ -189,7 +181,7 @@ class ImageAnalysis:
         return fig              
     
     #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_images_path: list, val_images_path: list,
+    def compare_train_and_validation_PID(self, train_images_path, val_images_path,
                                          progress_callback=None, worker=None):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
