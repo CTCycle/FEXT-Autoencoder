@@ -512,9 +512,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_22">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QHBoxLayout" name="selectCheckpointsLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QLabel" name="ACLabel">
         <property name="text">
@@ -535,12 +535,12 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
      </layout>
     </item>
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="viewTab">
       <property name="accessibleName">
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="dataTab">
        <property name="toolTipDuration">
@@ -553,13 +553,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
         <item>
          <layout class="QHBoxLayout" name="centralLayout">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
+           <layout class="QVBoxLayout" name="datasetMetricsLayout">
             <item>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <layout class="QHBoxLayout" name="datasetMetricGroup">
                 <item>
-                 <widget class="QLabel" name="label_3">
+                 <widget class="QLabel" name="seedLabel">
                   <property name="text">
                    <string>Seed</string>
                   </property>
@@ -577,7 +577,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
-                 <widget class="QLabel" name="label">
+                 <widget class="QLabel" name="SSLabel">
                   <property name="text">
                    <string>Sample size</string>
                   </property>
@@ -640,103 +640,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="loadImgDataset">
-              <property name="text">
-               <string>Load images</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <item>
-                 <widget class="QPushButton" name="dataTabPreviousImg">
-                  <property name="text">
-                   <string>Previous</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="dataTabNextImg">
-                  <property name="text">
-                   <string>Next</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QPushButton" name="dataTabClearImg">
-                <property name="text">
-                 <string>Clear</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="canvasLayout">
-            <item>
-             <widget class="QGroupBox" name="canvasGroup">
-              <property name="title">
-               <string>Images</string>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_26">
-               <item>
-                <layout class="QVBoxLayout" name="canvasWidgetLayout">
-                 <item>
-                  <layout class="QHBoxLayout" name="canvasSelectionLayout" stretch="0,0,0,0">
-                   <item>
-                    <widget class="QLabel" name="selectViewLabel">
-                     <property name="text">
-                      <string>Select view:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="viewPlots">
-                     <property name="text">
-                      <string>Plots</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="viewImages">
-                     <property name="text">
-                      <string>Images</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="selectorSpacer">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="QGraphicsView" name="imageCanvas"/>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
             </item>
            </layout>
           </item>
@@ -1547,18 +1450,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
           </item>
          </layout>
         </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_7">
-          <property name="title">
-           <string>Images</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_31">
-           <item>
-            <widget class="QGraphicsView" name="modelEvalCanvas"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="inferenceTab">
@@ -1567,7 +1458,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_35">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0,0">
+         <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_13">
             <item>
@@ -1607,63 +1498,143 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="loadInferenceImages">
-              <property name="text">
-               <string>Load images</string>
-              </property>
-             </widget>
+             <layout class="QVBoxLayout" name="verticalLayout_10"/>
             </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="viewTab_2">
+       <attribute name="title">
+        <string>Viewer</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Select view</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QRadioButton" name="viewTrainImages">
+               <property name="text">
+                <string>Training images</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="viewInferenceImages">
+               <property name="text">
+                <string>Inference images</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="viewDataPlots">
+               <property name="text">
+                <string>Dataset evaluation plots</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="viewEvalPlots">
+               <property name="text">
+                <string>Model evalution plots</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_10">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="loadImages">
+            <property name="text">
+             <string>Load images</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="buttonsLayout">
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_29">
-                <item>
-                 <widget class="QPushButton" name="inferTabPreviousImg">
-                  <property name="text">
-                   <string>Previous</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="inferTabNextImg">
-                  <property name="text">
-                   <string>Next</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="previousImg">
+                <property name="text">
+                 <string>Previous</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="inferTabClearImg">
+               <widget class="QPushButton" name="nextImg">
                 <property name="text">
-                 <string>Clear</string>
+                 <string>Next</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
+            <item>
+             <widget class="QPushButton" name="clearImg">
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_11">
-            <property name="title">
-             <string>Images</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_21">
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="canvasGroup">
+          <property name="title">
+           <string>Images</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_28">
+           <item>
+            <layout class="QVBoxLayout" name="canvasWidgetLayout">
              <item>
-              <widget class="QGraphicsView" name="inferenceCanvas"/>
+              <widget class="QGraphicsView" name="canvas"/>
              </item>
             </layout>
-           </widget>
-          </item>
-         </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="progressBarLayout" stretch="10,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QProgressBar" name="progressBar">
         <property name="value">

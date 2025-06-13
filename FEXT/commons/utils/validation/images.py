@@ -20,8 +20,8 @@ class ImageReconstruction:
 
     def __init__(self, configuration, model, checkpoint_path):       
         self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
-        os.makedirs(self.validation_path, exist_ok=True)
+        self.EVALUATION_PATH = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
+        os.makedirs(self.EVALUATION_PATH, exist_ok=True)
         self.loader = InferenceDataLoader(configuration)        
         self.num_images = configuration.get('num_evaluation_images', 6)
         self.DPI = 400 
@@ -52,7 +52,7 @@ class ImageReconstruction:
         ax.set_ylabel("Component 2")
         ax.set_zlabel("Component 3")
         plt.savefig(
-            os.path.join(self.validation_path, 'PCA.jpeg'), 
+            os.path.join(self.EVALUATION_PATH, 'PCA.jpeg'), 
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
@@ -79,7 +79,7 @@ class ImageReconstruction:
         
         plt.tight_layout()
         plt.savefig(
-            os.path.join(self.validation_path, 'images_recostruction.jpeg'), 
+            os.path.join(self.EVALUATION_PATH, 'images_recostruction.jpeg'), 
             dpi=self.DPI)
         plt.close() 
 
