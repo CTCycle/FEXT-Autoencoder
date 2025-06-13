@@ -42,8 +42,6 @@ The main interface streamlines navigation across the application's core services
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
 
-![dataset_tab](FEXT/commons/assets/dataset_tab.png)
-
 **Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
 
 ![train_tab](FEXT/commons/assets/train_tab.png)
