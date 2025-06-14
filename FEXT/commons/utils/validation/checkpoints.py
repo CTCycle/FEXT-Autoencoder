@@ -34,8 +34,7 @@ class ModelEvaluationSummary:
         return model_paths  
 
     #---------------------------------------------------------------------------
-    def get_checkpoints_summary(self, progress_callback=None, worker=None):            
-        # look into checkpoint folder to get pretrained model names      
+    def get_checkpoints_summary(self, progress_callback=None, worker=None):   
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []            
         for i, model_path in enumerate(model_paths):            
@@ -76,7 +75,7 @@ class ModelEvaluationSummary:
         return dataframe
     
     #--------------------------------------------------------------------------
-    def evaluation_report(self, model, validation_dataset, progress_callback=None, worker=None):
+    def get_evaluation_report(self, model, validation_dataset, progress_callback=None, worker=None):
         callbacks_list = [InterruptTraining(worker)]
         validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list)    
         logger.info(

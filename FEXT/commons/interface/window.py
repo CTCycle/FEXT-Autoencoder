@@ -25,21 +25,7 @@ class MainWindow:
         ui_file = QFile(ui_file_path)
         ui_file.open(QIODevice.ReadOnly)
         self.main_win = loader.load(ui_file)
-        ui_file.close()              
-        
-        # Image data                
-        self.pixmaps = {
-        'train_images': [],         
-        'inference_images': [],      
-        'dataset_eval_images': [],  
-        'model_eval_images': []}
-        
-        self.img_paths = {'train_images' : IMG_PATH,
-                          'inference_images' : INFERENCE_INPUT_PATH}
-
-        # Canvas state        
-        self.current_fig = {'train_images' : 0, 'inference_images' : 0,
-                            'dataset_eval_images' : 0, 'model_eval_images' : 0}   
+        ui_file.close()           
 
         # Checkpoint & metrics state
         self.selected_checkpoint = None
@@ -155,11 +141,7 @@ class MainWindow:
             ('clear_images', 'clicked', self.clear_figures),            
         ]) 
 
-        self.pixmap_source_map = {
-            self.data_plots_view: ("dataset_eval_images", "train_images"),
-            self.model_plots_view: ("model_eval_images", "model_eval_images"),
-            self.inference_images_view: ("inference_images", "inference_images"),
-            self.train_images_view: ("train_images", "train_images")} 
+        
         
         self._auto_connect_settings() 
         self.use_GPU.toggled.connect(self._update_device)
@@ -168,6 +150,7 @@ class MainWindow:
         # Initial population of dynamic UI elements
         self.load_checkpoints()
         self._set_graphics() 
+
 
     # [SHOW WINDOW]
     ###########################################################################
@@ -231,6 +214,8 @@ class MainWindow:
         self.data_metrics = [('pixels_distribution', self.get_pixels_dist)]
         self.model_metrics = [('evaluation_report', self.get_evaluation_report),
                               ('image_reconstruction', self.image_reconstruction)]
+        
+        
 
     #--------------------------------------------------------------------------
     def _update_device(self):
@@ -263,7 +248,28 @@ class MainWindow:
         view.setRenderHint(QPainter.TextAntialiasing, True)
         self.graphics = {'view': view,
                          'scene': scene,
-                         'pixmap_item': pixmap_item}   
+                         'pixmap_item': pixmap_item}
+        
+        # Image data                
+        self.pixmaps = {
+        'train_images': [],         
+        'inference_images': [],      
+        'dataset_eval_images': [],  
+        'model_eval_images': []}
+        
+        self.img_paths = {'train_images' : IMG_PATH,
+                          'inference_images' : INFERENCE_INPUT_PATH}
+
+        # Canvas state        
+        self.current_fig = {'train_images' : 0, 'inference_images' : 0,
+                            'dataset_eval_images' : 0, 'model_eval_images' : 0}   
+
+        self.pixmap_source_map = {
+            self.data_plots_view: ("dataset_eval_images", "train_images"),
+            self.model_plots_view: ("model_eval_images", "model_eval_images"),
+            self.inference_images_view: ("inference_images", "inference_images"),
+            self.train_images_view: ("train_images", "train_images")}
+            
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -597,7 +603,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
         self.training_handler.handle_success(
-            self.main_win, 'Training session is over. Model has been saved')
+            self.main_win, 'Inference call has been terminated')
         self.worker_running = False
 
 
