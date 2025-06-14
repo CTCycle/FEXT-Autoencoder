@@ -3,12 +3,14 @@ import keras
 import webbrowser
 import subprocess
 import time
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from FEXT.commons.interface.workers import WorkerInterrupted
 from FEXT.commons.logger import logger
+
 
 # [CALLBACK FOR UI PROGRESS BAR]
 ###############################################################################
@@ -26,6 +28,7 @@ class ProgressBarCallback(keras.callbacks.Callback):
         percent = int(100 * processed_epochs / additional_epochs)
         if self.progress_callback is not None:
             self.progress_callback(percent)
+
 
 # [CALLBACK FOR TRAIN INTERRUPTION]
 ###############################################################################

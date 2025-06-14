@@ -132,7 +132,7 @@ class ValidationEvents:
         if 'evaluation_report' in metrics:
             # evaluate model performance over the training and validation dataset 
             summarizer = ModelEvaluationSummary(self.configuration)       
-            summarizer.evaluation_report(model, validation_dataset, worker=worker) 
+            summarizer.get_evaluation_report(model, validation_dataset, worker=worker) 
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
