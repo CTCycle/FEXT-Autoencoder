@@ -104,24 +104,14 @@ class ModelSerializer:
         plot_path = os.path.join(path, 'model_layout.png')       
         keras.utils.plot_model(
             model, to_file=plot_path, show_shapes=True, show_layer_names=True, 
-            show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)
-        
-    #--------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint_name):
-        custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
-        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
-        model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
-        model = keras.models.load_model(model_path, custom_objects=custom_objects) 
-        
-        return model       
+            show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
             
     #-------------------------------------------------------------------------- 
-    def load_checkpoint(self, checkpoint_name):       
-        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)             
+    def load_checkpoint(self, checkpoint_name):                     
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
-        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name)
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name) 
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
         model = keras.models.load_model(model_path, custom_objects=custom_objects)       
         configuration, session = self.load_training_configuration(checkpoint_path)        
