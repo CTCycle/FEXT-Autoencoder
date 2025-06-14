@@ -29,11 +29,11 @@ class MainWindow:
         
         # Image data                
         self.pixmaps = {
-        'train_images': [],          # List[str] (image paths)
-        'inference_images': [],      # List[str] (image paths)
-        'dataset_eval_images': [],   # List[QPixmap] (plots)
-        'model_eval_images': []      # List[QPixmap] (plots)
-        }
+        'train_images': [],         
+        'inference_images': [],      
+        'dataset_eval_images': [],  
+        'model_eval_images': []}
+        
         self.img_paths = {'train_images' : IMG_PATH,
                           'inference_images' : INFERENCE_INPUT_PATH}
 
@@ -122,8 +122,7 @@ class MainWindow:
             (QRadioButton,'viewDataPlots','data_plots_view'),
             (QRadioButton,'viewEvalPlots','model_plots_view'),
             (QRadioButton,'viewInferenceImages','inference_images_view'),
-            (QRadioButton,'viewTrainImages','train_images_view'),
-            
+            (QRadioButton,'viewTrainImages','train_images_view'),            
             ])
         
         self._connect_signals([  
@@ -339,23 +338,12 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def _update_metrics(self):        
-        for name, box in self.data_metrics:
-            if box.isChecked():
-                if name not in self.selected_metrics['dataset']:
-                    self.selected_metrics['dataset'].append(name)
-            else:
-                if name in self.selected_metrics['dataset']:
-                    self.selected_metrics['dataset'].remove(name)
-
-        for name, box in self.model_metrics:
-            if box.isChecked():
-                if name not in self.selected_metrics['model']:
-                    self.selected_metrics['model'].append(name)
-            else:
-                if name in self.selected_metrics['model']:
-                   self.selected_metrics['model'].remove(name)
-
+    def _update_metrics(self):             
+        self.selected_metrics['dataset'] = [
+            name for name, box in self.data_metrics if box.isChecked()]
+        self.selected_metrics['model'] = [
+            name for name, box in self.model_metrics if box.isChecked()]
+        
     #--------------------------------------------------------------------------
     # [GRAPHICS]
     #--------------------------------------------------------------------------
@@ -413,8 +401,6 @@ class MainWindow:
         self.graphics['scene'].setSceneRect(0, 0, 0, 0)
         self.graphics['view'].viewport().update()
 
-    #--------------------------------------------------------------------------
-    # [DATASET TAB]
     #--------------------------------------------------------------------------    
     @Slot()
     def load_images(self):          
@@ -429,9 +415,11 @@ class MainWindow:
         img_paths = self.validation_handler.load_images_path(self.img_paths[idx_key])
         self.pixmaps[idx_key].extend(img_paths)
         self.current_fig[idx_key] = 0 
-        self._update_graphics_view()            
+        self._update_graphics_view()    
 
     #--------------------------------------------------------------------------
+    # [DATASET TAB]
+    #--------------------------------------------------------------------------        
     @Slot()
     def run_dataset_evaluation_pipeline(self):  
         if not self.data_metrics:
