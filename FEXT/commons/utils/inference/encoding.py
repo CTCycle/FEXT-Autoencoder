@@ -26,7 +26,7 @@ class ImageEncoding:
             inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths, progress_callback=None, worker=None):        
+    def encode_images_features(self, images_paths, **kwargs):        
         features = {}
         for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
             image_name = os.path.basename(pt)
@@ -40,7 +40,7 @@ class ImageEncoding:
                 logger.error(f'Could not encode image {image_name}: {str(e)}')
             
             update_progress_callback(i, images_paths, progress_callback)
-            check_thread_status(worker)
+            check_thread_status(kwargs.get('worker', None))
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(

@@ -39,13 +39,14 @@ class ModelTraining:
            
     #--------------------------------------------------------------------------
     def train_model(self, model, train_data, validation_data, 
-                    checkpoint_path, progress_callback=None, worker=None): 
+                    checkpoint_path, **kwargs): 
                 
         epochs = self.configuration.get('epochs', 10)      
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
             self.configuration, checkpoint_path, 
-            progress_callback=progress_callback, worker=worker)       
+            progress_callback=kwargs.get('progress_callback', None), 
+            worker=kwargs.get('worker', None))       
         
         # run model fit using keras API method.             
         session = model.fit(
@@ -58,14 +59,14 @@ class ModelTraining:
         
     #--------------------------------------------------------------------------
     def resume_training(self, model, train_data, validation_data, 
-                        checkpoint_path, session=None, progress_callback=None,
-                        worker=None):  
+                        checkpoint_path, session=None, **kwargs):
         
         from_epoch = 0 if not session else session['epochs']     
         total_epochs = from_epoch + self.configuration.get('additional_epochs', 10)           
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
-            self.configuration, checkpoint_path, session, progress_callback, worker)       
+            self.configuration, checkpoint_path, session, 
+            kwargs.get('progress_callback', None), kwargs.get('worker', None))       
         
         # run model fit using keras API method.             
         session = model.fit(

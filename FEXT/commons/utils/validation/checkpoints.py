@@ -34,7 +34,7 @@ class ModelEvaluationSummary:
         return model_paths  
 
     #---------------------------------------------------------------------------
-    def get_checkpoints_summary(self, progress_callback=None, worker=None):   
+    def get_checkpoints_summary(self, **kwargs):   
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []            
         for i, model_path in enumerate(model_paths):            
@@ -66,7 +66,7 @@ class ModelEvaluationSummary:
             model_parameters.append(chkp_config)
 
             # check for thread status and progress bar update   
-            check_thread_status(worker)         
+            check_thread_status(kwargs.get('worker', None))         
             update_progress_callback(i, model_paths, progress_callback) 
 
         dataframe = pd.DataFrame(model_parameters)
@@ -75,8 +75,8 @@ class ModelEvaluationSummary:
         return dataframe
     
     #--------------------------------------------------------------------------
-    def get_evaluation_report(self, model, validation_dataset, progress_callback=None, worker=None):
-        callbacks_list = [InterruptTraining(worker)]
+    def get_evaluation_report(self, model, validation_dataset, **kwargs):
+        callbacks_list = [InterruptTraining(kwargs.get('worker', None))]
         validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list)    
         logger.info(
             f'RMSE loss {validation[0]:.3f} - Cosine similarity {validation[1]:.3f}')     

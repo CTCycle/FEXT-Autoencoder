@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QGraphicsPixmapItem, QGraphicsView)
 
 from FEXT.commons.configuration import Configuration
-from FEXT.commons.interface.events import GraphicsHandler, ValidationEvents, TrainingEvents, InferenceEvents
+from FEXT.commons.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
@@ -42,8 +42,7 @@ class MainWindow:
         # --- Create persistent handlers ---
         self.graphic_handler = GraphicsHandler()
         self.validation_handler = ValidationEvents(self.configuration)
-        self.training_handler = TrainingEvents(self.configuration)
-        self.inference_handler = InferenceEvents(self.configuration)
+        self.model_handler = ModelEvents(self.configuration)        
 
         # setup UI elements
         self._set_states()
@@ -140,8 +139,6 @@ class MainWindow:
             ('next_image', 'clicked', self.show_next_figure),
             ('clear_images', 'clicked', self.clear_figures),            
         ]) 
-
-        
         
         self._auto_connect_settings() 
         self.use_GPU.toggled.connect(self._update_device)
@@ -205,17 +202,17 @@ class MainWindow:
             # 3. model evaluation tab page
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),
             # 4. inference tab page           
-            ('validation_size', 'valueChanged', 'validation_size')]        
+            ('validation_size', 'valueChanged', 'validation_size')]
+
+        self.data_metrics = [
+            ('pixels_distribution', self.get_pixels_dist)]
+        self.model_metrics = [
+            ('evaluation_report', self.get_evaluation_report),
+            ('image_reconstruction', self.image_reconstruction)]                
 
         for attr, signal_name, config_key in connections:
             widget = self.widgets[attr]
             self.connect_update_setting(widget, signal_name, config_key)
-
-        self.data_metrics = [('pixels_distribution', self.get_pixels_dist)]
-        self.model_metrics = [('evaluation_report', self.get_evaluation_report),
-                              ('image_reconstruction', self.image_reconstruction)]
-        
-        
 
     #--------------------------------------------------------------------------
     def _update_device(self):
@@ -326,7 +323,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def load_checkpoints(self):       
-        checkpoints = self.training_handler.get_available_checkpoints()
+        checkpoints = self.model_handler.get_available_checkpoints()
         self.checkpoints_list.clear()
         if checkpoints:
             self.checkpoints_list.addItems(checkpoints)
@@ -369,7 +366,8 @@ class MainWindow:
         pixmap_item = self.graphics['pixmap_item']
         scene = self.graphics['scene']
         view_size = view.viewport().size()
-        scaled = qpixmap.scaled(view_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        scaled = qpixmap.scaled(
+            view_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         pixmap_item.setPixmap(scaled)
         scene.setSceneRect(scaled.rect())     
 
@@ -446,7 +444,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_dataset_evaluation_finished,
-            on_error=self.on_dataset_evaluation_error,
+            on_error=self.on_evaluation_error,
             on_interrupted=self.on_task_interrupted)       
 
     #--------------------------------------------------------------------------
@@ -458,17 +456,17 @@ class MainWindow:
             return 
                   
         self.configuration = self.config_manager.get_configuration() 
-        self.training_handler = TrainingEvents(self.configuration)         
+        self.model_handler = ModelEvents(self.configuration)         
   
         # send message to status bar
         self._send_message("Training FEXT Autoencoder model from scratch...")        
         # functions that are passed to the worker will be executed in a separate thread
-        self.worker = Worker(self.training_handler.run_training_pipeline)                            
+        self.worker = Worker(self.model_handler.run_training_pipeline)                            
        
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_train_finished,
-            on_error=self.on_train_error,
+            on_error=self.on_model_error,
             on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
@@ -478,19 +476,19 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.training_handler = TrainingEvents(self.configuration)   
+        self.model_handler = ModelEvents(self.configuration)   
 
         # send message to status bar
         self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}")         
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
-            self.training_handler.resume_training_pipeline,
+            self.model_handler.resume_training_pipeline,
             self.selected_checkpoint)   
 
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_train_finished,
-            on_error=self.on_train_error,
+            on_error=self.on_model_error,
             on_interrupted=self.on_task_interrupted)
 
     #--------------------------------------------------------------------------
@@ -515,7 +513,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_model_evaluation_finished,
-            on_error=self.on_model_evaluation_error,
+            on_error=self.on_model_error,
             on_interrupted=self.on_task_interrupted)     
 
     #-------------------------------------------------------------------------- 
@@ -535,7 +533,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_model_evaluation_finished,
-            on_error=self.on_model_evaluation_error,
+            on_error=self.on_model_error,
             on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
@@ -547,21 +545,21 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.training_handler = InferenceEvents(self.configuration)  
+        self.model_handler = ModelEvents(self.configuration)  
         device = 'GPU' if self.use_GPU_inference.isChecked() else 'CPU'
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
         
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
-            self.training_handler.run_inference_pipeline,
+            self.model_handler.run_inference_pipeline,
             self.selected_checkpoint,
             device)
 
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_inference_finished,
-            on_error=self.on_inference_error,
+            on_error=self.on_model_error,
             on_interrupted=self.on_task_interrupted)
 
 
@@ -582,7 +580,7 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     def on_train_finished(self, session):          
-        self.training_handler.handle_success(
+        self.model_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
         self.worker_running = False
 
@@ -602,7 +600,7 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
-        self.training_handler.handle_success(
+        self.model_handler.handle_success(
             self.main_win, 'Inference call has been terminated')
         self.worker_running = False
 
@@ -611,27 +609,15 @@ class MainWindow:
     # [NEGATIVE OUTCOME HANDLERS]
     ###########################################################################    
     @Slot(tuple)
-    def on_dataset_evaluation_error(self, err_tb):
-        self.training_handler.handle_error(self.main_win, err_tb) 
+    def on_evaluation_error(self, err_tb):
+        self.validation_handler.handle_error(self.main_win, err_tb) 
         self.worker_running = False   
 
     #--------------------------------------------------------------------------
     @Slot() 
-    def on_train_error(self, err_tb):
-        self.training_handler.handle_error(self.main_win, err_tb) 
-        self.worker_running = False
-
-    #--------------------------------------------------------------------------
-    @Slot() 
-    def on_model_evaluation_error(self, err_tb):
-        self.training_handler.handle_error(self.main_win, err_tb) 
-        self.worker_running = False 
-
-    #--------------------------------------------------------------------------
-    @Slot() 
-    def on_inference_error(self, err_tb):
-        self.inference_handler.handle_error(self.main_win, err_tb) 
-        self.worker_running = False
+    def on_model_error(self, err_tb):
+        self.model_handler.handle_error(self.main_win, err_tb) 
+        self.worker_running = False  
 
     #--------------------------------------------------------------------------
     def on_task_interrupted(self):         

@@ -56,7 +56,7 @@ class ImageReconstruction:
             dpi=self.DPI)
     
     #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, validation_data, progress_callback=None, worker=None):        
+    def visualize_reconstructed_images(self, validation_data, **kwargs):        
         val_images = self.get_images(validation_data)
         logger.info(f'Comparing {self.num_images} reconstructed images from validation dataset')
         fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
@@ -74,7 +74,7 @@ class ImageReconstruction:
             axs[i, 1].axis('off')
 
             # check for thread status and progress bar update
-            check_thread_status(worker)
+            check_thread_status(kwargs.get('worker', None))
             update_progress_callback(i, val_images, progress_callback)
         
         plt.tight_layout()
@@ -102,7 +102,7 @@ class ImageAnalysis:
         fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)     
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path, progress_callback=None, worker=None):          
+    def calculate_image_statistics(self, images_path, **kwargs):          
         results= []     
         for i, path in enumerate(tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
@@ -141,8 +141,8 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})
 
             # check for thread status and progress bar update
-            check_thread_status(worker)
-            update_progress_callback(i, images_path, progress_callback)    
+            check_thread_status(kwargs.get('worker', None))
+            update_progress_callback(i, images_path, kwargs.get('progress_callback', None))  
 
         stats_dataframe = pd.DataFrame(results) 
         self.database.save_image_statistics_table(stats_dataframe)       
@@ -150,7 +150,7 @@ class ImageAnalysis:
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path, progress_callback=None, worker=None):                 
+    def calculate_pixel_intensity_distribution(self, images_path, **kwargs):                 
         image_histograms = np.zeros(256, dtype=np.int64)        
         for i, path in enumerate(
             tqdm(images_path, desc="Processing image histograms", 
@@ -165,8 +165,8 @@ class ImageAnalysis:
             image_histograms += hist.astype(np.int64)
             
             # check for thread status and progress bar update
-            check_thread_status(worker)
-            update_progress_callback(i, images_path, progress_callback)    
+            check_thread_status(kwargs.get('worker', None))
+            update_progress_callback(i, images_path, kwargs.get('progress_callback', None))  
 
         # Plot the combined histogram
         fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
@@ -182,7 +182,7 @@ class ImageAnalysis:
     
     #--------------------------------------------------------------------------
     def compare_train_and_validation_PID(self, train_images_path, val_images_path,
-                                         progress_callback=None, worker=None):                
+                                         **kwargs):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
         val_hist = np.zeros(256, dtype=np.int64)
