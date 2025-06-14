@@ -16,8 +16,46 @@ from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
 
 
+###############################################################################
+class GraphicsHandler:
 
+    def __init__(self): 
+        self.image_encoding = cv2.IMREAD_UNCHANGED
+        self.gray_scale_encoding = cv2.IMREAD_GRAYSCALE
+        self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
+        self.BGR_encoding = cv2.COLOR_BGR2RGB
+
+    #--------------------------------------------------------------------------
+    def convert_fig_to_qpixmap(self, fig):    
+        canvas = FigureCanvasAgg(fig)
+        canvas.draw()
+        # get the size in pixels and initialize raw RGBA buffer
+        width, height = canvas.get_width_height()        
+        buf = canvas.buffer_rgba()
+        # construct a QImage pointing at that memory (no PNG decoding)
+        qimg = QImage(buf, width, height, QImage.Format_RGBA8888)
+
+        return QPixmap.fromImage(qimg)
     
+    #--------------------------------------------------------------------------    
+    def load_image_as_pixmap(self, path):    
+        img = cv2.imread(path, self.image_encoding)
+        # Handle grayscale, RGB, or RGBA
+        if len(img.shape) == 2:  # Grayscale
+            img = cv2.cvtColor(img, self.gray_scale_encoding)
+        elif img.shape[2] == 4:  # BGRA
+            img = cv2.cvtColor(img, self.BGRA_encoding)
+        else:  # BGR
+            img = cv2.cvtColor(img, self.BGR_encoding)
+
+        h, w = img.shape[:2]
+        if img.shape[2] == 3:
+            qimg = QImage(img.data, w, h, 3 * w, QImage.Format_RGB888)
+        else:  
+            qimg = QImage(img.data, w, h, 4 * w, QImage.Format_RGBA8888)
+
+        return QPixmap.fromImage(qimg)
+
 
 ###############################################################################
 class ValidationEvents:
@@ -38,14 +76,13 @@ class ValidationEvents:
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
-        logger.info(f'The image dataset is composed of {len(images_paths)} images')
-        
-        images = []        
-        if 'image_stats' in metrics:
-            logger.info('Current metric: image dataset statistics')
-            image_statistics = self.analyzer.calculate_image_statistics(
-                images_paths, progress_callback, worker)                      
-             
+        logger.info(f'The image dataset is composed of {len(images_paths)} images')        
+               
+        logger.info('Current metric: image dataset statistics')
+        image_statistics = self.analyzer.calculate_image_statistics(
+            images_paths, progress_callback, worker)                      
+
+        images = []  
         if 'pixels_distribution' in metrics:
             logger.info('Current metric: pixel intensity distribution')
             images.append(self.analyzer.calculate_pixel_intensity_distribution(
@@ -102,38 +139,7 @@ class ValidationEvents:
             images.append(validator.visualize_reconstructed_images(
                 validation_images, progress_callback, worker=worker))       
 
-        return images     
-
-    #--------------------------------------------------------------------------
-    def convert_fig_to_qpixmap(self, fig):    
-        canvas = FigureCanvasAgg(fig)
-        canvas.draw()
-        # get the size in pixels and initialize raw RGBA buffer
-        width, height = canvas.get_width_height()        
-        buf = canvas.buffer_rgba()
-        # construct a QImage pointing at that memory (no PNG decoding)
-        qimg = QImage(buf, width, height, QImage.Format_RGBA8888)
-
-        return QPixmap.fromImage(qimg)
-    
-    #--------------------------------------------------------------------------    
-    def load_image_as_pixmap(self, path):    
-        img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-        # Handle grayscale, RGB, or RGBA
-        if len(img.shape) == 2:  # Grayscale
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        elif img.shape[2] == 4:  # BGRA
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-        else:  # BGR
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-        h, w = img.shape[:2]
-        if img.shape[2] == 3:
-            qimg = QImage(img.data, w, h, 3 * w, QImage.Format_RGB888)
-        else:  # RGBA
-            qimg = QImage(img.data, w, h, 4 * w, QImage.Format_RGBA8888)
-
-        return QPixmap.fromImage(qimg)
+        return images      
 
     # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
@@ -187,8 +193,7 @@ class TrainingEvents:
         autoencoder = FeXTAutoEncoder(self.configuration)           
         model = autoencoder.get_model(model_summary=True) 
 
-        # generate training log report and graphviz plot for the model layout         
-        log_training_report(train_data, validation_data, self.configuration)        
+        # generate training log report and graphviz plot for the model layout               
         self.modser.save_model_plot(model, checkpoint_path) 
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
@@ -222,7 +227,7 @@ class TrainingEvents:
             train_data, validation_data)        
                             
         # resume training from pretrained model    
-        logger.info('Resuming FeXT AutoEncoder training from checkpoint') 
+        logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback, worker=worker)

@@ -1,5 +1,6 @@
-import keras
-import torch
+from torch import cuda, device
+from keras.utils import set_random_seed
+from keras.mixed_precision import set_global_policy
 
 from FEXT.commons.utils.learning.callbacks import initialize_callbacks_handler
 from FEXT.commons.utils.data.serializer import ModelSerializer
@@ -12,7 +13,7 @@ class ModelTraining:
        
     def __init__(self, configuration):
         self.serializer = ModelSerializer()        
-        keras.utils.set_random_seed(configuration.get('training_seed', 42))        
+        set_random_seed(configuration.get('training_seed', 42))        
         self.selected_device = configuration.get('device', 'CPU')
         self.device_id = configuration.get('device_ID', 0)
         self.mixed_precision = configuration.get('use_mixed_precision', False)        
@@ -20,22 +21,21 @@ class ModelTraining:
 
     # set device
     #--------------------------------------------------------------------------
-    def set_device(self, device_override=None):
-        selected_device = device_override if device_override else self.selected_device
-        if selected_device == 'GPU':
-            if not torch.cuda.is_available():
+    def set_device(self):
+        if self.selected_device == 'GPU':
+            if not cuda.is_available():
                 logger.info('No GPU found. Falling back to CPU')
-                self.device = torch.device('cpu')
+                self.device = device('cpu')
             else:
-                self.device = torch.device(f'cuda:{self.device_id}')
-                torch.cuda.set_device(self.device)                 
+                self.device = device(f'cuda:{self.device_id}')
+                cuda.set_device(self.device)  
                 logger.info('GPU is set as active device')            
                 if self.mixed_precision:
-                    keras.mixed_precision.set_global_policy("mixed_float16")
-                    logger.info('Mixed precision policy is active during training')                                  
+                    set_global_policy("mixed_float16")
+                    logger.info('Mixed precision policy is active during training')                   
         else:
-            self.device = torch.device('cpu')
-            logger.info('CPU is set as active device')
+            self.device = device('cpu')
+            logger.info('CPU is set as active device')  
            
     #--------------------------------------------------------------------------
     def train_model(self, model, train_data, validation_data, 

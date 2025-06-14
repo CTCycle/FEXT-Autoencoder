@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QGraphicsPixmapItem, QGraphicsView)
 
 from FEXT.commons.configuration import Configuration
-from FEXT.commons.interface.events import ValidationEvents, TrainingEvents, InferenceEvents
+from FEXT.commons.interface.events import GraphicsHandler, ValidationEvents, TrainingEvents, InferenceEvents
 from FEXT.commons.interface.workers import Worker
 from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
@@ -54,6 +54,7 @@ class MainWindow:
         self.worker_running = False                
 
         # --- Create persistent handlers ---
+        self.graphic_handler = GraphicsHandler()
         self.validation_handler = ValidationEvents(self.configuration)
         self.training_handler = TrainingEvents(self.configuration)
         self.inference_handler = InferenceEvents(self.configuration)
@@ -129,8 +130,7 @@ class MainWindow:
             ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('stop_thread','clicked',self.stop_running_worker),          
-            # 1. dataset tab page
-            ('get_image_stats','toggled',self._update_metrics),
+            # 1. dataset tab page            
             ('get_pixels_dist','toggled',self._update_metrics),
             ('get_img_metrics','clicked',self.run_dataset_evaluation_pipeline),           
             # 2. training tab page               
@@ -228,8 +228,7 @@ class MainWindow:
             widget = self.widgets[attr]
             self.connect_update_setting(widget, signal_name, config_key)
 
-        self.data_metrics = [('image_stats', self.get_image_stats), 
-                             ('pixels_distribution', self.get_pixels_dist)]
+        self.data_metrics = [('pixels_distribution', self.get_pixels_dist)]
         self.model_metrics = [('evaluation_report', self.get_evaluation_report),
                               ('image_reconstruction', self.image_reconstruction)]
 
@@ -567,7 +566,7 @@ class MainWindow:
         key = 'dataset_eval_images'      
         if plots:            
             self.pixmaps[key].extend(
-                [self.validation_handler.convert_fig_to_qpixmap(p) 
+                [self.graphic_handler.convert_fig_to_qpixmap(p) 
                  for p in plots])
             
         self.current_fig[key] = 0
@@ -586,7 +585,7 @@ class MainWindow:
         key = 'model_eval_images'         
         if plots is not None:            
             self.pixmaps[key].extend(
-                [self.validation_handler.convert_fig_to_qpixmap(p)
+                [self.graphic_handler.convert_fig_to_qpixmap(p)
                 for p in plots])
             
         self.current_fig[key] = 0
