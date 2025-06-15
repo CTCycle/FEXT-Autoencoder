@@ -21,8 +21,8 @@ class ImageReconstruction:
     def __init__(self, configuration, model, checkpoint_path):       
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.EVALUATION_PATH = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
-        os.makedirs(self.EVALUATION_PATH, exist_ok=True)
-        self.loader = InferenceDataLoader(configuration)        
+        os.makedirs(self.EVALUATION_PATH, exist_ok=True)  
+
         self.num_images = configuration.get('num_evaluation_images', 6)
         self.DPI = 400 
         self.file_type = 'jpeg'
@@ -31,7 +31,8 @@ class ImageReconstruction:
 
     #-------------------------------------------------------------------------- 
     def get_images(self, data):
-        images = [self.loader.load_image_as_array(path) for path in 
+        loader = InferenceDataLoader(self.configuration)
+        images = [loader.load_image_as_array(path) for path in 
                   random.sample(data, self.num_images)]        
                 
         return images
@@ -75,7 +76,8 @@ class ImageReconstruction:
 
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
-            update_progress_callback(i, val_images, progress_callback)
+            update_progress_callback(
+                i, val_images, kwargs.get('progress_callback', None))
         
         plt.tight_layout()
         plt.savefig(
@@ -142,7 +144,8 @@ class ImageAnalysis:
 
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
-            update_progress_callback(i, images_path, kwargs.get('progress_callback', None))  
+            update_progress_callback(
+                i, images_path, kwargs.get('progress_callback', None))  
 
         stats_dataframe = pd.DataFrame(results) 
         self.database.save_image_statistics_table(stats_dataframe)       
@@ -166,7 +169,8 @@ class ImageAnalysis:
             
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
-            update_progress_callback(i, images_path, kwargs.get('progress_callback', None))  
+            update_progress_callback(
+                i, images_path, kwargs.get('progress_callback', None))  
 
         # Plot the combined histogram
         fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
@@ -181,8 +185,7 @@ class ImageAnalysis:
         return fig              
     
     #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_images_path, val_images_path,
-                                         **kwargs):                
+    def compare_train_and_validation_PID(self, train_images_path, val_images_path, **kwargs):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
         val_hist = np.zeros(256, dtype=np.int64)
@@ -197,7 +200,8 @@ class ImageAnalysis:
             train_hist += hist.astype(np.int64)
 
         # Process validation images
-        for path in tqdm(val_images_path, desc="Processing validation images", total=len(val_images_path), ncols=100):
+        for path in tqdm(val_images_path, desc="Processing validation images", 
+                         total=len(val_images_path), ncols=100):
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load validation image at {path}.")
@@ -217,8 +221,9 @@ class ImageAnalysis:
         plt.ylabel('Frequency', fontsize=12)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
-                    dpi=self.DPI)
+        plt.savefig(
+            os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
+            dpi=self.DPI)
         plt.close()
 
         return train_hist, val_hist

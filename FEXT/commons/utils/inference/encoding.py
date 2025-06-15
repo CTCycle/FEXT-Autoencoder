@@ -1,7 +1,9 @@
 import os
+
 import numpy as np
-import keras
 from tqdm import tqdm
+from keras.utils import set_random_seed
+from keras import Model
 
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.utils.data.loader import InferenceDataLoader
@@ -14,7 +16,7 @@ from FEXT.commons.logger import logger
 class ImageEncoding:
     
     def __init__(self, model, configuration, checkpoint_path):       
-        keras.utils.set_random_seed(configuration.get('train_seed', 42)) 
+        set_random_seed(configuration.get('train_seed', 42)) 
         self.dataloader = InferenceDataLoader(configuration)
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.configuration = configuration
@@ -22,8 +24,7 @@ class ImageEncoding:
 
         # isolate the encoder submodel from the autoencoder model             
         encoder_output = model.get_layer('compression_layer').output 
-        self.encoder_model = keras.Model(
-            inputs=model.input, outputs=encoder_output)              
+        self.encoder_model = Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
     def encode_images_features(self, images_paths, **kwargs):        
@@ -37,10 +38,12 @@ class ImageEncoding:
                 features[pt] = extracted_features
             except Exception as e:
                 features[pt] = f'Error during encoding: {str(e)}'
-                logger.error(f'Could not encode image {image_name}: {str(e)}')
+                logger.error(f'Could not encode image {image_name}: {str(e)}')            
             
-            update_progress_callback(i, images_paths, progress_callback)
+            # check for worker thread status and update progress callback
             check_thread_status(kwargs.get('worker', None))
+            update_progress_callback(
+                i, images_paths, kwargs.get('progress_callback', None))
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(
