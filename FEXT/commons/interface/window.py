@@ -36,6 +36,7 @@ class MainWindow:
         self.config_manager = Configuration()
         self.configuration = self.config_manager.get_configuration()
     
+        # set thread pool for the workers
         self.threadpool = QThreadPool.globalInstance()
         self.worker = None        
 

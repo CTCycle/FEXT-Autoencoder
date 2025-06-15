@@ -5,7 +5,7 @@ import pandas as pd
 from FEXT.commons.utils.learning.callbacks import InterruptTraining
 from FEXT.commons.utils.data.serializer import ModelSerializer
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
-from FEXT.commons.constants import DATA_PATH, CHECKPOINT_PATH
+from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
 

@@ -95,7 +95,7 @@ class ValidationEvents:
 
     #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None): 
-        summarizer = ModelEvaluationSummary(self.configuration)    
+        summarizer = ModelEvaluationSummary(self.database, self.configuration)    
         checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback, worker) 
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
@@ -119,7 +119,6 @@ class ValidationEvents:
 
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
-
         serializer = DataSerializer(self.database, self.configuration)  
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
@@ -131,7 +130,10 @@ class ValidationEvents:
         # the dataset is built on top of the training and validation data
         loader = InferenceDataLoader(train_config)    
         validation_dataset = loader.build_inference_dataloader(
-            validation_images, batch_size=1)              
+            validation_images, batch_size=1)   
+
+        # check worker status to allow interruption
+        check_thread_status(worker)             
 
         images = []
         if 'evaluation_report' in metrics:
