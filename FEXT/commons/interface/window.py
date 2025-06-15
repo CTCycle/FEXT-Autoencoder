@@ -53,8 +53,8 @@ class MainWindow:
             (QProgressBar,'progressBar','progress_bar'),         
             # 1. dataset tab page
             (QCheckBox,'getStatsAnalysis','get_image_stats'),
-            (QCheckBox,'getPixDist','get_pixels_dist'),
-            (QPushButton,'getImgMetrics','get_img_metrics'),
+            (QCheckBox,'getPixDist','pixel_distribution_metric'),
+            (QPushButton,'evaluateDataset','evaluate_dataset'),
             (QSpinBox,'seed','general_seed'),
             (QDoubleSpinBox,'sampleSize','sample_size'),            
                       
@@ -116,8 +116,8 @@ class MainWindow:
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. dataset tab page            
-            ('get_pixels_dist','toggled',self._update_metrics),
-            ('get_img_metrics','clicked',self.run_dataset_evaluation_pipeline),           
+            ('pixel_distribution_metric','toggled',self._update_metrics),
+            ('evaluate_dataset','clicked',self.run_dataset_evaluation_pipeline),           
             # 2. training tab page               
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
@@ -205,7 +205,7 @@ class MainWindow:
             ('validation_size', 'valueChanged', 'validation_size')]
 
         self.data_metrics = [
-            ('pixels_distribution', self.get_pixels_dist)]
+            ('pixels_distribution', self.pixel_distribution_metric)]
         self.model_metrics = [
             ('evaluation_report', self.get_evaluation_report),
             ('image_reconstruction', self.image_reconstruction)]                

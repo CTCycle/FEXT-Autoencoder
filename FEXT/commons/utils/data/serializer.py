@@ -1,6 +1,7 @@
 import os
 import json
-import keras
+from keras.utils import plot_model
+from keras.models import load_model
 from datetime import datetime
 
 from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
@@ -54,7 +55,7 @@ class ModelSerializer:
         return checkpoint_path    
 
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model : keras.Model, path):
+    def save_pretrained_model(self, model, path):
         model_files_path = os.path.join(path, 'saved_model.keras')
         model.save(model_files_path)
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
@@ -102,7 +103,7 @@ class ModelSerializer:
     def save_model_plot(self, model, path):
         logger.debug(f'Plotting model architecture graph at {path}')
         plot_path = os.path.join(path, 'model_layout.png')       
-        keras.utils.plot_model(
+        plot_model(
             model, to_file=plot_path, show_shapes=True, show_layer_names=True, 
             show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
             
@@ -113,7 +114,7 @@ class ModelSerializer:
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_name) 
         model_path = os.path.join(checkpoint_path, 'saved_model.keras') 
-        model = keras.models.load_model(model_path, custom_objects=custom_objects)       
+        model = load_model(model_path, custom_objects=custom_objects)       
         configuration, session = self.load_training_configuration(checkpoint_path)        
             
         return model, configuration, session, checkpoint_path
