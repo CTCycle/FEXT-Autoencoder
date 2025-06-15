@@ -3,7 +3,6 @@ import shutil
 import pandas as pd
 
 from FEXT.commons.utils.learning.callbacks import InterruptTraining
-from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.utils.data.serializer import ModelSerializer
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.constants import DATA_PATH, CHECKPOINT_PATH
@@ -14,10 +13,9 @@ from FEXT.commons.logger import logger
 ################################################################################
 class ModelEvaluationSummary:
 
-    def __init__(self, configuration, remove_invalid=False):
-        self.remove_invalid = remove_invalid
-        self.serializer = ModelSerializer()        
-        self.database = FEXTDatabase(configuration)        
+    def __init__(self, database, configuration, remove_invalid=False):
+        self.remove_invalid = remove_invalid             
+        self.database = database       
         self.configuration = configuration
 
     #---------------------------------------------------------------------------
@@ -34,12 +32,13 @@ class ModelEvaluationSummary:
         return model_paths  
 
     #---------------------------------------------------------------------------
-    def get_checkpoints_summary(self, **kwargs):   
+    def get_checkpoints_summary(self, **kwargs):
+        serializer = ModelSerializer()      
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []            
         for i, model_path in enumerate(model_paths):            
-            model = self.serializer.load_checkpoint(model_path)
-            configuration, history = self.serializer.load_training_configuration(model_path)
+            model = serializer.load_checkpoint(model_path)
+            configuration, history = serializer.load_training_configuration(model_path)
             model_name = os.path.basename(model_path)                   
             precision = 16 if configuration.get("use_mixed_precision", 'NA') else 32 
             chkp_config = {'Checkpoint name': model_name,                                                  
@@ -67,7 +66,7 @@ class ModelEvaluationSummary:
 
             # check for thread status and progress bar update   
             check_thread_status(kwargs.get('worker', None))         
-            update_progress_callback(i, model_paths, progress_callback) 
+            update_progress_callback(i, model_paths, kwargs.get('progress_callback', None)) 
 
         dataframe = pd.DataFrame(model_parameters)
         self.database.save_checkpoints_summary_table(dataframe)    

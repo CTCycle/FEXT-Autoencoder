@@ -8,7 +8,6 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 from FEXT.commons.utils.data.loader import InferenceDataLoader
-from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.constants import EVALUATION_PATH
 from FEXT.commons.logger import logger
@@ -92,8 +91,8 @@ class ImageReconstruction:
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):           
-        self.database = FEXTDatabase(configuration)
+    def __init__(self, database, configuration):           
+        self.database = database
         self.save_images = configuration.get('save_images', True)          
         self.configuration = configuration      
         self.DPI = 400 

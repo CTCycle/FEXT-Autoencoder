@@ -122,8 +122,7 @@ class FEXTDatabase:
         self.configuration = configuration
         self.image_stats = ImageStatisticsTable()
         self.checkpoints_summary = CheckpointSummaryTable()         
-        self.initialize_database()  
-
+        
     #--------------------------------------------------------------------------       
     def initialize_database(self):        
         conn = sqlite3.connect(self.db_path)

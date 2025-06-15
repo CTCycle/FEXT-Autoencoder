@@ -13,12 +13,14 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, configuration):        
+    def __init__(self, database, configuration):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration.get('general_seed', 42)         
+        self.seed = configuration.get('general_seed', 42)
+        self.database = database         
         self.configuration = configuration
+        
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
@@ -39,7 +41,8 @@ class DataSerializer:
 ###############################################################################
 class ModelSerializer:
 
-    def __init__(self):
+    def __init__(self, database):
+        self.database = database
         self.model_name = 'FeXT'        
         
     # function to create a folder where to save model checkpoints
