@@ -11,6 +11,7 @@ from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.dataset import ImageAnalysis, ImageReconstruction
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
+from FEXT.commons.interface.workers import check_thread_status
 
 from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.commons.logger import logger
@@ -76,7 +77,7 @@ class ValidationEvents:
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
-        logger.info(f'The image dataset is composed of {len(images_paths)} images')        
+        logger.info(f'The image dataset is composed of {len(images_paths)} images')            
                
         logger.info('Current metric: image dataset statistics')
         image_statistics = self.analyzer.calculate_image_statistics(
@@ -193,6 +194,9 @@ class TrainingEvents:
         autoencoder = FeXTAutoEncoder(self.configuration)           
         model = autoencoder.get_model(model_summary=True) 
 
+        # check worker status to allow interruption
+        check_thread_status(worker)   
+
         # generate training log report and graphviz plot for the model layout               
         self.modser.save_model_plot(model, checkpoint_path) 
         # perform training and save model at the end
@@ -224,7 +228,10 @@ class TrainingEvents:
         logger.info('Building model data loaders with prefetching and parallel processing') 
         builder = TrainingDataLoader(train_config)           
         train_dataset, validation_dataset = builder.build_training_dataloader(
-            train_data, validation_data)        
+            train_data, validation_data)  
+
+        # check worker status to allow interruption
+        check_thread_status(worker)         
                             
         # resume training from pretrained model    
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
@@ -271,7 +278,11 @@ class InferenceEvents:
 
         # select images from the inference folder and retrieve current paths        
         images_paths = self.serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
-        logger.info(f'{len(images_paths)} images have been found as inference input')       
+        logger.info(f'{len(images_paths)} images have been found as inference input')  
+
+        # check worker status to allow interruption
+        check_thread_status(worker)   
+             
         # extract features from images using the encoder output, the image encoder
         # takes the list of images path from inference as input    
         encoder = ImageEncoding(model, train_config, checkpoint_path)  

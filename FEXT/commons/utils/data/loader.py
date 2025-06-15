@@ -2,9 +2,6 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from FEXT.commons.logger import logger
-
-
 ###############################################################################
 class TrainingDataLoaderProcessor:
 

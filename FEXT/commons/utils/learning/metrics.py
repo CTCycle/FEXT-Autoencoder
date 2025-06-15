@@ -1,11 +1,11 @@
-import keras
+from keras import losses, metrics, ops
 
 from FEXT.commons.logger import logger
 
 
 # [LOSS FUNCTION]
 ###############################################################################
-class StructuralSimilarityIndexMeasure(keras.losses.Loss):
+class StructuralSimilarityIndexMeasure(losses.Loss):
     
     def __init__(self, max_val=1.0, filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03, 
                  name='StructuralSimilarityIndexMeasure', **kwargs):
@@ -26,12 +26,12 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
     #--------------------------------------------------------------------------   
     def _create_gaussian_window(self, size, sigma):
         
-        coords = keras.ops.arange(size) - size // 2
-        g = keras.ops.exp(-(coords ** 2) / (2 * sigma ** 2))
-        g = g / keras.ops.sum(g)        
+        coords = ops.arange(size) - size // 2
+        g = ops.exp(-(coords ** 2) / (2 * sigma ** 2))
+        g = g / ops.sum(g)        
        
-        window = keras.ops.outer(g, g)
-        window = window / keras.ops.sum(window)        
+        window = ops.outer(g, g)
+        window = window / ops.sum(window)        
         
         window = window[None, None, ...]
         return window
@@ -42,31 +42,31 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
         # window: [1, 1, filter_size, filter_size]
         
         # Ensure the input has shape [batch_size, channels, height, width]
-        if keras.ops.shape(x)[1] != keras.ops.shape(window)[0]:
-            x = keras.ops.transpose(x, [0, 3, 1, 2])  # Convert from NHWC to NCHW if necessary
+        if ops.shape(x)[1] != ops.shape(window)[0]:
+            x = ops.transpose(x, [0, 3, 1, 2])  # Convert from NHWC to NCHW if necessary
         
         padding = self.filter_size // 2
         
         # Perform per-channel convolution by using groups
-        out = keras.ops.conv(x, window.repeat(keras.ops.shape(x)[1], axis=0),  
+        out = ops.conv(x, window.repeat(ops.shape(x)[1], axis=0),  
                             strides=(1, 1),
                             padding=padding,
-                            groups= keras.ops.shape(x)[1])        
+                            groups= ops.shape(x)[1])        
         
-        if keras.ops.shape(out)[1] == keras.ops.shape(x)[1]:
-            out = keras.ops.transpose(out, [0, 2, 3, 1])  
+        if ops.shape(out)[1] == ops.shape(x)[1]:
+            out = ops.transpose(out, [0, 2, 3, 1])  
         
         return out
 
     #-------------------------------------------------------------------------- 
     def call(self, y_true, y_pred):
         # Ensure inputs are float32
-        y_true = keras.ops.cast(y_true, 'float32')
-        y_pred = keras.ops.cast(y_pred, 'float32')
+        y_true = ops.cast(y_true, 'float32')
+        y_pred = ops.cast(y_pred, 'float32')
         
         # Reshape inputs to [batch_size, channels, height, width]
-        y_true = keras.ops.transpose(y_true, [0, 3, 1, 2])  # NHWC to NCHW
-        y_pred = keras.ops.transpose(y_pred, [0, 3, 1, 2])
+        y_true = ops.transpose(y_true, [0, 3, 1, 2])  # NHWC to NCHW
+        y_pred = ops.transpose(y_pred, [0, 3, 1, 2])
         
         # Compute means
         mu_y_true = self._apply_conv2d(y_true, self.window)
@@ -88,7 +88,7 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
         StructuralSimilarityIndexMeasure_map = StructuralSimilarityIndexMeasure_numerator / StructuralSimilarityIndexMeasure_denominator
         
         # Compute the mean StructuralSimilarityIndexMeasure over the batch
-        loss = 1 - keras.ops.mean(StructuralSimilarityIndexMeasure_map)
+        loss = 1 - ops.mean(StructuralSimilarityIndexMeasure_map)
         return loss
 
     #-------------------------------------------------------------------------- 
@@ -108,17 +108,17 @@ class StructuralSimilarityIndexMeasure(keras.losses.Loss):
 
 # [LOSS FUNCTION]
 ###############################################################################
-class PenalizedMeanAbsoluteError(keras.losses.Loss):    
+class PenalizedMeanAbsoluteError(losses.Loss):    
     
     def __init__(self, name='PenalizedMeanAbsoluteError', size=(128, 128), **kwargs):        
         super(PenalizedMeanAbsoluteError, self).__init__(name=name, **kwargs)
-        self.loss = keras.losses.MeanAbsoluteError(reduction=None)
+        self.loss = losses.MeanAbsoluteError(reduction=None)
         self.size = size
         
     #--------------------------------------------------------------------------    
     def call(self, y_true, y_pred):
         loss = self.loss(y_true, y_pred)
-        penalty_factor = keras.ops.power(
+        penalty_factor = ops.power(
             (self.size[0] * self.size[1] / 255), 1/3)
         loss = loss + penalty_factor       
 

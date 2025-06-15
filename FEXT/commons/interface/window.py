@@ -262,10 +262,10 @@ class MainWindow:
                             'dataset_eval_images' : 0, 'model_eval_images' : 0}   
 
         self.pixmap_source_map = {
-            self.data_plots_view: ("dataset_eval_images", "train_images"),
+            self.data_plots_view: ("dataset_eval_images", "dataset_eval_images"),
             self.model_plots_view: ("model_eval_images", "model_eval_images"),
             self.inference_images_view: ("inference_images", "inference_images"),
-            self.train_images_view: ("train_images", "train_images")}
+            self.train_images_view: ("train_images", "train_images")} 
             
 
     #--------------------------------------------------------------------------
