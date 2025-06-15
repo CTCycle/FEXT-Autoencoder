@@ -157,7 +157,7 @@ class ValidationEvents:
    
 
 ###############################################################################
-class TrainingEvents:
+class ModelEvents:
 
     def __init__(self, configuration):        
         self.serializer = DataSerializer(configuration)        
@@ -239,31 +239,6 @@ class TrainingEvents:
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback, worker=worker)
         
-    # define the logic to handle successfull data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_success(self, window, message):
-        # send message to status bar
-        window.statusBar().showMessage(message)
-    
-    # define the logic to handle error during data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_error(self, window, err_tb):
-        exc, tb = err_tb
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
-
-
-###############################################################################
-class InferenceEvents:
-
-    def __init__(self, configuration):        
-        self.serializer = DataSerializer(configuration)        
-        self.modser = ModelSerializer()         
-        self.configuration = configuration 
-
-    #--------------------------------------------------------------------------
-    def get_available_checkpoints(self):
-        return self.modser.scan_checkpoints_folder()
-            
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, device='CPU', 
                                progress_callback=None, worker=None):
@@ -290,6 +265,7 @@ class InferenceEvents:
         encoder.encode_images_features(images_paths, progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            
+        
     # define the logic to handle successfull data retrieval outside the main UI loop
     #--------------------------------------------------------------------------
     def handle_success(self, window, message):
@@ -301,8 +277,4 @@ class InferenceEvents:
     def handle_error(self, window, err_tb):
         exc, tb = err_tb
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
-
-   
-
-
 
