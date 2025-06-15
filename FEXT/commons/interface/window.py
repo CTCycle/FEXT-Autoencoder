@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
                                QGraphicsPixmapItem, QGraphicsView)
 
+from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.configuration import Configuration
 from FEXT.commons.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
 from FEXT.commons.interface.workers import Worker
@@ -36,13 +37,16 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration()
     
         self.threadpool = QThreadPool.globalInstance()
-        self.worker = None
-        self.worker_running = False                
+        self.worker = None        
+
+        # initialize database
+        self.database = FEXTDatabase(self.configuration)
+        self.database.initialize_database()          
 
         # --- Create persistent handlers ---
         self.graphic_handler = GraphicsHandler()
-        self.validation_handler = ValidationEvents(self.configuration)
-        self.model_handler = ModelEvents(self.configuration)        
+        self.validation_handler = ValidationEvents(self.database, self.configuration)
+        self.model_handler = ModelEvents(self.database, self.configuration)        
 
         # setup UI elements
         self._set_states()
@@ -245,19 +249,17 @@ class MainWindow:
         view.setRenderHint(QPainter.TextAntialiasing, True)
         self.graphics = {'view': view,
                          'scene': scene,
-                         'pixmap_item': pixmap_item}
-        
-        # Image data                
+                         'pixmap_item': pixmap_item}        
+                        
         self.pixmaps = {
-        'train_images': [],         
-        'inference_images': [],      
-        'dataset_eval_images': [],  
-        'model_eval_images': []}
+            'train_images': [],         
+            'inference_images': [],      
+            'dataset_eval_images': [],  
+            'model_eval_images': []}
         
         self.img_paths = {'train_images' : IMG_PATH,
                           'inference_images' : INFERENCE_INPUT_PATH}
-
-        # Canvas state        
+            
         self.current_fig = {'train_images' : 0, 'inference_images' : 0,
                             'dataset_eval_images' : 0, 'model_eval_images' : 0}   
 
@@ -413,7 +415,7 @@ class MainWindow:
         
         self.pixmaps[idx_key].clear()
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.configuration)
+        self.validation_handler = ValidationEvents(self.database, self.configuration)
         
         img_paths = self.validation_handler.load_images_path(self.img_paths[idx_key])
         self.pixmaps[idx_key].extend(img_paths)
@@ -432,7 +434,7 @@ class MainWindow:
             return         
         
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.configuration)       
+        self.validation_handler = ValidationEvents(self.database, self.configuration)       
         # send message to status bar
         self._send_message("Calculating image dataset evaluation metrics...") 
         
@@ -456,7 +458,7 @@ class MainWindow:
             return 
                   
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.configuration)         
+        self.model_handler = ModelEvents(self.database, self.configuration)         
   
         # send message to status bar
         self._send_message("Training FEXT Autoencoder model from scratch...")        
@@ -476,7 +478,7 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.configuration)   
+        self.model_handler = ModelEvents(self.database, self.configuration)   
 
         # send message to status bar
         self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}")         
@@ -500,7 +502,7 @@ class MainWindow:
             return 
 
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.configuration)    
+        self.validation_handler = ValidationEvents(self.database, self.configuration)    
         device = 'GPU' if self.use_GPU_evaluation.isChecked() else 'CPU'   
         # send message to status bar
         self._send_message(f"Evaluating {self.select_checkpoint} performances... ")
@@ -523,7 +525,7 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.configuration)           
+        self.validation_handler = ValidationEvents(self.database, self.configuration)           
         # send message to status bar
         self._send_message("Generating checkpoints summary...") 
         
@@ -545,7 +547,7 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.configuration)  
+        self.model_handler = ModelEvents(self.database, self.configuration)  
         device = 'GPU' if self.use_GPU_inference.isChecked() else 'CPU'
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 

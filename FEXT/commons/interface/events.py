@@ -5,7 +5,7 @@ from PySide6.QtGui import QImage, QPixmap
 
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.loader import TrainingDataLoader, InferenceDataLoader
-from FEXT.commons.utils.data.splitting import TrainValidationSplit
+from FEXT.commons.utils.data.process import TrainValidationSplit
 from FEXT.commons.utils.learning.training import ModelTraining
 from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.inference.encoding import ImageEncoding
@@ -61,32 +61,34 @@ class GraphicsHandler:
 ###############################################################################
 class ValidationEvents:
 
-    def __init__(self, configuration):        
-        self.serializer = DataSerializer(configuration)            
-        self.analyzer = ImageAnalysis(configuration)     
+    def __init__(self, database, configuration):        
+        self.database = database     
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
-    def load_images_path(self, path, sample_size=1.0):        
-        images_paths = self.serializer.get_images_path_from_directory(
+    def load_images_path(self, path, sample_size=1.0):
+        serializer = DataSerializer(self.database, self.configuration)             
+        images_paths = serializer.get_images_path_from_directory(
             path, sample_size) 
         
         return images_paths 
         
     #--------------------------------------------------------------------------
-    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
+    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):         
+        serializer = DataSerializer(self.database, self.configuration)    
         sample_size = self.configuration.get("sample_size", 1.0)
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')            
                
         logger.info('Current metric: image dataset statistics')
-        image_statistics = self.analyzer.calculate_image_statistics(
+        analyzer = ImageAnalysis(self.database, self.configuration) 
+        image_statistics = analyzer.calculate_image_statistics(
             images_paths, progress_callback, worker)                      
 
         images = []  
         if 'pixels_distribution' in metrics:
             logger.info('Current metric: pixel intensity distribution')
-            images.append(self.analyzer.calculate_pixel_intensity_distribution(
+            images.append(analyzer.calculate_pixel_intensity_distribution(
                 images_paths, progress_callback, worker))
 
         return images 
@@ -117,7 +119,9 @@ class ValidationEvents:
 
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+
+        serializer = DataSerializer(self.database, self.configuration)  
+        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         _, validation_images = splitter.split_train_and_validation(images_paths)     
 
@@ -132,7 +136,7 @@ class ValidationEvents:
         images = []
         if 'evaluation_report' in metrics:
             # evaluate model performance over the training and validation dataset 
-            summarizer = ModelEvaluationSummary(self.configuration)       
+            summarizer = ModelEvaluationSummary(self.database, self.configuration)       
             summarizer.get_evaluation_report(model, validation_dataset, worker=worker) 
 
         if 'image_reconstruction' in metrics:
@@ -159,20 +163,21 @@ class ValidationEvents:
 ###############################################################################
 class ModelEvents:
 
-    def __init__(self, configuration):        
-        self.serializer = DataSerializer(configuration)        
-        self.modser = ModelSerializer()         
+    def __init__(self, database, configuration): 
+        self.database = database          
         self.configuration = configuration 
 
     #--------------------------------------------------------------------------
     def get_available_checkpoints(self):
-        return self.modser.scan_checkpoints_folder()
+        modser = ModelSerializer()
+        return modser.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):  
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = self.configuration.get("train_sample_size", 1.0)
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        serializer = DataSerializer(self.database, self.configuration)  
+        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
 
         splitter = TrainValidationSplit(self.configuration) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
@@ -190,7 +195,8 @@ class ModelEvents:
 
         # build the autoencoder model 
         logger.info('Building FeXT AutoEncoder model based on user configuration') 
-        checkpoint_path = self.modser.create_checkpoint_folder()
+        modser = ModelSerializer() 
+        checkpoint_path = modser.create_checkpoint_folder()
         autoencoder = FeXTAutoEncoder(self.configuration)           
         model = autoencoder.get_model(model_summary=True) 
 
@@ -198,7 +204,7 @@ class ModelEvents:
         check_thread_status(worker)   
 
         # generate training log report and graphviz plot for the model layout               
-        self.modser.save_model_plot(model, checkpoint_path) 
+        modser.save_model_plot(model, checkpoint_path) 
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
         trainer.train_model(
@@ -208,8 +214,9 @@ class ModelEvents:
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, 
                                  worker=None):
-        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
-        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models') 
+        modser = ModelSerializer()         
+        model, train_config, session, checkpoint_path = modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
         
@@ -220,7 +227,8 @@ class ModelEvents:
 
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
-        images_paths = self.serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        serializer = DataSerializer(self.database, self.configuration)  
+        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)     
 
@@ -242,8 +250,9 @@ class ModelEvents:
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, device='CPU', 
                                progress_callback=None, worker=None):
-        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')         
-        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+        logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')
+        modser = ModelSerializer()         
+        model, train_config, session, checkpoint_path = modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
@@ -251,8 +260,9 @@ class ModelEvents:
         trainer = ModelTraining(train_config)    
         trainer.set_device(device_override=device)
 
-        # select images from the inference folder and retrieve current paths        
-        images_paths = self.serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
+        # select images from the inference folder and retrieve current paths     
+        serializer = DataSerializer(self.database, self.configuration)     
+        images_paths = serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
         logger.info(f'{len(images_paths)} images have been found as inference input')  
 
         # check worker status to allow interruption
