@@ -169,8 +169,8 @@ class ModelEvents:
 
     #--------------------------------------------------------------------------
     def get_available_checkpoints(self):
-        modser = ModelSerializer()
-        return modser.scan_checkpoints_folder()
+        serializer = ModelSerializer()
+        return serializer.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):  
