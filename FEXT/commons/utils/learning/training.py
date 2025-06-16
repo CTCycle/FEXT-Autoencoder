@@ -11,8 +11,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class ModelTraining:    
        
-    def __init__(self, configuration):
-        self.serializer = ModelSerializer()        
+    def __init__(self, configuration):               
         set_random_seed(configuration.get('training_seed', 42))        
         self.selected_device = configuration.get('device', 'CPU')
         self.device_id = configuration.get('device_ID', 0)
@@ -53,8 +52,9 @@ class ModelTraining:
             train_data, epochs=epochs, validation_data=validation_data, 
             callbacks=callbacks_list)
                    
-        self.serializer.save_pretrained_model(model, checkpoint_path)       
-        self.serializer.save_training_configuration(
+        serializer = ModelSerializer()
+        serializer.save_pretrained_model(model, checkpoint_path)       
+        serializer.save_training_configuration(
             checkpoint_path, session, self.configuration)
         
     #--------------------------------------------------------------------------

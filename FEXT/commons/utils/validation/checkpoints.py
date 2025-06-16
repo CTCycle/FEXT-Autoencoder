@@ -66,7 +66,8 @@ class ModelEvaluationSummary:
 
             # check for thread status and progress bar update   
             check_thread_status(kwargs.get('worker', None))         
-            update_progress_callback(i, model_paths, kwargs.get('progress_callback', None)) 
+            update_progress_callback(
+                i, len(model_paths), kwargs.get('progress_callback', None)) 
 
         dataframe = pd.DataFrame(model_parameters)
         self.database.save_checkpoints_summary_table(dataframe)    
