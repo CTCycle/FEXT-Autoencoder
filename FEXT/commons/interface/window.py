@@ -38,7 +38,8 @@ class MainWindow:
     
         # set thread pool for the workers
         self.threadpool = QThreadPool.globalInstance()
-        self.worker = None        
+        self.worker = None
+        self.worker_running = False        
 
         # initialize database
         self.database = FEXTDatabase(self.configuration)
@@ -53,9 +54,11 @@ class MainWindow:
         self._set_states()
         self.widgets = {}
         self._setup_configuration([ 
-            (QPushButton,'stopThread','stop_thread'),  
+            # out of tab widgets
             (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
-            (QProgressBar,'progressBar','progress_bar'),         
+            (QComboBox,'checkpointsList','checkpoints_list'),
+            (QProgressBar,'progressBar','progress_bar'),      
+            (QPushButton,'stopThread','stop_thread'),    
             # 1. dataset tab page
             (QCheckBox,'getStatsAnalysis','get_image_stats'),
             (QCheckBox,'getPixDist','pixel_distribution_metric'),
@@ -69,30 +72,34 @@ class MainWindow:
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),            
             (QDoubleSpinBox,'validationSize','validation_size'),
             (QSpinBox,'shuffleSize','shuffle_size'),
+
             (QRadioButton,'setCPU','use_CPU'),
             (QRadioButton,'setGPU','use_GPU'),
             (QSpinBox,'deviceID','device_ID'),
             (QSpinBox,'numWorkers','num_workers'),
+
             (QCheckBox,'runTensorboard','use_tensorboard'),
-            (QCheckBox,'realTimeHistory','get_real_time_history'),
+            (QCheckBox,'realTimeHistory','real_time_history_callback'),
             (QCheckBox,'saveCheckpoints','save_checkpoints'),
             (QSpinBox,'trainSeed','train_seed'),
             (QSpinBox,'splitSeed','split_seed'),
+
             (QSpinBox,'numEpochs','epochs'),
             (QSpinBox,'batchSize','batch_size'),            
-            (QSpinBox,'saveCPFrequency','save_cp_frequency'),
+            (QSpinBox,'saveCPFrequency','checkpoints_frequency'),
+
             (QCheckBox,'useScheduler','LR_scheduler'), 
             (QDoubleSpinBox,'initialLearningRate','initial_LR'),
             (QDoubleSpinBox,'targetLearningRate','target_LR'),            
             (QSpinBox,'constantSteps','constant_steps'),
             (QSpinBox,'decaySteps','decay_steps'), 
+
             (QCheckBox,'mixedPrecision','use_mixed_precision'),
             (QCheckBox,'compileJIT','use_JIT_compiler'),   
             (QComboBox,'backendJIT','jit_backend'),         
             (QSpinBox,'initialNeurons','initial_neurons'),
             (QDoubleSpinBox,'dropoutRate','dropout_rate'),                    
-            (QSpinBox,'numAdditionalEpochs','additional_epochs'),
-            (QComboBox,'checkpointsList','checkpoints_list'),            
+            (QSpinBox,'numAdditionalEpochs','additional_epochs'),                      
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
             # 3. model evaluation tab page
@@ -192,9 +199,17 @@ class MainWindow:
             ('use_JIT_compiler', 'toggled', 'use_jit_compiler'),
             ('jit_backend', 'currentTextChanged', 'jit_backend'),
             ('use_tensorboard', 'toggled', 'run_tensorboard'),
-            ('get_real_time_history', 'toggled', 'real_time_history'),
-            ('save_checkpoints', 'toggled', 'save_checkpoints'),
+            ('real_time_history_callback', 'toggled', 'real_time_history_callback'),
+            ('save_checkpoints', 'toggled', 'save_checkpoints'),            
+            ('checkpoints_frequency', 'valueChanged', 'checkpoints_frequency'),
+
             ('LR_scheduler', 'toggled', 'use_lr_scheduler'),
+            ('initial_LR', 'valueChanged', 'initial_LR'),
+            ('target_LR', 'valueChanged', 'target_LR'),
+            ('constant_steps', 'valueChanged', 'constant_steps'),          
+            ('decay_steps', 'valueChanged', 'decay_steps'),  
+      
+
             ('split_seed', 'valueChanged', 'split_seed'),
             ('train_seed', 'valueChanged', 'train_seed'),
             ('shuffle_size', 'valueChanged', 'shuffle_size'),
@@ -462,7 +477,7 @@ class MainWindow:
         self.model_handler = ModelEvents(self.database, self.configuration)         
   
         # send message to status bar
-        self._send_message("Training FEXT Autoencoder model from scratch...")        
+        self._send_message("Training FEXT Autoencoder using a new model instance...")        
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(self.model_handler.run_training_pipeline)                            
        
