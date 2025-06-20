@@ -10,7 +10,7 @@ nltk==3.9.1
 
 # Deep Learning & Computer Vision
 keras==3.10.0
-transformers==4.45.2
+transformers==4.50.3
 scikit-learn==1.6.1
 scikit-image==0.25.1
 opencv-python==4.11.0.86

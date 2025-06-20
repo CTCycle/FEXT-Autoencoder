@@ -4,9 +4,9 @@ FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
 !FEXT/commons/assets/*
-setup/environment/*
-setup/miniconda/*
-setup/variables/.env
+FEXT/app/python/*
+FEXT/app/git/*
+
 
 __pycache__
 *.jpeg
