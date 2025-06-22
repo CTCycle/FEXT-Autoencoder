@@ -1,9 +1,9 @@
 from keras import optimizers, losses, metrics, layers, activations, Model
 from torch import compile as torch_compile
 
-from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
-from FEXT.commons.utils.learning.bottleneck import CompressionLayer, DecompressionLayer
-from FEXT.commons.utils.learning.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
+from FEXT.commons.utils.learning.training.scheduler import LinearDecayLRScheduler
+from FEXT.commons.utils.learning.models.bottleneck import CompressionLayer, DecompressionLayer
+from FEXT.commons.utils.learning.models.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
 
        
 # [AUTOENCODER MODEL]
@@ -19,9 +19,7 @@ class FeXTAutoEncoder:
         self.dropout_rate = configuration.get('dropout_rate', 0.2)           
         self.jit_compile = configuration.get('jit_compile', False)
         self.jit_backend = configuration.get('jit_backend', 'inductor')
-        self.has_LR_scheduler = configuration.get('use_scheduler', False)  
-        self.initial_lr = configuration.get('initial_LR', 0.001)
-
+        
         self.initial_neurons = configuration.get('initial_neurons', 64)  
         self.low_depth_neurons = self.initial_neurons * 2
         self.mid_depth_neurons = self.initial_neurons * 4  
@@ -30,20 +28,22 @@ class FeXTAutoEncoder:
         self.configuration = configuration  
   
     #--------------------------------------------------------------------------
-    def compile_model(self, model, model_summary=True):
-        lr_schedule = self.initial_lr        
-        if self.has_LR_scheduler:            
-            constant_lr_steps = self.configuration.get('constant_steps', 40000)   
-            decay_steps = self.configuration.get('decay_steps', 1000)  
-            final_lr = self.configuration.get('final_LR', 0.0001)          
-            lr_schedule = LinearDecayLRScheduler(
-                self.initial_lr, constant_lr_steps, decay_steps, final_lr)  
+    def compile_model(self, model : Model, model_summary=True):
+        initial_LR = self.configuration.get('initial_RL', 0.001)
+        LR_schedule = initial_LR        
+        if self.configuration.get('use_scheduler', False):          
+            constant_lr_steps = self.configuration.get('constant_steps', 1000)   
+            decay_steps = self.configuration.get('decay_steps', 500)  
+            final_LR = self.configuration.get('final_LR', 0.0001)          
+            LR_schedule = LinearDecayLRScheduler(
+                initial_LR, constant_lr_steps, decay_steps, final_LR)  
                   
-        opt = optimizers.Adam(learning_rate=lr_schedule)
+        opt = optimizers.Adam(learning_rate=LR_schedule)
         loss = losses.MeanAbsoluteError()        
         metric = [metrics.CosineSimilarity()]
         model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)                 
-  
+        # print model summary on console and run torch.compile 
+        # with triton compiler and selected backend
         model.summary(expand_nested=True) if model_summary else None
         if self.jit_compile:
             model = torch_compile(model, backend=self.jit_backend, mode='default')

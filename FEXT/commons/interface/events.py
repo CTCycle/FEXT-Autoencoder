@@ -6,9 +6,10 @@ from PySide6.QtGui import QImage, QPixmap
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.commons.utils.data.loader import TrainingDataLoader, InferenceDataLoader
 from FEXT.commons.utils.data.process import TrainValidationSplit
-from FEXT.commons.utils.learning.training import ModelTraining
-from FEXT.commons.utils.learning.autoencoder import FeXTAutoEncoder
-from FEXT.commons.utils.inference.encoding import ImageEncoding
+from FEXT.commons.utils.learning.device import DeviceConfig
+from FEXT.commons.utils.learning.training.fitting import ModelTraining
+from FEXT.commons.utils.learning.models.autoencoder import FeXTAutoEncoder
+from FEXT.commons.utils.learning.inference.encoding import ImageEncoding
 from FEXT.commons.utils.validation.dataset import ImageAnalysis, ImageReconstruction
 from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
 from FEXT.commons.interface.workers import check_thread_status
@@ -74,34 +75,44 @@ class ValidationEvents:
         return images_paths 
         
     #--------------------------------------------------------------------------
-    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):         
-        serializer = DataSerializer(self.database, self.configuration)    
+    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
+        # initialize data serializer for saving and loading data         
+        serializer = DataSerializer(self.database, self.configuration) 
+        # get images path from the dataset folder and select a randomized fraction    
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')            
-               
+
+        # perform image dataset statistical analysis to retrieve common statistics
+        # - pixel mean and standard deviation
+        # - noise-to-signal ratio
+        # - max and min intensity      
         logger.info('Current metric: image dataset statistics')
         analyzer = ImageAnalysis(self.database, self.configuration) 
         image_statistics = analyzer.calculate_image_statistics(
-            images_paths, progress_callback, worker)                      
+            images_paths, progress_callback=progress_callback, worker=worker)
+        logger.info('Image dataset statistics have been updated in the database')                      
 
-        images = []  
+        images = []
+        # calculate and plot the pixel intensity histogram  
         if 'pixels_distribution' in metrics:
             logger.info('Current metric: pixel intensity distribution')
             images.append(analyzer.calculate_pixel_intensity_distribution(
-                images_paths, progress_callback, worker))
+                images_paths, progress_callback=progress_callback, worker=worker))
+            logger.info('Pixel intensity distribution plot is available in viewer')
 
         return images 
 
     #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None): 
         summarizer = ModelEvaluationSummary(self.database, self.configuration)    
-        checkpoints_summary = summarizer.get_checkpoints_summary(progress_callback, worker) 
+        checkpoints_summary = summarizer.get_checkpoints_summary(
+            progress_callback=progress_callback, worker=worker) 
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
-    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, device='CPU', 
-                                      progress_callback=None, worker=None):
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, selected_device='CPU', 
+                                      progress_callback=None, worker=None):       
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
         modser = ModelSerializer()       
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -110,8 +121,8 @@ class ValidationEvents:
 
         # set device for training operations based on user configuration
         logger.info('Setting device for training operations based on user configuration')                
-        trainer = ModelTraining(train_config)    
-        trainer.set_device(device_override=device)  
+        device = DeviceConfig(train_config)
+        device.set_device(selected_device)  
 
         # isolate the encoder from the autoencoder model   
         encoder = ImageEncoding(model, train_config, checkpoint_path)
@@ -144,7 +155,7 @@ class ValidationEvents:
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
             images.append(validator.visualize_reconstructed_images(
-                validation_images, progress_callback, worker=worker))       
+                validation_images, progress_callback=progress_callback, worker=worker))       
 
         return images      
 
@@ -158,9 +169,10 @@ class ValidationEvents:
     #--------------------------------------------------------------------------
     def handle_error(self, window, err_tb):
         exc, tb = err_tb
+        logger.error(exc, '\n', tb)        
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
 
-   
+         
 
 ###############################################################################
 class ModelEvents:
@@ -191,14 +203,15 @@ class ModelEvents:
             train_data, validation_data)
         
         # set device for training operations based on user configuration        
-        logger.info('Setting device for training operations based on user configuration') 
-        trainer = ModelTraining(self.configuration)           
-        trainer.set_device()
+        logger.info('Setting device for training operations based on user configuration')                 
+        device = DeviceConfig(self.configuration) 
+        device.set_device() 
 
-        # build the autoencoder model 
+        # initialize the model serializer and create checkpoint folder
         logger.info('Building FeXT AutoEncoder model based on user configuration') 
         modser = ModelSerializer() 
         checkpoint_path = modser.create_checkpoint_folder()
+        # initialize and build FEXT Autoencoder
         autoencoder = FeXTAutoEncoder(self.configuration)           
         model = autoencoder.get_model(model_summary=True) 
 
@@ -209,13 +222,13 @@ class ModelEvents:
         modser.save_model_plot(model, checkpoint_path) 
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
+        trainer = ModelTraining(self.configuration)  
         trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
             progress_callback=progress_callback, worker=worker)
         
     #--------------------------------------------------------------------------
-    def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, 
-                                 worker=None):
+    def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models') 
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -223,13 +236,13 @@ class ModelEvents:
         model.summary(expand_nested=True)  
         
         # set device for training operations based on user configuration
-        logger.info('Setting device for training operations based on user configuration')         
-        trainer = ModelTraining(self.configuration)           
-        trainer.set_device()
+        logger.info('Setting device for training operations based on user configuration')                 
+        device = DeviceConfig(self.configuration) 
+        device.set_device() 
 
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
-        serializer = DataSerializer(self.database, self.configuration)  
+        serializer = DataSerializer(self.database, train_config)  
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)     
@@ -245,6 +258,7 @@ class ModelEvents:
                             
         # resume training from pretrained model    
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
+        trainer = ModelTraining(train_config) 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback, worker=worker)
@@ -259,11 +273,11 @@ class ModelEvents:
         model.summary(expand_nested=True)  
 
         # setting device for training         
-        trainer = ModelTraining(train_config)    
-        trainer.set_device(device_override=device)
+        device = DeviceConfig(self.configuration) 
+        device.set_device()
 
         # select images from the inference folder and retrieve current paths     
-        serializer = DataSerializer(self.database, self.configuration)     
+        serializer = DataSerializer(self.database, train_config)     
         images_paths = serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
         logger.info(f'{len(images_paths)} images have been found as inference input')  
 
@@ -288,5 +302,6 @@ class ModelEvents:
     #--------------------------------------------------------------------------
     def handle_error(self, window, err_tb):
         exc, tb = err_tb
+        logger.error(exc, '\n', tb)
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
 

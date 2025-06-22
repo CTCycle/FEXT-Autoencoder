@@ -540,7 +540,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="dataTab">
        <property name="toolTipDuration">
@@ -599,9 +599,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
             </layout>
            </item>
            <item>
-            <widget class="QGroupBox" name="selectedMetricsGroup">
+            <widget class="QGroupBox" name="groupBox_7">
              <property name="title">
-              <string>Selected metrics</string>
+              <string>Select metrics</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
@@ -643,6 +643,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
            <string>Dataset processing</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_22">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Coming soon!</string>
+             </property>
+            </widget>
+           </item>
            <item>
             <spacer name="verticalSpacer_11">
              <property name="orientation">
@@ -762,7 +769,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                     <number>10</number>
                    </property>
                    <property name="value">
-                    <number>1024</number>
+                    <number>256</number>
                    </property>
                   </widget>
                  </item>
@@ -803,6 +810,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </item>
                <item>
                 <widget class="QSpinBox" name="numAdditionalEpochs">
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Additional number of epochs for the resumed training session&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
                  <property name="minimum">
                   <number>1</number>
                  </property>
@@ -831,6 +841,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              </item>
              <item>
               <widget class="QPushButton" name="startTraining">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start new training session with given configurations&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Start model training</string>
                </property>
@@ -838,6 +851,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              </item>
              <item>
               <widget class="QPushButton" name="resumeTraining">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resume training for a selected checkpoint, using previous training configurations and additional number of epochs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="text">
                 <string>Resume training</string>
                </property>
@@ -873,10 +889,13 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                  <item>
                   <widget class="QDoubleSpinBox" name="initialLearningRate">
                    <property name="decimals">
-                    <number>5</number>
+                    <number>8</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.000100000000000</double>
+                    <double>0.001000000000000</double>
                    </property>
                    <property name="value">
                     <double>0.001000000000000</double>
@@ -897,13 +916,16 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                  <item>
                   <widget class="QDoubleSpinBox" name="targetLearningRate">
                    <property name="decimals">
-                    <number>5</number>
+                    <number>8</number>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.000100000000000</double>
+                    <double>0.001000000000000</double>
                    </property>
                    <property name="value">
-                    <double>0.001000000000000</double>
+                    <double>0.000100000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -926,6 +948,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                    <property name="singleStep">
                     <number>10</number>
                    </property>
+                   <property name="value">
+                    <number>1000</number>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -946,6 +971,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                    </property>
                    <property name="singleStep">
                     <number>10</number>
+                   </property>
+                   <property name="value">
+                    <number>500</number>
                    </property>
                   </widget>
                  </item>
@@ -1144,25 +1172,14 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_18">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_8">
-                 <item>
-                  <widget class="QRadioButton" name="setCPU">
-                   <property name="text">
-                    <string>CPU</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="setGPU">
-                   <property name="text">
-                    <string>GPU</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+                <widget class="QCheckBox" name="runTrainGPU">
+                 <property name="text">
+                  <string>Run on GPU</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_8"/>
                </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_23">
@@ -1319,7 +1336,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                   <double>0.050000000000000</double>
                  </property>
                  <property name="value">
-                  <double>1.000000000000000</double>
+                  <double>0.200000000000000</double>
                  </property>
                 </widget>
                </item>
@@ -1376,6 +1393,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                </item>
                <item>
                 <widget class="QSpinBox" name="numImages">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
                  <property name="maximum">
                   <number>100</number>
                  </property>
@@ -1657,7 +1677,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="7,2">
       <item>
        <widget class="QProgressBar" name="progressBar">
         <property name="value">

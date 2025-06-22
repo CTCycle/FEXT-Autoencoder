@@ -84,7 +84,7 @@ class ImageReconstruction:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, val_images, kwargs.get('progress_callback', None))
+                i, len(val_images), kwargs.get('progress_callback', None))
         
         plt.tight_layout()
         self.save_image(fig, 'images_recostruction.jpeg')
@@ -98,15 +98,14 @@ class ImageReconstruction:
 class ImageAnalysis:
 
     def __init__(self, database, configuration):           
-        self.database = database
-        self.save_images = configuration.get('save_images', True)          
+        self.database = database                
         self.configuration = configuration      
         self.DPI = 400 
 
     #--------------------------------------------------------------------------
     def save_image(self, fig, name):        
         out_path = os.path.join(EVALUATION_PATH, name)
-        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)     
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)  
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path, **kwargs):          
@@ -150,10 +149,11 @@ class ImageAnalysis:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, images_path, kwargs.get('progress_callback', None))  
+                i, len(images_path), kwargs.get('progress_callback', None))  
 
+        # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics_table(stats_dataframe)       
+        self.database.save_image_statistics_table(stats_dataframe)               
         
         return stats_dataframe
     
@@ -175,16 +175,19 @@ class ImageAnalysis:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, images_path, kwargs.get('progress_callback', None))  
+                i, len(images_path), kwargs.get('progress_callback', None))  
 
-        # Plot the combined histogram
+        # Plot the combined pixel intensity histogram
         fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
         plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        ax.set_title('Combined Pixel Intensity Histogram', fontsize=20)
-        ax.set_xlabel('Pixel Intensity', fontsize=12)
-        ax.set_ylabel('Frequency', fontsize=12)
+        ax.set_title('Combined Pixel Intensity Histogram', fontsize=24)
+        ax.set_xlabel('Pixel Intensity', fontsize=16, fontweight='bold')
+        ax.set_ylabel('Frequency', fontsize=16, fontweight='bold')        
+        ax.tick_params(axis='both', which='major', labelsize=14, labelcolor='black')
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontweight('bold')
         plt.tight_layout()        
-        self.save_image(fig, "pixels_intensity_histogram.jpeg") if self.save_images else None
+        self.save_image(fig, "pixels_intensity_histogram.jpeg") 
         plt.close()          
 
         return fig              
