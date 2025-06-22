@@ -1,6 +1,5 @@
-from keras import losses, metrics, ops
+from keras import losses, ops
 
-from FEXT.commons.logger import logger
 
 
 # [LOSS FUNCTION]

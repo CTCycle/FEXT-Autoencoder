@@ -4,7 +4,7 @@ from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
 
-from FEXT.commons.utils.learning.scheduler import LinearDecayLRScheduler
+from FEXT.commons.utils.learning.training.scheduler import LinearDecayLRScheduler
 from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
 
@@ -24,7 +24,7 @@ class DataSerializer:
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path, sample_size=1.0):            
+    def get_images_path_from_directory(self, path : str, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):
@@ -41,9 +41,8 @@ class DataSerializer:
 ###############################################################################
 class ModelSerializer:
 
-    def __init__(self, database):
-        self.database = database
-        self.model_name = 'FeXT'        
+    def __init__(self):        
+        self.model_name = 'FeXT_AE'        
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
