@@ -112,7 +112,8 @@ class MainWindow:
             (QCheckBox,'runEvaluationGPU','evaluation_on_GPU'), 
             (QPushButton,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'evalReport','get_evaluation_report'), 
-            (QCheckBox,'imgReconstruction','image_reconstruction'),      
+            (QCheckBox,'imgReconstruction','image_reconstruction'), 
+            (QSpinBox,'evalBatchSize','eval_batch_size'),     
             (QSpinBox,'numImages','num_evaluation_images'),           
             # 4. inference tab page  
             (QCheckBox,'runInferenceGPU','inference_on_GPU'),      
@@ -234,6 +235,7 @@ class MainWindow:
 
             # 3. model evaluation tab page
             ('evaluation_on_GPU', 'toggled', 'evaluation_on_GPU'),
+            ('eval_batch_size', 'valueChanged', 'eval_batch_size'),
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),
         
             # 4. inference tab page  

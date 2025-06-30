@@ -95,13 +95,19 @@ class InferenceDataLoader:
 
     # load and preprocess a single image
     #--------------------------------------------------------------------------
-    def load_image(self, path): 
-        image = tf.io.read_file(path)
-        rgb_image = tf.image.decode_image(
-            image, channels=self.num_channels, expand_animations=False)        
-        rgb_image = tf.image.resize(rgb_image, self.img_shape)        
+    def load_image(self, path, as_array=False): 
+        if as_array:
+            image = cv2.imread(path)          
+            image = cv2.cvtColor(image, self.color_encoding)
+            image = np.asarray(
+                cv2.resize(image, self.img_shape), dtype=np.float32)
+        else:
+            image = tf.io.read_file(path)
+            image = tf.image.decode_image(
+                image, channels=self.num_channels, expand_animations=False)        
+            image = tf.image.resize(image, self.img_shape)
         
-        return rgb_image      
+        return image      
     
     # load and preprocess a single image
     #--------------------------------------------------------------------------
@@ -116,18 +122,8 @@ class InferenceDataLoader:
     def image_normalization(self, image):
         normalize_image = image/255.0        
                 
-        return normalize_image              
-
-    #--------------------------------------------------------------------------
-    def load_image_as_array(self, path, normalization=True):       
-        image = cv2.imread(path)          
-        image = cv2.cvtColor(image, self.color_encoding)
-        image = np.asarray(
-            cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)            
-        if normalization:
-            image = image/255.0       
-
-        return image  
+        return normalize_image    
+   
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
