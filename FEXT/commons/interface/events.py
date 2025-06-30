@@ -64,6 +64,7 @@ class ValidationEvents:
 
     def __init__(self, database, configuration):        
         self.database = database     
+        self.eval_batch_size = configuration.get('eval_batch_size', 32)
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
@@ -141,7 +142,7 @@ class ValidationEvents:
         # the dataset is built on top of the training and validation data
         loader = InferenceDataLoader(train_config)    
         validation_dataset = loader.build_inference_dataloader(
-            validation_images, batch_size=1)   
+            validation_images, batch_size=self.eval_batch_size)   
 
         # check worker status to allow interruption
         check_thread_status(worker)             
@@ -151,11 +152,13 @@ class ValidationEvents:
             # evaluate model performance over the training and validation dataset 
             summarizer = ModelEvaluationSummary(self.database, self.configuration)       
             summarizer.get_evaluation_report(model, validation_dataset, worker=worker) 
+             
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
             images.append(validator.visualize_reconstructed_images(
-                validation_images, progress_callback=progress_callback, worker=worker))       
+                validation_images, progress_callback=progress_callback, worker=worker))   
+            logger.info('Image reconstruction analysis successfully performed')    
 
         return images      
 

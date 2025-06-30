@@ -42,12 +42,11 @@ class Configuration:
             'final_lr': 0.0001,
 
             # Inference
-            'inference_on_GPU': False,
-            
+            'inference_on_GPU': False,            
 
             # Validation
             'evaluation_on_GPU': False,
-            'val_batch_size': 20,
+            'eval_batch_size': 32,
             'num_evaluation_images': 6            
         }
 

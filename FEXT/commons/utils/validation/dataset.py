@@ -41,7 +41,7 @@ class ImageReconstruction:
     #-------------------------------------------------------------------------- 
     def get_images(self, data):
         loader = InferenceDataLoader(self.configuration)
-        images = [loader.load_image_as_array(path) for path in 
+        images = [loader.load_image(path, as_array=True) for path in 
                   random.sample(data, self.num_images)]        
                 
         return images
@@ -71,9 +71,10 @@ class ImageReconstruction:
         for i, img in enumerate(val_images):                      
             expanded_img = np.expand_dims(img, axis=0)                 
             reconstructed_image = self.model.predict(
-                expanded_img, verbose=0, batch_size=1)[0]              
-            real = np.clip(img, 0, 1)
-            pred = np.clip(reconstructed_image, 0, 1)          
+                expanded_img, verbose=0, batch_size=1)[0]                          
+            
+            real = np.clip(img * 255.0, 0, 255)  
+            pred = np.clip(reconstructed_image * 255.0, 0, 255)         
             axs[i, 0].imshow(real)
             axs[i, 0].set_title('Original Picture' if i == 0 else "")
             axs[i, 0].axis('off')            
