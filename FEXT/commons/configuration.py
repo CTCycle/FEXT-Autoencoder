@@ -2,17 +2,14 @@
 class Configuration:
     
     def __init__(self):
-        self.configuration = {            
-            'general_seed': 42,
-            'split_seed': 76,
-            'train_seed': 42,         
-
+        self.configuration = { 
             # Dataset
+            'general_seed': 42,
             'sample_size': 1.0,
             'validation_size': 0.2,
             'img_augmentation': False,
             'shuffle_dataset': True,
-            'shuffle_size': 1024,
+            'shuffle_size': 256,
 
             # Model 
             'initial_neurons': 64,
@@ -21,29 +18,35 @@ class Configuration:
             'jit_backend': 'inductor',
 
             # Device
-            'device': 'CPU',
+            'train_on_GPU': False,
             'device_id': 0,
             'use_mixed_precision': False,
             'num_workers': 0,
 
             # Training
+            'split_seed': 42,
+            'train_seed': 42, 
             'train_sample_size': 1.0,
             'epochs': 100,
             'additional_epochs': 10,
             'batch_size': 32,
-            'use_tensorboard': False,
             'plot_training_metrics' : True,
+            'use_tensorboard': False,            
             'save_checkpoints': False,
 
             # Learning rate scheduler
             'use_scheduler' : False,
             'initial_lr': 0.001,
-            'constant_steps': 40000,
-            'decay_steps': 1000,
+            'constant_steps': 1000,
+            'decay_steps': 500,
             'final_lr': 0.0001,
 
+            # Inference
+            'inference_on_GPU': False,            
+
             # Validation
-            'val_batch_size': 20,
+            'evaluation_on_GPU': False,
+            'eval_batch_size': 32,
             'num_evaluation_images': 6            
         }
 
