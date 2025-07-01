@@ -6,6 +6,7 @@ FEXT/resources/checkpoints/*
 !FEXT/commons/assets/*
 FEXT/app/python/*
 FEXT/app/git/*
+FEXT/app/.env
 
 
 __pycache__
