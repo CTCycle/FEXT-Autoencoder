@@ -6,7 +6,7 @@ from keras.utils import set_random_seed
 from keras import Model
 
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
-from FEXT.commons.utils.data.loader import InferenceDataLoader
+from FEXT.commons.utils.data.loader import ImageDataLoader
 from FEXT.commons.constants import INFERENCE_PATH
 from FEXT.commons.logger import logger
 
@@ -17,7 +17,7 @@ class ImageEncoding:
     
     def __init__(self, model, configuration, checkpoint_path):       
         set_random_seed(configuration.get('train_seed', 42)) 
-        self.dataloader = InferenceDataLoader(configuration)
+        self.dataloader = ImageDataLoader(configuration, shuffle=False)
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.configuration = configuration
         self.model = model 
@@ -32,7 +32,7 @@ class ImageEncoding:
         for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
             image_name = os.path.basename(pt)
             try:
-                image = self.dataloader.load_image_as_array(pt)
+                image = self.dataloader.load_image(pt, as_array=True)
                 image = np.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
@@ -43,7 +43,7 @@ class ImageEncoding:
             # check for worker thread status and update progress callback
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, images_paths, kwargs.get('progress_callback', None))
+                i, len(images_paths), kwargs.get('progress_callback', None))
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(

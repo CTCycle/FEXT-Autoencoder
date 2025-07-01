@@ -4,14 +4,14 @@ from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPixmap
 
 from FEXT.commons.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.commons.utils.data.loader import TrainingDataLoader, InferenceDataLoader
+from FEXT.commons.utils.data.loader import ImageDataLoader
 from FEXT.commons.utils.data.process import TrainValidationSplit
 from FEXT.commons.utils.learning.device import DeviceConfig
 from FEXT.commons.utils.learning.training.fitting import ModelTraining
 from FEXT.commons.utils.learning.models.autoencoder import FeXTAutoEncoder
 from FEXT.commons.utils.learning.inference.encoding import ImageEncoding
-from FEXT.commons.utils.validation.dataset import ImageAnalysis, ImageReconstruction
-from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary
+from FEXT.commons.utils.validation.dataset import ImageAnalysis
+from FEXT.commons.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
 from FEXT.commons.interface.workers import check_thread_status
 
 from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
@@ -140,9 +140,8 @@ class ValidationEvents:
         logger.info('Building model data loaders with prefetching and parallel processing') 
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
-        loader = InferenceDataLoader(train_config)    
-        validation_dataset = loader.build_inference_dataloader(
-            validation_images, batch_size=self.eval_batch_size)   
+        loader = ImageDataLoader(train_config, shuffle=False)    
+        validation_dataset = loader.build_inference_dataloader(validation_images)   
 
         # check worker status to allow interruption
         check_thread_status(worker)             
@@ -201,9 +200,9 @@ class ModelEvents:
         
         # create the tf.datasets using the previously initialized generators 
         logger.info('Building model data loaders with prefetching and parallel processing')     
-        builder = TrainingDataLoader(self.configuration)          
-        train_dataset, validation_dataset = builder.build_training_dataloader(
-            train_data, validation_data)
+        builder = ImageDataLoader(self.configuration)          
+        train_dataset = builder.build_training_dataloader(train_data)
+        validation_dataset = builder.build_training_dataloader(validation_data)
         
         # set device for training operations based on user configuration        
         logger.info('Setting device for training operations based on user configuration')                 
@@ -252,9 +251,9 @@ class ModelEvents:
 
         # create the tf.datasets using the previously initialized generators 
         logger.info('Building model data loaders with prefetching and parallel processing') 
-        builder = TrainingDataLoader(train_config)           
-        train_dataset, validation_dataset = builder.build_training_dataloader(
-            train_data, validation_data)  
+        builder = ImageDataLoader(train_config)          
+        train_dataset = builder.build_training_dataloader(train_data)
+        validation_dataset = builder.build_training_dataloader(validation_data)
 
         # check worker status to allow interruption
         check_thread_status(worker)         
@@ -291,7 +290,8 @@ class ModelEvents:
         # takes the list of images path from inference as input    
         encoder = ImageEncoding(model, train_config, checkpoint_path)  
         logger.info(f'Start encoding images using model {selected_checkpoint}')  
-        encoder.encode_images_features(images_paths, progress_callback, worker=worker) 
+        encoder.encode_images_features(
+            images_paths, progress_callback=progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            
         
