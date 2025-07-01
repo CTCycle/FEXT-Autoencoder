@@ -62,8 +62,7 @@ class MainWindow:
             # 1. dataset tab page 
             # dataset evaluation group            
             (QSpinBox,'seed','general_seed'),
-            (QDoubleSpinBox,'sampleSize','sample_size'),
-            (QCheckBox,'getStatsAnalysis','get_image_stats'),
+            (QDoubleSpinBox,'sampleSize','sample_size'),            
             (QCheckBox,'getPixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'),
             #  dataset processing group   
@@ -89,8 +88,7 @@ class MainWindow:
             (QSpinBox,'numEpochs','epochs'),
             (QSpinBox,'batchSize','batch_size'),
             (QSpinBox,'trainSeed','train_seed'),
-            (QSpinBox,'splitSeed','split_seed'),            
-            
+            (QSpinBox,'splitSeed','split_seed'), 
             # RL scheduler settings group
             (QCheckBox,'useScheduler','LR_scheduler'), 
             (QDoubleSpinBox,'initialLearningRate','initial_LR'),
