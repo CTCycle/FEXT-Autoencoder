@@ -15,9 +15,7 @@ In contrast, the decoder is responsible for reconstructing the original image fr
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. However, this model can be trained on virtually any image dataset, as the inputs will be automatically resized and normalized.
 
 ## 4. Installation
-The installation process on Windows has been designed to be fully automated. To begin, simply run *start_on_windows.bat.* On its first execution, the installation procedure will execute with minimal user input required. The script will check if either Anaconda or Miniconda is installed and can be accessed from your system path. If neither is found, it will automatically download and install the latest Miniconda release from https://docs.anaconda.com/miniconda/. Following this step, the script will proceed with the installation of all necessary Python dependencies. 
-
-This includes Keras 3 (with PyTorch support as the backend) and the required CUDA dependencies (CUDA 12.4) to enable GPU acceleration. Should you prefer to handle the installation process separately, you can run the standalone installer by running *setup/install_on_windows.bat*.
+The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, and a portable version of Git, minimizing user interaction and ensuring all components are ready for local use.  
 
 **Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
 
@@ -34,15 +32,13 @@ This project leverages Just-In-Time model compilation through `torch.compile`, e
 ## 5. How to use
 On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
 
-The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Model training supports customizable configurations and also allows resuming previous sessions using pretrained models.
+The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Models training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
-**Dataset validation:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
+**Dataset:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
 
 - **Calculation of images statistics**: pixels mean values, standard deviation, values range, noise ratio
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
-
-![dataset_tab](FEXT/commons/assets/dataset_tab.png)
 
 **Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
 
@@ -52,10 +48,16 @@ The main interface streamlines navigation across the application's core services
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
-**Model inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
+**Inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
+
+**Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
+- **Training images**: visualize training images located in *resources/database/dataset*  
+- **Inference images**: visualize inference images located in *resources/database/inference*  
+- **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
+- **Model evalution plots**: visualize plots generated from model evaluation pipeline  
 
 
-**Setup and Maintenance:** you can run *setup/setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
+**Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
 
 - **Run installation:** run the application installer for Windows
 - **Enable root path imports:** refresh root path imports if the main folder has been moved or renamed
@@ -74,7 +76,7 @@ This folder organizes data and results across various stages of the project, suc
 
 - **templates:** reference template files can be found here
  
-**Environmental variables** are stored in *setup/variables/.env*. For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *setup/variables* directory.
+**Environmental variables** are stored in the *app* folder (within the project folder). For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *app* directory.
 
 | Variable              | Description                                              |
 |-----------------------|----------------------------------------------------------|

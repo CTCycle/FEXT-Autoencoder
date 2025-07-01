@@ -1,108 +1,40 @@
 import os
+import re
 import cv2
 import random
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
+
 from tqdm import tqdm
 
-from FEXT.commons.utils.data.loader import InferenceDataLoader
-from FEXT.commons.utils.data.database import FEXTDatabase
+import matplotlib
+matplotlib.use("Agg")   
+import matplotlib.pyplot as plt
+
+
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.constants import EVALUATION_PATH
 from FEXT.commons.logger import logger
 
 
-# [IMAGE RECONSTRUCTION]
-###############################################################################
-class ImageReconstruction:
 
-    def __init__(self, configuration, model, checkpoint_path):       
-        self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
-        os.makedirs(self.validation_path, exist_ok=True)
-        self.loader = InferenceDataLoader(configuration)        
-        self.num_images = configuration.get('num_evaluation_images', 6)
-        self.DPI = 400 
-        self.file_type = 'jpeg'
-        self.model = model  
-        self.configuration = configuration
-
-    #-------------------------------------------------------------------------- 
-    def get_images(self, data):
-        images = [self.loader.load_image_as_array(path) for path in 
-                  random.sample(data, self.num_images)]        
-                
-        return images
-
-    #-------------------------------------------------------------------------- 
-    def visualize_3D_latent_space(self, model, dataset, num_images=10):
-        # Extract latent representations
-        latent_representations = model.predict(dataset)
-        latent_representations = latent_representations.reshape(
-            len(latent_representations), -1)
-        # Apply the selected transformation
-        reduced_latent = PCA(n_components=3).fit_transform(latent_representations)       
-        fig = plt.figure(figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(reduced_latent[:, 0], reduced_latent[:, 1], reduced_latent[:, 2], s=5, cmap='viridis')
-        ax.set_title(f"Latent Representation (PCA) of {num_images} images")
-        ax.set_xlabel("Component 1")
-        ax.set_ylabel("Component 2")
-        ax.set_zlabel("Component 3")
-        plt.savefig(
-            os.path.join(self.validation_path, 'PCA.jpeg'), 
-            dpi=self.DPI)
-    
-    #-------------------------------------------------------------------------- 
-    def visualize_reconstructed_images(self, validation_data, progress_callback=None, worker=None):        
-        val_images = self.get_images(validation_data)
-        logger.info(f'Comparing {self.num_images} reconstructed images from validation dataset')
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))      
-        for i, img in enumerate(val_images):                      
-            expanded_img = np.expand_dims(img, axis=0)                 
-            reconstructed_image = self.model.predict(
-                expanded_img, verbose=0, batch_size=1)[0]              
-            real = np.clip(img, 0, 1)
-            pred = np.clip(reconstructed_image, 0, 1)          
-            axs[i, 0].imshow(real)
-            axs[i, 0].set_title('Original Picture' if i == 0 else "")
-            axs[i, 0].axis('off')            
-            axs[i, 1].imshow(pred)
-            axs[i, 1].set_title('Reconstructed Picture' if i == 0 else "")
-            axs[i, 1].axis('off')
-
-            # check for thread status and progress bar update
-            check_thread_status(worker)
-            update_progress_callback(i, val_images, progress_callback)
-        
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(self.validation_path, 'images_recostruction.jpeg'), 
-            dpi=self.DPI)
-        plt.close() 
-
-        return fig    
-                 
 
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):           
-        self.database = FEXTDatabase(configuration)
-        self.save_images = configuration.get('save_images', True)          
+    def __init__(self, database, configuration):           
+        self.database = database                
         self.configuration = configuration      
         self.DPI = 400 
 
     #--------------------------------------------------------------------------
     def save_image(self, fig, name):        
         out_path = os.path.join(EVALUATION_PATH, name)
-        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)     
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)  
         
     #--------------------------------------------------------------------------
-    def calculate_image_statistics(self, images_path, progress_callback=None, worker=None):          
+    def calculate_image_statistics(self, images_path, **kwargs):          
         results= []     
         for i, path in enumerate(tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
@@ -141,16 +73,18 @@ class ImageAnalysis:
                             'noise_ratio': noise_ratio})
 
             # check for thread status and progress bar update
-            check_thread_status(worker)
-            update_progress_callback(i, images_path, progress_callback)    
+            check_thread_status(kwargs.get('worker', None))
+            update_progress_callback(
+                i, len(images_path), kwargs.get('progress_callback', None))  
 
+        # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics_table(stats_dataframe)       
+        self.database.save_image_statistics_table(stats_dataframe)               
         
         return stats_dataframe
     
     #--------------------------------------------------------------------------
-    def calculate_pixel_intensity_distribution(self, images_path, progress_callback=None, worker=None):                 
+    def calculate_pixel_intensity_distribution(self, images_path, **kwargs):                 
         image_histograms = np.zeros(256, dtype=np.int64)        
         for i, path in enumerate(
             tqdm(images_path, desc="Processing image histograms", 
@@ -165,24 +99,27 @@ class ImageAnalysis:
             image_histograms += hist.astype(np.int64)
             
             # check for thread status and progress bar update
-            check_thread_status(worker)
-            update_progress_callback(i, images_path, progress_callback)    
+            check_thread_status(kwargs.get('worker', None))
+            update_progress_callback(
+                i, len(images_path), kwargs.get('progress_callback', None))  
 
-        # Plot the combined histogram
+        # Plot the combined pixel intensity histogram
         fig, ax = plt.subplots(figsize=(16, 14), dpi=self.DPI)
         plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        ax.set_title('Combined Pixel Intensity Histogram', fontsize=20)
-        ax.set_xlabel('Pixel Intensity', fontsize=12)
-        ax.set_ylabel('Frequency', fontsize=12)
+        ax.set_title('Combined Pixel Intensity Histogram', fontsize=24)
+        ax.set_xlabel('Pixel Intensity', fontsize=16, fontweight='bold')
+        ax.set_ylabel('Frequency', fontsize=16, fontweight='bold')        
+        ax.tick_params(axis='both', which='major', labelsize=14, labelcolor='black')
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontweight('bold')
         plt.tight_layout()        
-        self.save_image(fig, "pixels_intensity_histogram.jpeg") if self.save_images else None
+        self.save_image(fig, "pixels_intensity_histogram.jpeg") 
         plt.close()          
 
         return fig              
     
     #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_images_path, val_images_path,
-                                         progress_callback=None, worker=None):                
+    def compare_train_and_validation_PID(self, train_images_path, val_images_path, **kwargs):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
         val_hist = np.zeros(256, dtype=np.int64)
@@ -197,7 +134,8 @@ class ImageAnalysis:
             train_hist += hist.astype(np.int64)
 
         # Process validation images
-        for path in tqdm(val_images_path, desc="Processing validation images", total=len(val_images_path), ncols=100):
+        for path in tqdm(val_images_path, desc="Processing validation images", 
+                         total=len(val_images_path), ncols=100):
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load validation image at {path}.")
@@ -217,8 +155,9 @@ class ImageAnalysis:
         plt.ylabel('Frequency', fontsize=12)
         plt.legend()
         plt.tight_layout()
-        plt.savefig(os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
-                    dpi=self.DPI)
+        plt.savefig(
+            os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
+            dpi=self.DPI)
         plt.close()
 
         return train_hist, val_hist

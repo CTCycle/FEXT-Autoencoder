@@ -7,8 +7,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 from FEXT.commons.interface.workers import WorkerInterrupted
 from FEXT.commons.logger import logger
+
 
 # [CALLBACK FOR UI PROGRESS BAR]
 ###############################################################################
@@ -26,6 +31,7 @@ class ProgressBarCallback(keras.callbacks.Callback):
         percent = int(100 * processed_epochs / additional_epochs)
         if self.progress_callback is not None:
             self.progress_callback(percent)
+
 
 # [CALLBACK FOR TRAIN INTERRUPTION]
 ###############################################################################
@@ -103,16 +109,14 @@ class RealTimeHistory(keras.callbacks.Callback):
     
 # [CALLBACKS HANDLER]
 ###############################################################################
-def initialize_callbacks_handler(configuration, checkpoint_path, session=None, 
-                                 progress_callback=None, worker=None):
-    
+def initialize_callbacks_handler(configuration, checkpoint_path, session=None, **kwargs):    
     from_epoch = 0
     total_epochs = configuration.get('epochs', 10)
-    callbacks_list = [
-        ProgressBarCallback(progress_callback, total_epochs, from_epoch),
-        InterruptTraining(worker)]  
-    
     additional_epochs = configuration.get('additional_epochs', 10)
+    callbacks_list = [
+        ProgressBarCallback(kwargs.get('progress_callback', None), total_epochs, from_epoch),
+        InterruptTraining(kwargs.get('worker', None))]      
+    
     if session:
         from_epoch = session['epochs']
         total_epochs = additional_epochs + from_epoch
