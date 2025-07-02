@@ -61,11 +61,11 @@ class MainWindow:
             (QPushButton,'stopThread','stop_thread'),
             (QCheckBox,'deviceGPU','use_device_GPU'),    
             # 1. dataset tab page 
-            # dataset evaluation group            
-            (QSpinBox,'seed','general_seed'),
-            (QDoubleSpinBox,'sampleSize','sample_size'),            
-            (QCheckBox,'getPixDist','pixel_distribution_metric'),
+            # dataset evaluation group                       
+            (QCheckBox,'imgStats','image_statistics_metric'),      
+            (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'),
+            (QSpinBox,'seed','general_seed'),
             #  dataset processing group   
             # still nothing, to be implemented         
                       
@@ -105,8 +105,7 @@ class MainWindow:
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
             # 3. model evaluation tab page
-            (QPushButton,'evaluateModel','model_evaluation'),
-             
+            (QPushButton,'evaluateModel','model_evaluation'),             
             (QPushButton,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'evalReport','get_evaluation_report'), 
             (QCheckBox,'imgReconstruction','image_reconstruction'), 
@@ -237,11 +236,10 @@ class MainWindow:
             ('validation_size', 'valueChanged', 'validation_size')
             ]
 
-        self.data_metrics = [
-            ('pixels_distribution', self.pixel_distribution_metric)]
-        self.model_metrics = [
-            ('evaluation_report', self.get_evaluation_report),
-            ('image_reconstruction', self.image_reconstruction)]                
+        self.data_metrics = [('image_statistics', self.image_statistics_metric),                             
+                             ('pixels_distribution', self.pixel_distribution_metric)]
+        self.model_metrics = [('evaluation_report', self.get_evaluation_report),
+                              ('image_reconstruction', self.image_reconstruction)]                
 
         for attr, signal_name, config_key in connections:
             widget = self.widgets[attr]
