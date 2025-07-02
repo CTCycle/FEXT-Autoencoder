@@ -10,16 +10,12 @@ class DeviceConfig:
     
     def __init__(self, configuration):
         self.configuration = configuration
-        
             
     #--------------------------------------------------------------------------
-    def set_device(self, ovveride_device=None):  
-        device_name = 'GPU' if self.configuration.get('device', False) else 'CPU'
+    def set_device(self):  
+        device_name = 'GPU' if self.configuration.get('use_device_GPU', False) else 'CPU'
         device_id = self.configuration.get('device_ID', 0)
-        mixed_precision = self.configuration.get('use_mixed_precision', False)
-        if ovveride_device and isinstance(ovveride_device, str):
-            device_name = ovveride_device
-            device_id = 0
+        mixed_precision = self.configuration.get('use_mixed_precision', False)      
 
         if device_name == 'GPU':
             if not cuda.is_available():

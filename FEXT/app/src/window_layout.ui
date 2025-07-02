@@ -1172,16 +1172,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_18">
                <item>
-                <widget class="QCheckBox" name="runTrainGPU">
-                 <property name="text">
-                  <string>Run on GPU</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_8"/>
-               </item>
-               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_23">
                  <item>
                   <widget class="QLabel" name="label_5">
@@ -1374,13 +1364,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_19">
            <item>
-            <widget class="QCheckBox" name="runEvaluationGPU">
-             <property name="text">
-              <string>Run validation on GPU</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_32">
              <item>
               <widget class="QLabel" name="label_15">
@@ -1495,22 +1478,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
          <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_13">
-            <item>
-             <widget class="QGroupBox" name="groupBox_10">
-              <property name="title">
-               <string>Configuration</string>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_16">
-               <item>
-                <widget class="QCheckBox" name="runInferenceGPU">
-                 <property name="text">
-                  <string>Run inference on GPU</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
             <item>
              <widget class="QPushButton" name="encodeImages">
               <property name="text">
@@ -1668,7 +1635,14 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="7,2">
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,7,2">
+      <item>
+       <widget class="QCheckBox" name="deviceGPU">
+        <property name="text">
+         <string>Use GPU as available device</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QProgressBar" name="progressBar">
         <property name="value">
