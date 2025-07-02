@@ -112,8 +112,7 @@ class ValidationEvents:
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
-    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, selected_device='CPU', 
-                                      progress_callback=None, worker=None):       
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, progress_callback=None, worker=None):       
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')   
         modser = ModelSerializer()       
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -122,8 +121,8 @@ class ValidationEvents:
 
         # set device for training operations based on user configuration
         logger.info('Setting device for training operations based on user configuration')                
-        device = DeviceConfig(train_config)
-        device.set_device(selected_device)  
+        device = DeviceConfig(self.configuration)
+        device.set_device()  
 
         # isolate the encoder from the autoencoder model   
         encoder = ImageEncoding(model, train_config, checkpoint_path)
@@ -266,8 +265,7 @@ class ModelEvents:
             progress_callback=progress_callback, worker=worker)
         
     #--------------------------------------------------------------------------
-    def run_inference_pipeline(self, selected_checkpoint, device='CPU', 
-                               progress_callback=None, worker=None):
+    def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint from pretrained models')
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(

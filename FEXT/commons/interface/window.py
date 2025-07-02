@@ -58,7 +58,8 @@ class MainWindow:
             (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
             (QComboBox,'checkpointsList','checkpoints_list'),
             (QProgressBar,'progressBar','progress_bar'),      
-            (QPushButton,'stopThread','stop_thread'),    
+            (QPushButton,'stopThread','stop_thread'),
+            (QCheckBox,'deviceGPU','use_device_GPU'),    
             # 1. dataset tab page 
             # dataset evaluation group            
             (QSpinBox,'seed','general_seed'),
@@ -75,9 +76,7 @@ class MainWindow:
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),
             (QDoubleSpinBox,'validationSize','validation_size'),
             (QSpinBox,'shuffleSize','shuffle_size'),
-            # device settings group
-            (QCheckBox,'runTrainGPU','train_on_GPU'),
-            (QRadioButton,'setGPU','use_GPU'),
+            # device settings group               
             (QSpinBox,'deviceID','device_ID'),
             (QSpinBox,'numWorkers','num_workers'),
             # training settings group
@@ -107,14 +106,13 @@ class MainWindow:
             (QPushButton,'resumeTraining','resume_training'),            
             # 3. model evaluation tab page
             (QPushButton,'evaluateModel','model_evaluation'),
-            (QCheckBox,'runEvaluationGPU','evaluation_on_GPU'), 
+             
             (QPushButton,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'evalReport','get_evaluation_report'), 
             (QCheckBox,'imgReconstruction','image_reconstruction'), 
             (QSpinBox,'evalBatchSize','eval_batch_size'),     
             (QSpinBox,'numImages','num_evaluation_images'),           
-            # 4. inference tab page  
-            (QCheckBox,'runInferenceGPU','inference_on_GPU'),      
+            # 4. inference tab page              
             (QPushButton,'encodeImages','encode_images'),          
             # 5. Viewer tab
             (QPushButton,'loadImages','load_source_images'),
@@ -190,6 +188,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     def _auto_connect_settings(self):
         connections = [  
+            ('use_device_GPU', 'toggled', 'use_device_GPU'),
             # 1. dataset tab page
             # dataset evaluation group
             ('general_seed', 'valueChanged', 'general_seed'),
@@ -214,8 +213,7 @@ class MainWindow:
             ('epochs', 'valueChanged', 'epochs'),
             ('batch_size', 'valueChanged', 'batch_size'),
             ('train_seed', 'valueChanged', 'train_seed'),
-            ('split_seed', 'valueChanged', 'split_seed'),
-            ('train_on_GPU', 'toggled', 'train_on_GPU'),
+            ('split_seed', 'valueChanged', 'split_seed'),            
             # RL scheduler settings group
             ('LR_scheduler', 'toggled', 'use_lr_scheduler'),
             ('initial_LR', 'valueChanged', 'initial_LR'),
@@ -231,13 +229,11 @@ class MainWindow:
             # session settings group
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
 
-            # 3. model evaluation tab page
-            ('evaluation_on_GPU', 'toggled', 'evaluation_on_GPU'),
+            # 3. model evaluation tab page            
             ('eval_batch_size', 'valueChanged', 'eval_batch_size'),
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),
         
-            # 4. inference tab page  
-            ('inference_on_GPU', 'toggled', 'inferenceon_GPU'),         
+            # 4. inference tab page                     
             ('validation_size', 'valueChanged', 'validation_size')
             ]
 
@@ -529,8 +525,7 @@ class MainWindow:
             return 
 
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.database, self.configuration)    
-        device = 'GPU' if self.configuration.get('evaluation_on_GPU', False) else 'CPU'   
+        self.validation_handler = ValidationEvents(self.database, self.configuration)         
         # send message to status bar
         self._send_message(f"Evaluating {self.select_checkpoint} performances... ")
 
@@ -538,8 +533,7 @@ class MainWindow:
         self.worker = Worker(
             self.validation_handler.run_model_evaluation_pipeline,
             self.selected_metrics['model'], 
-            self.selected_checkpoint, 
-            device)                
+            self.selected_checkpoint)                
         
         # start worker and inject signals
         self._start_worker(
@@ -576,16 +570,14 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.database, self.configuration)  
-        device = 'GPU' if self.configuration.get('inference_on_GPU', False) else 'CPU'   
+        self.model_handler = ModelEvents(self.database, self.configuration)            
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
         
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = Worker(
             self.model_handler.run_inference_pipeline,
-            self.selected_checkpoint,
-            device)
+            self.selected_checkpoint)
 
         # start worker and inject signals
         self._start_worker(

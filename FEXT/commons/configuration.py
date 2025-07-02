@@ -18,7 +18,7 @@ class Configuration:
             'jit_backend': 'inductor',
 
             # Device
-            'train_on_GPU': False,
+            'use_device_GPU': False,
             'device_id': 0,
             'use_mixed_precision': False,
             'num_workers': 0,
@@ -41,11 +41,9 @@ class Configuration:
             'decay_steps': 500,
             'final_lr': 0.0001,
 
-            # Inference
-            'inference_on_GPU': False,            
+            # Inference                     
 
-            # Validation
-            'evaluation_on_GPU': False,
+            # Validation            
             'eval_batch_size': 32,
             'num_evaluation_images': 6            
         }
