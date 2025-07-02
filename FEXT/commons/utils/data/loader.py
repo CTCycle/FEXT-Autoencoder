@@ -10,7 +10,7 @@ class ImageDataLoader:
     def __init__(self, configuration, shuffle=True):
         self.img_shape = (128, 128)   
         self.num_channels = 3   
-        self.augmentation = configuration.get('use_img_augmentation')
+        self.augmentation = configuration.get('use_img_augmentation', False)
         self.batch_size = configuration.get('batch_size', 32)
         self.eval_batch_size = configuration.get('eval_batch_size', 32)
         self.shuffle_samples = configuration.get('shuffle_size', 1024)
