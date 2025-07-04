@@ -149,8 +149,7 @@ class ValidationEvents:
         if 'evaluation_report' in metrics:
             # evaluate model performance over the training and validation dataset 
             summarizer = ModelEvaluationSummary(self.database, self.configuration)       
-            summarizer.get_evaluation_report(model, validation_dataset, worker=worker) 
-             
+            summarizer.get_evaluation_report(model, validation_dataset, worker=worker)              
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
@@ -172,6 +171,8 @@ class ValidationEvents:
         exc, tb = err_tb
         logger.error(exc, '\n', tb)        
         QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
+
+        
 
          
 
@@ -304,5 +305,5 @@ class ModelEvents:
     def handle_error(self, window, err_tb):
         exc, tb = err_tb
         logger.error(exc, '\n', tb)
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
+        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")
 

@@ -547,7 +547,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
         <number>-6</number>
        </property>
        <attribute name="title">
-        <string>Dataset</string>
+        <string>Data</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -686,7 +686,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
                  <item>
                   <widget class="QLabel" name="label_16">
                    <property name="text">
-                    <string>Sample size</string>
+                    <string>Train sample size</string>
                    </property>
                   </widget>
                  </item>

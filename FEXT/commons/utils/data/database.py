@@ -23,6 +23,7 @@ class ImageStatisticsTable:
             'pixel_range': 'FLOAT',
             'noise_std': 'FLOAT',
             'noise_ratio': 'FLOAT'}
+        self.unique_col = 'name'
 
     #--------------------------------------------------------------------------
     def get_dtypes(self):
@@ -32,7 +33,7 @@ class ImageStatisticsTable:
     def create_table(self, cursor):
         query = f'''
         CREATE TABLE IF NOT EXISTS {self.name} (
-            name VARCHAR,
+            name VARCHAR PRIMARY KEY,
             height INTEGER,
             width INTEGER,
             mean FLOAT,
@@ -46,6 +47,19 @@ class ImageStatisticsTable:
         );
         '''
         cursor.execute(query)
+
+    #--------------------------------------------------------------------------
+    def upsert(self, conn, row):
+        columns = list(self.dtypes.keys())
+        placeholders = ','.join(['?'] * len(columns))
+        updates = ', '.join([f"{col}=excluded.{col}" for col in columns if col != self.unique_col])
+        query = f'''
+        INSERT INTO {self.name} ({",".join(columns)})
+        VALUES ({placeholders})
+        ON CONFLICT({self.unique_col}) DO UPDATE SET
+        {updates};
+        '''
+        conn.execute(query, tuple(row[col] for col in columns))
     
     
 ###############################################################################
