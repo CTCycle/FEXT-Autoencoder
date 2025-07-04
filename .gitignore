@@ -3,16 +3,12 @@ FEXT/resources/database/validation/*
 FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
-!FEXT/commons/assets/*
 FEXT/app/python/*
 FEXT/app/git/*
 FEXT/app/.env
 
 
 __pycache__
-*.jpeg
-*.jpg
-*.png
 *.db
 *.log
 *.npy

@@ -34,11 +34,13 @@ On Windows, run *start_on_windows.bat* to launch the application. Please note th
 
 The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Models training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
-**Dataset:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
+**Data:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
 
 - **Calculation of images statistics**: pixels mean values, standard deviation, values range, noise ratio
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
+
+![data_tab](FEXT/commons/assets/data_tab.png)
 
 **Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
 
@@ -48,13 +50,19 @@ The main interface streamlines navigation across the application's core services
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
+![model_eval_tab](FEXT/commons/assets/model_eval_tab.png)
+
 **Inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
+
+![inference_tab](FEXT/commons/assets/inference_tab.png)
 
 **Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
 - **Training images**: visualize training images located in *resources/database/dataset*  
 - **Inference images**: visualize inference images located in *resources/database/inference*  
 - **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
 - **Model evalution plots**: visualize plots generated from model evaluation pipeline  
+
+![viewer_tab](FEXT/commons/assets/viewer_tab.png)
 
 
 **Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
