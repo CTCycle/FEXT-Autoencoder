@@ -38,8 +38,7 @@ class MainWindow:
     
         # set thread pool for the workers
         self.threadpool = QThreadPool.globalInstance()
-        self.worker = None
-        self.worker_running = False        
+        self.worker = None        
 
         # initialize database
         self.database = FEXTDatabase(self.configuration)
@@ -60,15 +59,15 @@ class MainWindow:
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
             (QCheckBox,'deviceGPU','use_device_GPU'),    
-            # 1. dataset tab page 
-            # dataset evaluation group                       
+            # 1. data tab page 
+            # dataset evaluation group 
+            (QDoubleSpinBox,'sampleSize','sample_size'),
+            (QSpinBox,'seed','general_seed'),                      
             (QCheckBox,'imgStats','image_statistics_metric'),      
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'),
-            (QSpinBox,'seed','general_seed'),
-            #  dataset processing group   
-            # still nothing, to be implemented         
-                      
+            
+            
             # 2. training tab page
             # dataset settings group    
             (QCheckBox,'imgAugment','img_augmentation'),
@@ -128,7 +127,7 @@ class MainWindow:
             ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
             ('refresh_checkpoints','clicked',self.load_checkpoints),
             ('stop_thread','clicked',self.stop_running_worker),          
-            # 1. dataset tab page                      
+            # 1. data tab page                      
             ('pixel_distribution_metric','toggled',self._update_metrics),
             ('evaluate_dataset','clicked',self.run_dataset_evaluation_pipeline),           
             # 2. training tab page               
@@ -188,7 +187,7 @@ class MainWindow:
     def _auto_connect_settings(self):
         connections = [  
             ('use_device_GPU', 'toggled', 'use_device_GPU'),
-            # 1. dataset tab page
+            # 1. data tab page
             # dataset evaluation group
             ('general_seed', 'valueChanged', 'general_seed'),
             ('sample_size', 'valueChanged', 'sample_size'),
@@ -258,38 +257,30 @@ class MainWindow:
         return [], None 
 
     #--------------------------------------------------------------------------
-    def _set_graphics(self):
-        self.graphics = {}        
+    def _set_graphics(self):      
         view = self.main_win.findChild(QGraphicsView, 'canvas')
         scene = QGraphicsScene()
         pixmap_item = QGraphicsPixmapItem()
         pixmap_item.setTransformationMode(Qt.SmoothTransformation)
         scene.addItem(pixmap_item)
         view.setScene(scene)
-        view.setRenderHint(QPainter.Antialiasing, True)
-        view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        view.setRenderHint(QPainter.TextAntialiasing, True)
-        self.graphics = {'view': view,
-                         'scene': scene,
-                         'pixmap_item': pixmap_item}        
-                        
-        self.pixmaps = {
-            'train_images': [],         
-            'inference_images': [],      
-            'dataset_eval_images': [],  
-            'model_eval_images': []}
-        
-        self.img_paths = {'train_images' : IMG_PATH,
-                          'inference_images' : INFERENCE_INPUT_PATH}
-            
-        self.current_fig = {'train_images' : 0, 'inference_images' : 0,
-                            'dataset_eval_images' : 0, 'model_eval_images' : 0}   
+        for hint in (QPainter.Antialiasing, QPainter.SmoothPixmapTransform, 
+                     QPainter.TextAntialiasing):
+            view.setRenderHint(hint, True)
+
+        self.graphics = {'view': view, 'scene': scene, 'pixmap_item': pixmap_item}
+        self.pixmaps = {k: [] for k in (
+            'train_images', 'inference_images', 
+            'dataset_eval_images', 'model_eval_images')}
+
+        self.img_paths = {'train_images': IMG_PATH, 'inference_images': INFERENCE_INPUT_PATH}
+        self.current_fig = {k: 0 for k in self.pixmaps}
 
         self.pixmap_source_map = {
             self.data_plots_view: ("dataset_eval_images", "dataset_eval_images"),
             self.model_plots_view: ("model_eval_images", "model_eval_images"),
             self.inference_images_view: ("inference_images", "inference_images"),
-            self.train_images_view: ("train_images", "train_images")}             
+            self.train_images_view: ("train_images", "train_images")}        
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -311,7 +302,6 @@ class MainWindow:
         worker.signals.error.connect(on_error)        
         worker.signals.interrupted.connect(on_interrupted)
         self.threadpool.start(worker)
-        self.worker_running = True
 
     #--------------------------------------------------------------------------
     def _send_message(self, message): 
@@ -451,7 +441,7 @@ class MainWindow:
         if not self.data_metrics:
             return 
         
-        if self.worker_running:            
+        if self.worker:            
             return         
         
         self.configuration = self.config_manager.get_configuration() 
@@ -475,7 +465,7 @@ class MainWindow:
     #-------------------------------------------------------------------------- 
     @Slot()
     def train_from_scratch(self):
-        if self.worker_running:            
+        if self.worker:            
             return 
                   
         self.configuration = self.config_manager.get_configuration() 
@@ -495,7 +485,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def resume_training_from_checkpoint(self): 
-        if self.worker_running or not self.selected_checkpoint:            
+        if self.worker or not self.selected_checkpoint:            
             return         
               
         self.configuration = self.config_manager.get_configuration() 
@@ -519,7 +509,7 @@ class MainWindow:
     #-------------------------------------------------------------------------- 
     @Slot()
     def run_model_evaluation_pipeline(self):  
-        if self.worker_running:            
+        if self.worker:            
             return 
 
         self.configuration = self.config_manager.get_configuration() 
@@ -542,7 +532,7 @@ class MainWindow:
     #-------------------------------------------------------------------------- 
     @Slot()
     def get_checkpoints_summary(self):       
-        if self.worker_running:            
+        if self.worker:            
             return 
         
         self.configuration = self.config_manager.get_configuration() 
@@ -564,7 +554,7 @@ class MainWindow:
     #--------------------------------------------------------------------------   
     @Slot()    
     def encode_images_with_checkpoint(self):  
-        if self.worker_running:            
+        if self.worker:            
             return 
         
         self.configuration = self.config_manager.get_configuration() 
@@ -597,13 +587,13 @@ class MainWindow:
         self.current_fig[key] = 0
         self._update_graphics_view()
         self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
-        self.worker_running = False
+        self.worker = None
 
     #--------------------------------------------------------------------------
     def on_train_finished(self, session):          
         self.model_handler.handle_success(
             self.main_win, 'Training session is over. Model has been saved')
-        self.worker_running = False
+        self.worker = None
 
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots):  
@@ -617,13 +607,13 @@ class MainWindow:
         self._update_graphics_view()
         self.validation_handler.handle_success(
             self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
-        self.worker_running = False
+        self.worker = None
 
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
         self.model_handler.handle_success(
             self.main_win, 'Inference call has been terminated')
-        self.worker_running = False
+        self.worker = None
 
 
     ###########################################################################   
@@ -632,21 +622,25 @@ class MainWindow:
     @Slot(tuple)
     def on_evaluation_error(self, err_tb):
         self.validation_handler.handle_error(self.main_win, err_tb) 
-        self.worker_running = False   
+        self.worker = None   
 
     #--------------------------------------------------------------------------
     @Slot() 
     def on_model_error(self, err_tb):
         self.model_handler.handle_error(self.main_win, err_tb) 
-        self.worker_running = False  
+        self.worker = None  
 
-    #--------------------------------------------------------------------------
+    ###########################################################################   
+    # [INTERRUPTION HANDLERS]
+    ###########################################################################     
     def on_task_interrupted(self):         
-        self.progress_bar.setValue(0)
-        self._send_message('Current task has been interrupted by user') 
-        logger.warning('Current task has been interrupted by user')
-        self.worker_running = False        
-        
+        self.progress_bar.setValue(0)        
+        self._send_message('Current task has been interrupted by user')
+        logger.warning('Current task has been interrupted by user')                
+        self.worker = None        
+
+
+    
           
          
 
