@@ -157,23 +157,7 @@ class ValidationEvents:
                 validation_images, progress_callback=progress_callback, worker=worker))   
             logger.info('Image reconstruction analysis successfully performed')    
 
-        return images      
-
-    # define the logic to handle successfull data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_success(self, window, message):
-        # send message to status bar
-        window.statusBar().showMessage(message)
-    
-    # define the logic to handle error during data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_error(self, window, err_tb):
-        exc, tb = err_tb
-        logger.error(exc, '\n', tb)        
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
-
-        
-
+        return images   
          
 
 ###############################################################################
@@ -293,17 +277,4 @@ class ModelEvents:
             images_paths, progress_callback=progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            
-        
-    # define the logic to handle successfull data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_success(self, window, message):
-        # send message to status bar
-        window.statusBar().showMessage(message)
-    
-    # define the logic to handle error during data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_error(self, window, err_tb):
-        exc, tb = err_tb
-        logger.error(exc, '\n', tb)
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")
-
+  
