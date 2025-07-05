@@ -606,6 +606,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
                <widget class="QCheckBox" name="checkBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of images statistics (mean, min, max, standard deviation, signal-to-noise ratio) to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string>Image statistics</string>
                 </property>
@@ -613,6 +616,9 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
               </item>
               <item>
                <widget class="QCheckBox" name="pixDist">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of pixel intensity distribution and related histogram to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string>Pixel intensity distribution</string>
                 </property>

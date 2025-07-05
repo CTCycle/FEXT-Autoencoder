@@ -7,7 +7,7 @@ from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, Qt
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, 
                                QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
-                               QGraphicsPixmapItem, QGraphicsView)
+                               QGraphicsPixmapItem, QGraphicsView, QMessageBox)
 
 from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.configuration import Configuration
@@ -65,8 +65,7 @@ class MainWindow:
             (QSpinBox,'seed','general_seed'),                      
             (QCheckBox,'imgStats','image_statistics_metric'),      
             (QCheckBox,'pixDist','pixel_distribution_metric'),
-            (QPushButton,'evaluateDataset','evaluate_dataset'),
-            
+            (QPushButton,'evaluateDataset','evaluate_dataset'),            
             
             # 2. training tab page
             # dataset settings group    
@@ -331,7 +330,7 @@ class MainWindow:
     def stop_running_worker(self):
         if self.worker is not None:
             self.worker.stop()       
-        self._send_message("Interrupt requested. Waiting for threads to stop...")
+            self._send_message("Interrupt requested. Waiting for threads to stop...")
 
     #--------------------------------------------------------------------------
     @Slot()
@@ -457,7 +456,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_dataset_evaluation_finished,
-            on_error=self.on_evaluation_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)       
 
     #--------------------------------------------------------------------------
@@ -479,7 +478,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_train_finished,
-            on_error=self.on_model_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
@@ -501,7 +500,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_train_finished,
-            on_error=self.on_model_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)
 
     #--------------------------------------------------------------------------
@@ -526,7 +525,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_model_evaluation_finished,
-            on_error=self.on_model_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)     
 
     #-------------------------------------------------------------------------- 
@@ -546,7 +545,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_model_evaluation_finished,
-            on_error=self.on_model_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)  
 
     #--------------------------------------------------------------------------
@@ -570,7 +569,7 @@ class MainWindow:
         # start worker and inject signals
         self._start_worker(
             self.worker, on_finished=self.on_inference_finished,
-            on_error=self.on_model_error,
+            on_error=self.on_error,
             on_interrupted=self.on_task_interrupted)
 
 
@@ -586,14 +585,15 @@ class MainWindow:
             
         self.current_fig[key] = 0
         self._update_graphics_view()
-        self.validation_handler.handle_success(self.main_win, 'Figures have been generated')
+        self._send_message('Figures have been generated')
         self.worker = None
+        self.validation_handler = None
 
     #--------------------------------------------------------------------------
     def on_train_finished(self, session):          
-        self.model_handler.handle_success(
-            self.main_win, 'Training session is over. Model has been saved')
+        self._send_message('Training session is over. Model has been saved')
         self.worker = None
+        self.model_handler = None 
 
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots):  
@@ -605,30 +605,28 @@ class MainWindow:
             
         self.current_fig[key] = 0
         self._update_graphics_view()
-        self.validation_handler.handle_success(
-            self.main_win, f'Model {self.selected_checkpoint} has been evaluated')
+        self._send_message(f'Model {self.selected_checkpoint} has been evaluated')
         self.worker = None
+        self.model_handler = None 
 
     #--------------------------------------------------------------------------
     def on_inference_finished(self, session):          
-        self.model_handler.handle_success(
-            self.main_win, 'Inference call has been terminated')
+        self._send_message('Inference call has been terminated')
         self.worker = None
+        self.model_handler = None 
 
 
     ###########################################################################   
     # [NEGATIVE OUTCOME HANDLERS]
     ###########################################################################    
     @Slot(tuple)
-    def on_evaluation_error(self, err_tb):
-        self.validation_handler.handle_error(self.main_win, err_tb) 
-        self.worker = None   
-
-    #--------------------------------------------------------------------------
-    @Slot() 
-    def on_model_error(self, err_tb):
-        self.model_handler.handle_error(self.main_win, err_tb) 
-        self.worker = None  
+    def on_error(self, err_tb):
+        exc, tb = err_tb
+        logger.error(exc, '\n', tb)
+        QMessageBox.critical(self.main_win, 'Something went wrong!', f"{exc}\n\n{tb}")
+        self.worker = None    
+        self.validation_handler = None
+        self.model_handler = None    
 
     ###########################################################################   
     # [INTERRUPTION HANDLERS]
@@ -637,7 +635,9 @@ class MainWindow:
         self.progress_bar.setValue(0)        
         self._send_message('Current task has been interrupted by user')
         logger.warning('Current task has been interrupted by user')                
-        self.worker = None        
+        self.worker = None
+        self.validation_handler = None
+        self.model_handler = None            
 
 
     
