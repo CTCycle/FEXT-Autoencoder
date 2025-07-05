@@ -64,7 +64,7 @@ class Worker(QRunnable):
         return self._is_interrupted
     
     #--------------------------------------------------------------------------
-    def _cleanup(self):       
+    def cleanup(self):       
         try:
             empty_cache()
             ipc_collect()
@@ -98,7 +98,7 @@ class Worker(QRunnable):
             tb = traceback.format_exc()
             self.signals.error.emit((e, tb))
         finally:   
-            self._cleanup()
+            self.cleanup()
 
 
 #------------------------------------------------------------------------------
