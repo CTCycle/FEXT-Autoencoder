@@ -211,7 +211,7 @@ class ModelEvents:
         trainer = ModelTraining(self.configuration)  
         trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
-            progress_callback=progress_callback, worker=worker)
+            progress_callback=progress_callback, worker=worker)      
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
