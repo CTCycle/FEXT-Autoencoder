@@ -37,7 +37,8 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration()
     
         # set thread pool for the workers
-        self.threadpool = QThreadPool()
+        self.threadpool = QThreadPool.globalInstance()
+        self.threadpool.setExpiryTimeout(2000)
         self.worker = None        
 
         # initialize database
@@ -203,7 +204,7 @@ class MainWindow:
             ('device_ID', 'valueChanged', 'device_id'),
             ('num_workers', 'valueChanged', 'num_workers'),
             # training settings group
-            ('use_tensorboard', 'toggled', 'run_tensorboard'),
+            ('use_tensorboard', 'toggled', 'use_tensorboard'),
             ('real_time_history_callback', 'toggled', 'real_time_history_callback'),
             ('save_checkpoints', 'toggled', 'save_checkpoints'),
             ('checkpoints_frequency', 'valueChanged', 'checkpoints_frequency'),
@@ -593,7 +594,7 @@ class MainWindow:
     def on_train_finished(self, session):          
         self._send_message('Training session is over. Model has been saved')
         self.worker = self.worker.cleanup() 
-
+      
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots):  
         key = 'model_eval_images'         
