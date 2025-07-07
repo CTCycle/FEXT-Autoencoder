@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from FEXT.commons.utils.data.loader import ImageDataLoader
-from FEXT.commons.utils.learning.callbacks import InterruptTraining
+from FEXT.commons.utils.learning.callbacks import LearningInterruptCallback
 from FEXT.commons.utils.data.serializer import ModelSerializer
 from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
 from FEXT.commons.constants import CHECKPOINT_PATH, EVALUATION_PATH 
@@ -85,7 +85,7 @@ class ModelEvaluationSummary:
     
     #--------------------------------------------------------------------------
     def get_evaluation_report(self, model, validation_dataset, **kwargs):
-        callbacks_list = [InterruptTraining(kwargs.get('worker', None))]
+        callbacks_list = [LearningInterruptCallback(kwargs.get('worker', None))]
         validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list)    
         logger.info(
             f'RMSE loss {validation[0]:.3f} - Cosine similarity {validation[1]:.3f}')     
