@@ -536,7 +536,7 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.database, self.configuration)         
         # send message to status bar
-        self._send_message(f"Evaluating {self.select_checkpoint} performances... ")
+        self._send_message(f"Evaluating {self.selected_checkpoint} performances... ")
 
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = ProcessWorker(
