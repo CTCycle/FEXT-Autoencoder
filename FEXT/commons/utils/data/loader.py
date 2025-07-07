@@ -55,9 +55,9 @@ class ImageDataLoader:
     # define method perform data augmentation    
     #--------------------------------------------------------------------------
     def image_normalization(self, image):
-        normalize_image = image/255.0        
+        normalized_image = image/255.0        
                 
-        return normalize_image         
+        return normalized_image         
 
     # define method perform data augmentation    
     #--------------------------------------------------------------------------

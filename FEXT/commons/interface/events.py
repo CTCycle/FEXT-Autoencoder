@@ -140,7 +140,7 @@ class ValidationEvents:
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
         loader = ImageDataLoader(train_config, shuffle=False)    
-        validation_dataset = loader.build_inference_dataloader(validation_images)   
+        validation_dataset = loader.build_training_dataloader(validation_images)   
 
         # check worker status to allow interruption
         check_thread_status(worker)             
@@ -149,8 +149,7 @@ class ValidationEvents:
         if 'evaluation_report' in metrics:
             # evaluate model performance over the training and validation dataset 
             summarizer = ModelEvaluationSummary(self.database, self.configuration)       
-            summarizer.get_evaluation_report(model, validation_dataset, worker=worker) 
-             
+            summarizer.get_evaluation_report(model, validation_dataset, worker=worker)              
 
         if 'image_reconstruction' in metrics:
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
@@ -158,21 +157,7 @@ class ValidationEvents:
                 validation_images, progress_callback=progress_callback, worker=worker))   
             logger.info('Image reconstruction analysis successfully performed')    
 
-        return images      
-
-    # define the logic to handle successfull data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_success(self, window, message):
-        # send message to status bar
-        window.statusBar().showMessage(message)
-    
-    # define the logic to handle error during data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_error(self, window, err_tb):
-        exc, tb = err_tb
-        logger.error(exc, '\n', tb)        
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
-
+        return images   
          
 
 ###############################################################################
@@ -226,7 +211,7 @@ class ModelEvents:
         trainer = ModelTraining(self.configuration)  
         trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
-            progress_callback=progress_callback, worker=worker)
+            progress_callback=progress_callback, worker=worker)      
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
@@ -259,7 +244,7 @@ class ModelEvents:
                             
         # resume training from pretrained model    
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
-        trainer = ModelTraining(train_config) 
+        trainer = ModelTraining(self.configuration) 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback, worker=worker)
@@ -292,17 +277,4 @@ class ModelEvents:
             images_paths, progress_callback=progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            
-        
-    # define the logic to handle successfull data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_success(self, window, message):
-        # send message to status bar
-        window.statusBar().showMessage(message)
-    
-    # define the logic to handle error during data retrieval outside the main UI loop
-    #--------------------------------------------------------------------------
-    def handle_error(self, window, err_tb):
-        exc, tb = err_tb
-        logger.error(exc, '\n', tb)
-        QMessageBox.critical(window, 'Something went wrong!', f"{exc}\n\n{tb}")  
-
+  
