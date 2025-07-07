@@ -140,7 +140,7 @@ class ValidationEvents:
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
         loader = ImageDataLoader(train_config, shuffle=False)    
-        validation_dataset = loader.build_inference_dataloader(validation_images)   
+        validation_dataset = loader.build_training_dataloader(validation_images)   
 
         # check worker status to allow interruption
         check_thread_status(worker)             
