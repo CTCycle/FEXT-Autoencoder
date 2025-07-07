@@ -17,16 +17,16 @@ class ModelTraining:
     def train_model(self, model, train_data, validation_data, 
                     checkpoint_path, **kwargs): 
                 
-        epochs = self.configuration.get('epochs', 10)      
+        total_epochs = self.configuration.get('epochs', 10)      
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
-            self.configuration, checkpoint_path, 
+            self.configuration, checkpoint_path, total_epochs=total_epochs, 
             progress_callback=kwargs.get('progress_callback', None), 
             worker=kwargs.get('worker', None))       
         
         # run model fit using keras API method.             
         session = model.fit(
-            train_data, epochs=epochs, validation_data=validation_data, 
+            train_data, epochs=total_epochs, validation_data=validation_data, 
             callbacks=callbacks_list)
                    
         serializer = ModelSerializer()
@@ -42,7 +42,7 @@ class ModelTraining:
         total_epochs = from_epoch + self.configuration.get('additional_epochs', 10)           
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
-            self.configuration, checkpoint_path, session, 
+            self.configuration, checkpoint_path, session, total_epochs,
             progress_callback=kwargs.get('progress_callback', None), 
             worker=kwargs.get('worker', None))       
         
