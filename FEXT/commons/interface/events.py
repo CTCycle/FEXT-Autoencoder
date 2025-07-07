@@ -244,7 +244,7 @@ class ModelEvents:
                             
         # resume training from pretrained model    
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
-        trainer = ModelTraining(train_config) 
+        trainer = ModelTraining(self.configuration) 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
             progress_callback=progress_callback, worker=worker)
