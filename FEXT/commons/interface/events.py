@@ -152,11 +152,13 @@ class ValidationEvents:
 
         images = []
         if 'evaluation_report' in metrics:
+            logger.info('Current metric: model loss and metrics evaluation')
             # evaluate model performance over the training and validation dataset 
             summarizer = ModelEvaluationSummary(self.database, self.configuration)       
             summarizer.get_evaluation_report(model, validation_dataset, worker=worker)              
 
         if 'image_reconstruction' in metrics:
+            logger.info('Current metric: image reconstruction')
             validator = ImageReconstruction(train_config, model, checkpoint_path)      
             images.append(validator.visualize_reconstructed_images(
                 validation_images, progress_callback=progress_callback, worker=worker))   
