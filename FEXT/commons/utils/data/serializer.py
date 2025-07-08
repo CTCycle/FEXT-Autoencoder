@@ -4,6 +4,7 @@ from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
 
+from FEXT.commons.utils.data.database import FEXTDatabase
 from FEXT.commons.utils.learning.training.scheduler import LinearDecayLRScheduler
 from FEXT.commons.constants import CHECKPOINT_PATH
 from FEXT.commons.logger import logger
@@ -13,7 +14,7 @@ from FEXT.commons.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, database, configuration):        
+    def __init__(self, database : FEXTDatabase, configuration):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
