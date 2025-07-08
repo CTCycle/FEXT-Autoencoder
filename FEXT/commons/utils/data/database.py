@@ -46,20 +46,7 @@ class ImageStatisticsTable:
             noise_ratio FLOAT
         );
         '''
-        cursor.execute(query)
-
-    #--------------------------------------------------------------------------
-    def upsert(self, conn, row):
-        columns = list(self.dtypes.keys())
-        placeholders = ','.join(['?'] * len(columns))
-        updates = ', '.join([f"{col}=excluded.{col}" for col in columns if col != self.unique_col])
-        query = f'''
-        INSERT INTO {self.name} ({",".join(columns)})
-        VALUES ({placeholders})
-        ON CONFLICT({self.unique_col}) DO UPDATE SET
-        {updates};
-        '''
-        conn.execute(query, tuple(row[col] for col in columns))
+        cursor.execute(query) 
     
     
 ###############################################################################
