@@ -40,22 +40,27 @@ class GraphicsHandler:
         return QPixmap.fromImage(qimg)
     
     #--------------------------------------------------------------------------    
-    def load_image_as_pixmap(self, path):    
+    def load_image_as_pixmap(self, path):  
         img = cv2.imread(path, self.image_encoding)
-        # Handle grayscale, RGB, or RGBA
+        if img is None:
+            return  
+
+        # Convert to RGB or RGBA as needed
         if len(img.shape) == 2:  # Grayscale
             img = cv2.cvtColor(img, self.gray_scale_encoding)
+            qimg_format = QImage.Format_RGB888
+            channels = 3
         elif img.shape[2] == 4:  # BGRA
             img = cv2.cvtColor(img, self.BGRA_encoding)
+            qimg_format = QImage.Format_RGBA8888
+            channels = 4
         else:  # BGR
             img = cv2.cvtColor(img, self.BGR_encoding)
+            qimg_format = QImage.Format_RGB888
+            channels = 3
 
         h, w = img.shape[:2]
-        if img.shape[2] == 3:
-            qimg = QImage(img.data, w, h, 3 * w, QImage.Format_RGB888)
-        else:  
-            qimg = QImage(img.data, w, h, 4 * w, QImage.Format_RGBA8888)
-
+        qimg = QImage(img.data, w, h, channels * w, qimg_format)
         return QPixmap.fromImage(qimg)
 
 
