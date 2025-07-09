@@ -1,4 +1,4 @@
-from FEXT.commons.variables import EnvironmentVariables
+from FEXT.app.src.commons.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
 from functools import partial
@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
                                QGraphicsPixmapItem, QGraphicsView, QMessageBox)
 
-from FEXT.commons.utils.data.database import FEXTDatabase
-from FEXT.commons.configuration import Configuration
-from FEXT.commons.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
-from FEXT.commons.interface.workers import ThreadWorker, ProcessWorker
-from FEXT.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.utils.data.database import FEXTDatabase
+from FEXT.app.src.commons.configuration import Configuration
+from FEXT.app.src.commons.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
+from FEXT.app.src.commons.interface.workers import ThreadWorker, ProcessWorker
+from FEXT.app.src.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.app.src.commons.logger import logger
 
 
 ###############################################################################

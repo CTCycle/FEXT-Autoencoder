@@ -3,7 +3,7 @@ from keras.saving import register_keras_serializable
 from keras import optimizers, ops
 
 
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.logger import logger
 
            
 # [LEARNING RATE SCHEDULER]

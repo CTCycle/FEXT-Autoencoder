@@ -10,12 +10,12 @@ import matplotlib
 matplotlib.use("Agg")   
 import matplotlib.pyplot as plt
 
-from FEXT.commons.utils.data.loader import ImageDataLoader
-from FEXT.commons.utils.learning.callbacks import LearningInterruptCallback
-from FEXT.commons.utils.data.serializer import ModelSerializer
-from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
-from FEXT.commons.constants import CHECKPOINT_PATH, EVALUATION_PATH 
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.utils.data.loader import ImageDataLoader
+from FEXT.app.src.commons.utils.learning.callbacks import LearningInterruptCallback
+from FEXT.app.src.commons.utils.data.serializer import ModelSerializer
+from FEXT.app.src.commons.interface.workers import check_thread_status, update_progress_callback
+from FEXT.app.src.commons.constants import CHECKPOINT_PATH, EVALUATION_PATH 
+from FEXT.app.src.commons.logger import logger
 
 
 # [LOAD MODEL]
