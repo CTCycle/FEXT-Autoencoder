@@ -1,6 +1,6 @@
 import numpy as np
 
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.logger import logger
 
 # [DATA SPLITTING]
 ###############################################################################

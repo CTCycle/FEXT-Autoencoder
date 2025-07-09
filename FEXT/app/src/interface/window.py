@@ -1,4 +1,4 @@
-from FEXT.app.src.commons.variables import EnvironmentVariables
+from FEXT.app.src.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
 from functools import partial
@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
                                QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
                                QGraphicsPixmapItem, QGraphicsView, QMessageBox)
 
-from FEXT.app.src.commons.utils.data.database import FEXTDatabase
-from FEXT.app.src.commons.configuration import Configuration
-from FEXT.app.src.commons.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
-from FEXT.app.src.commons.interface.workers import ThreadWorker, ProcessWorker
-from FEXT.app.src.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.utils.data.database import FEXTDatabase
+from FEXT.app.src.configuration import Configuration
+from FEXT.app.src.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
+from FEXT.app.src.interface.workers import ThreadWorker, ProcessWorker
+from FEXT.app.src.constants import IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.app.src.logger import logger
 
 
 ###############################################################################
@@ -54,9 +54,7 @@ class MainWindow:
         self._set_states()
         self.widgets = {}
         self._setup_configuration([ 
-            # out of tab widgets
-            (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
-            (QComboBox,'checkpointsList','checkpoints_list'),
+            # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
             (QCheckBox,'deviceGPU','use_device_GPU'),    
@@ -103,14 +101,15 @@ class MainWindow:
             (QSpinBox,'numAdditionalEpochs','additional_epochs'),                      
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
-            # 3. model evaluation tab page
+            # 3. model inference and evaluation tab 
+            (QPushButton,'refreshCheckpoints','refresh_checkpoints'),
+            (QComboBox,'checkpointsList','checkpoints_list'),
             (QPushButton,'evaluateModel','model_evaluation'),             
             (QPushButton,'checkpointSummary','checkpoints_summary'),
             (QCheckBox,'evalReport','get_evaluation_report'), 
             (QCheckBox,'imgReconstruction','image_reconstruction'), 
-            (QSpinBox,'evalBatchSize','eval_batch_size'),     
-            (QSpinBox,'numImages','num_evaluation_images'),           
-            # 4. inference tab page              
+            (QSpinBox,'inferenceBatchSize','inference_batch_size'),     
+            (QSpinBox,'numImages','num_evaluation_images'), 
             (QPushButton,'encodeImages','encode_images'),          
             # 5. Viewer tab
             (QPushButton,'loadImages','load_source_images'),
@@ -123,9 +122,7 @@ class MainWindow:
             (QRadioButton,'viewTrainImages','train_images_view'),            
             ])
         
-        self._connect_signals([  
-            ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
-            ('refresh_checkpoints','clicked',self.load_checkpoints),
+        self._connect_signals([ 
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
             ('pixel_distribution_metric','toggled',self._update_metrics),
@@ -133,13 +130,13 @@ class MainWindow:
             # 2. training tab page               
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
-            # 3. model evaluation tab page
+            # 3. model inference and evaluation tab page
             ('image_reconstruction','toggled',self._update_metrics),
             ('get_evaluation_report','toggled',self._update_metrics),            
             ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
-            ('checkpoints_summary','clicked',self.get_checkpoints_summary),                  
-           
-            # 4. inference tab page              
+            ('checkpoints_summary','clicked',self.get_checkpoints_summary), 
+            ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
+            ('refresh_checkpoints','clicked',self.load_checkpoints),                          
             ('encode_images','clicked',self.encode_images_with_checkpoint),            
             # 5. viewer tab page 
             ('data_plots_view', 'toggled', self._update_graphics_view),
@@ -190,10 +187,7 @@ class MainWindow:
             # 1. data tab page
             # dataset evaluation group
             ('general_seed', 'valueChanged', 'general_seed'),
-            ('sample_size', 'valueChanged', 'sample_size'),
-            #  dataset processing group   
-            # still nothing, to be implemented
-
+            ('sample_size', 'valueChanged', 'sample_size'),            
             # 2. training tab page
             # dataset settings group            
             ('img_augmentation', 'toggled', 'img_augmentation'),
@@ -227,12 +221,9 @@ class MainWindow:
             # session settings group
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
 
-            # 3. model evaluation tab page            
-            ('eval_batch_size', 'valueChanged', 'eval_batch_size'),
-            ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),
-        
-            # 4. inference tab page                     
-            ('validation_size', 'valueChanged', 'validation_size')
+            # 3. model evaluation and inference tab page            
+            ('inference_batch_size', 'valueChanged', 'inference_batch_size'),
+            ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),             
             ]
 
         self.data_metrics = [('image_statistics', self.image_statistics_metric),                             

@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
 
-from FEXT.app.src.commons.constants import PROJECT_DIR
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.constants import PROJECT_DIR
+from FEXT.app.src.logger import logger
 
 # [IMPORT CUSTOM MODULES]
 ###############################################################################
