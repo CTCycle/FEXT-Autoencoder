@@ -46,13 +46,10 @@ The main interface streamlines navigation across the application's core services
 
 ![train_tab](FEXT/app/assets/train_tab.png)
 
-**Model evaluation:** the model is evaluated using different metrics, such as:
+**Inference:** this tab provides both model inference and evaluation functionalities. You can select a model checkpoint and use it to encode images into compact, abstract representations that capture their most relevant features. These low-dimensional embeddings are saved as .npy files in the *resources/inference* directory. For model evaluation, several metrics are computed, including:
+
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
-
-![model_eval_tab](FEXT/app/assets/model_eval_tab.png)
-
-**Inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
 
 ![inference_tab](FEXT/app/assets/inference_tab.png)
 
