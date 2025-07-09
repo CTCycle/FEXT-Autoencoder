@@ -69,7 +69,7 @@ class ValidationEvents:
 
     def __init__(self, database, configuration):        
         self.database = database     
-        self.eval_batch_size = configuration.get('eval_batch_size', 32)
+        self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------

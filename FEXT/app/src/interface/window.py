@@ -131,14 +131,14 @@ class MainWindow:
             ('start_training','clicked',self.train_from_scratch),
             ('resume_training','clicked',self.resume_training_from_checkpoint),
             # 3. model inference and evaluation tab page
+            ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
+            ('refresh_checkpoints','clicked',self.load_checkpoints), 
             ('image_reconstruction','toggled',self._update_metrics),
             ('get_evaluation_report','toggled',self._update_metrics),            
             ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
-            ('checkpoints_summary','clicked',self.get_checkpoints_summary), 
-            ('checkpoints_list','currentTextChanged',self.select_checkpoint), 
-            ('refresh_checkpoints','clicked',self.load_checkpoints),                          
+            ('checkpoints_summary','clicked',self.get_checkpoints_summary),                                      
             ('encode_images','clicked',self.encode_images_with_checkpoint),            
-            # 5. viewer tab page 
+            # 4. viewer tab page 
             ('data_plots_view', 'toggled', self._update_graphics_view),
             ('model_plots_view', 'toggled', self._update_graphics_view),
             ('inference_images_view', 'toggled', self._update_graphics_view), 
@@ -220,7 +220,6 @@ class MainWindow:
             ('dropout_rate', 'valueChanged', 'dropout_rate'),
             # session settings group
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
-
             # 3. model evaluation and inference tab page            
             ('inference_batch_size', 'valueChanged', 'inference_batch_size'),
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),             

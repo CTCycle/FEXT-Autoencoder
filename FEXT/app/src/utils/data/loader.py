@@ -12,7 +12,7 @@ class ImageDataLoader:
         self.num_channels = 3   
         self.augmentation = configuration.get('use_img_augmentation', False)
         self.batch_size = configuration.get('batch_size', 32)
-        self.eval_batch_size = configuration.get('eval_batch_size', 32)
+        self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.shuffle_samples = configuration.get('shuffle_size', 1024)
         self.buffer_size = tf.data.AUTOTUNE                  
         self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY
@@ -94,7 +94,7 @@ class ImageDataLoader:
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     #--------------------------------------------------------------------------
     def build_inference_dataloader(self, images, batch_size=None, buffer_size=tf.data.AUTOTUNE):        
-        batch_size = self.eval_batch_size if batch_size is None else batch_size
+        batch_size = self.inference_batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)                
         dataset = dataset.map(
             self.load_image_for_inference, num_parallel_calls=buffer_size)        

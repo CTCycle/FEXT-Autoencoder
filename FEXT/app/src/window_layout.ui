@@ -1315,7 +1315,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="evalTab">
+      <widget class="QWidget" name="inferenceTab">
        <attribute name="title">
         <string>Inference</string>
        </attribute>
@@ -1496,7 +1496,7 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="viewTab_2">
+      <widget class="QWidget" name="viewerTab">
        <attribute name="title">
         <string>Viewer</string>
        </attribute>
