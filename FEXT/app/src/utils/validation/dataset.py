@@ -12,9 +12,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-from FEXT.app.src.commons.interface.workers import check_thread_status, update_progress_callback
-from FEXT.app.src.commons.constants import EVALUATION_PATH
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.interface.workers import check_thread_status, update_progress_callback
+from FEXT.app.src.constants import EVALUATION_PATH
+from FEXT.app.src.logger import logger
 
 
 

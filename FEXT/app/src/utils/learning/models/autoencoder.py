@@ -1,9 +1,9 @@
 from keras import optimizers, losses, metrics, layers, activations, Model
 from torch import compile as torch_compile
 
-from FEXT.app.src.commons.utils.learning.training.scheduler import LinearDecayLRScheduler
-from FEXT.app.src.commons.utils.learning.models.bottleneck import CompressionLayer, DecompressionLayer
-from FEXT.app.src.commons.utils.learning.models.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
+from FEXT.app.src.utils.learning.training.scheduler import LinearDecayLRScheduler
+from FEXT.app.src.utils.learning.models.bottleneck import CompressionLayer, DecompressionLayer
+from FEXT.app.src.utils.learning.models.convolutionals import ResidualConvolutivePooling, ResidualTransConvolutiveUpsampling
 
        
 # [AUTOENCODER MODEL]

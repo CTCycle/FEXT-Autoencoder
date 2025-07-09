@@ -2,8 +2,8 @@ import os
 import sqlite3
 import pandas as pd
 
-from FEXT.app.src.commons.constants import DATA_PATH
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.constants import DATA_PATH
+from FEXT.app.src.logger import logger
 
 
 ###############################################################################

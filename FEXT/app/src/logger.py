@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 import logging.config
 
-from FEXT.app.src.commons.constants import LOGS_PATH
+from FEXT.app.src.constants import LOGS_PATH
 
 # Generate timestamp for the log filename
 ###############################################################################

@@ -514,27 +514,6 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <item>
-       <widget class="QLabel" name="ACLabel">
-        <property name="text">
-         <string>Available checkpoints</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="checkpointsList"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="refreshCheckpoints">
-        <property name="text">
-         <string>Refresh</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
      <widget class="QTabWidget" name="viewTab">
       <property name="accessibleName">
        <string/>
@@ -1338,154 +1317,180 @@ QTimeEdit, QToolBox, QToolBox::tab, QToolBox::tab:selected {
       </widget>
       <widget class="QWidget" name="evalTab">
        <attribute name="title">
-        <string>Model evaluation</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_20">
-        <item>
-         <widget class="QGroupBox" name="groupBox_9">
-          <property name="title">
-           <string>Configuration</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_19">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_32">
-             <item>
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>Number of images</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="numImages">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>100</number>
-               </property>
-               <property name="value">
-                <number>6</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_34">
-             <item>
-              <widget class="QLabel" name="label_19">
-               <property name="text">
-                <string>Evaluation batch size</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="evalBatchSize">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>1024</number>
-               </property>
-               <property name="value">
-                <number>32</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_11">
-          <property name="title">
-           <string>Selected metrics</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_21">
-           <item>
-            <widget class="QCheckBox" name="evalReport">
-             <property name="text">
-              <string>Loss and metrics</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="imgReconstruction">
-             <property name="text">
-              <string>Image reconstruction</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="checkpointSummary">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create checkpoints summary that includes all configurations for each pretrained model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="text">
-           <string>Checkpoints summary</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="evaluateModel">
-          <property name="text">
-           <string>Evaluate model</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_9">
-          <property name="orientation">
-           <enum>Qt::Orientation::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>319</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="inferenceTab">
-       <attribute name="title">
         <string>Inference</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_35">
+       <layout class="QVBoxLayout" name="verticalLayout_22">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0">
+         <layout class="QVBoxLayout" name="verticalLayout_20">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_13">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
-             <widget class="QPushButton" name="encodeImages">
-              <property name="text">
-               <string>Encode images</string>
+             <widget class="QGroupBox" name="groupBox_7">
+              <property name="title">
+               <string>Configuration</string>
               </property>
+              <layout class="QVBoxLayout" name="verticalLayout_16">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_34">
+                 <item>
+                  <widget class="QLabel" name="label_19">
+                   <property name="text">
+                    <string>Batch size</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="inferenceBatchSize">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>1024</number>
+                   </property>
+                   <property name="value">
+                    <number>32</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_32">
+                 <item>
+                  <widget class="QLabel" name="label_15">
+                   <property name="text">
+                    <string>Number of images</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="numImages">
+                   <property name="minimum">
+                    <number>1</number>
+                   </property>
+                   <property name="maximum">
+                    <number>100</number>
+                   </property>
+                   <property name="value">
+                    <number>6</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_11">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_8">
-              <property name="orientation">
-               <enum>Qt::Orientation::Vertical</enum>
+             <widget class="QGroupBox" name="groupBox_10">
+              <property name="title">
+               <string>Select checkpoint</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_10"/>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <item>
+                  <widget class="QComboBox" name="checkpointsList"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="refreshCheckpoints">
+                   <property name="text">
+                    <string>Refresh</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_9">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_20">
+          <item>
+           <widget class="QGroupBox" name="groupBox_9">
+            <property name="title">
+             <string>Model inference</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <item>
+              <widget class="QPushButton" name="encodeImages">
+               <property name="text">
+                <string>Encode images</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_11">
+            <property name="title">
+             <string>Model evaluation</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_21">
+             <item>
+              <widget class="QCheckBox" name="evalReport">
+               <property name="text">
+                <string>Loss and metrics</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="imgReconstruction">
+               <property name="text">
+                <string>Image reconstruction</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="checkpointSummary">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create checkpoints summary that includes all configurations for each pretrained model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Checkpoints summary</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="evaluateModel">
+               <property name="text">
+                <string>Evaluate model</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </item>
          </layout>
         </item>

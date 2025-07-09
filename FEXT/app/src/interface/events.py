@@ -3,19 +3,19 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtGui import QImage, QPixmap
 
-from FEXT.app.src.commons.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.app.src.commons.utils.data.loader import ImageDataLoader
-from FEXT.app.src.commons.utils.data.process import TrainValidationSplit
-from FEXT.app.src.commons.utils.learning.device import DeviceConfig
-from FEXT.app.src.commons.utils.learning.training.fitting import ModelTraining
-from FEXT.app.src.commons.utils.learning.models.autoencoder import FeXTAutoEncoder
-from FEXT.app.src.commons.utils.learning.inference.encoding import ImageEncoding
-from FEXT.app.src.commons.utils.validation.dataset import ImageAnalysis
-from FEXT.app.src.commons.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
-from FEXT.app.src.commons.interface.workers import check_thread_status
+from FEXT.app.src.utils.data.serializer import DataSerializer, ModelSerializer
+from FEXT.app.src.utils.data.loader import ImageDataLoader
+from FEXT.app.src.utils.data.process import TrainValidationSplit
+from FEXT.app.src.utils.learning.device import DeviceConfig
+from FEXT.app.src.utils.learning.training.fitting import ModelTraining
+from FEXT.app.src.utils.learning.models.autoencoder import FeXTAutoEncoder
+from FEXT.app.src.utils.learning.inference.encoding import ImageEncoding
+from FEXT.app.src.utils.validation.dataset import ImageAnalysis
+from FEXT.app.src.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
+from FEXT.app.src.interface.workers import check_thread_status
 
-from FEXT.app.src.commons.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.app.src.commons.logger import logger
+from FEXT.app.src.constants import IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.app.src.logger import logger
 
 
 ###############################################################################
