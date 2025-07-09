@@ -5,10 +5,10 @@ from tqdm import tqdm
 from keras.utils import set_random_seed
 from keras import Model
 
-from FEXT.commons.interface.workers import check_thread_status, update_progress_callback
-from FEXT.commons.utils.data.loader import ImageDataLoader
-from FEXT.commons.constants import INFERENCE_PATH
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.interface.workers import check_thread_status, update_progress_callback
+from FEXT.app.src.commons.utils.data.loader import ImageDataLoader
+from FEXT.app.src.commons.constants import INFERENCE_PATH
+from FEXT.app.src.commons.logger import logger
 
 
 # [INFERENCE]

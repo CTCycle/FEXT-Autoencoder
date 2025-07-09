@@ -3,7 +3,7 @@
 ## 1. Project Overview
 FeXT AutoEncoder is a project centered around the implementation, training and evaluation of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction (https://keras.io/api/applications/vgg/). Hence, the FEXT model implements a stack of convolutional layers, where pooling operations are performed to decrease the spatial dimensions multiple times. Both the encoder and the decoder collaboratively work to extract the most representative features from input images, projecting the original information into a lower-dimensional latent space that could be used for a wide range of downstream tasks.
 
-![VGG16 encoder](FEXT/commons/assets/VGG16_encoder.png)
+![VGG16 encoder](FEXT/app/assets/VGG16_encoder.png)
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
@@ -40,21 +40,21 @@ The main interface streamlines navigation across the application's core services
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
 
-![data_tab](FEXT/commons/assets/data_tab.png)
+![data_tab](FEXT/app/assets/data_tab.png)
 
 **Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
 
-![train_tab](FEXT/commons/assets/train_tab.png)
+![train_tab](FEXT/app/assets/train_tab.png)
 
 **Model evaluation:** the model is evaluated using different metrics, such as:
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
-![model_eval_tab](FEXT/commons/assets/model_eval_tab.png)
+![model_eval_tab](FEXT/app/assets/model_eval_tab.png)
 
 **Inference:** select a model checkpoint and use it to encode images into an abstract representation of the most relevant features. These low-dimension embeddings are saved as .npy files in *resources/inference*
 
-![inference_tab](FEXT/commons/assets/inference_tab.png)
+![inference_tab](FEXT/app/assets/inference_tab.png)
 
 **Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
 - **Training images**: visualize training images located in *resources/database/dataset*  
@@ -62,7 +62,7 @@ The main interface streamlines navigation across the application's core services
 - **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
 - **Model evalution plots**: visualize plots generated from model evaluation pipeline  
 
-![viewer_tab](FEXT/commons/assets/viewer_tab.png)
+![viewer_tab](FEXT/app/assets/viewer_tab.png)
 
 
 **Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:

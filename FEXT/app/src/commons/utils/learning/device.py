@@ -1,7 +1,7 @@
 import torch
 from keras.mixed_precision import set_global_policy
 
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.logger import logger
 
 
 # [DEVICE SETTINGS]

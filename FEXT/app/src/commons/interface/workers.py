@@ -4,8 +4,8 @@ from multiprocessing import Process, Queue, Event
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
-from FEXT.commons.constants import ROOT_DIR, DATA_PATH
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.constants import ROOT_DIR, DATA_PATH
+from FEXT.app.src.commons.logger import logger
 
 
 ###############################################################################

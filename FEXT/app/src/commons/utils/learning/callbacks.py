@@ -8,8 +8,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from FEXT.commons.interface.workers import WorkerInterrupted
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.interface.workers import WorkerInterrupted
+from FEXT.app.src.commons.logger import logger
 
 
 # [CALLBACK FOR UI PROGRESS BAR]

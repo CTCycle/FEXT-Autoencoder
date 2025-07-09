@@ -1,8 +1,8 @@
 from keras.utils import set_random_seed
 
-from FEXT.commons.utils.learning.callbacks import initialize_callbacks_handler
-from FEXT.commons.utils.data.serializer import ModelSerializer
-from FEXT.commons.logger import logger
+from FEXT.app.src.commons.utils.learning.callbacks import initialize_callbacks_handler
+from FEXT.app.src.commons.utils.data.serializer import ModelSerializer
+from FEXT.app.src.commons.logger import logger
 
 
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
