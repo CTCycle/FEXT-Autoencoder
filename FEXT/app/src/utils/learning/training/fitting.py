@@ -14,10 +14,8 @@ class ModelTraining:
         self.configuration = configuration    
            
     #--------------------------------------------------------------------------
-    def train_model(self, model, train_data, validation_data, 
-                    checkpoint_path, **kwargs): 
-                
-        total_epochs = self.configuration.get('epochs', 10)      
+    def train_model(self, model, train_data, validation_data, checkpoint_path, **kwargs):
+        total_epochs = self.configuration.get('epochs', 100)      
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
             self.configuration, checkpoint_path, total_epochs=total_epochs, 
@@ -35,11 +33,9 @@ class ModelTraining:
             checkpoint_path, session, self.configuration)
         
     #--------------------------------------------------------------------------
-    def resume_training(self, model, train_data, validation_data, 
-                        checkpoint_path, session=None, **kwargs):
-        
+    def resume_training(self, model, train_data, validation_data, checkpoint_path, session=None, **kwargs):        
         from_epoch = 0 if not session else session['epochs']     
-        total_epochs = from_epoch + self.configuration.get('additional_epochs', 10)           
+        total_epochs = from_epoch + self.configuration.get('additional_epochs', 100)           
         # add all callbacks to the callback list
         callbacks_list = initialize_callbacks_handler(
             self.configuration, checkpoint_path, session, total_epochs,

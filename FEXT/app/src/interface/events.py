@@ -124,8 +124,8 @@ class ValidationEvents:
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
-        # set device for training operations based on user configuration
-        logger.info('Setting device for training operations based on user configuration')                
+        # set device for training operations
+        logger.info('Setting device for training operations')                
         device = DeviceConfig(self.configuration)
         device.set_device()  
 
@@ -195,24 +195,25 @@ class ModelEvents:
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
         
-        # set device for training operations based on user configuration        
-        logger.info('Setting device for training operations based on user configuration')                 
+        # set device for training operations        
+        logger.info('Setting device for training operations')                 
         device = DeviceConfig(self.configuration) 
         device.set_device() 
 
         # initialize the model serializer and create checkpoint folder
-        logger.info('Building FeXT AutoEncoder model based on user configuration') 
+        logger.info('Building FeXT AutoEncoder model') 
         modser = ModelSerializer() 
         checkpoint_path = modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
         autoencoder = FeXTAutoEncoder(self.configuration)           
         model = autoencoder.get_model(model_summary=True) 
 
-        # check worker status to allow interruption
-        check_thread_status(worker)   
-
         # generate training log report and graphviz plot for the model layout               
-        modser.save_model_plot(model, checkpoint_path) 
+        modser.save_model_plot(model, checkpoint_path)
+
+        # check worker status to allow interruption
+        check_thread_status(worker)
+        
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
         trainer = ModelTraining(self.configuration)  
@@ -228,8 +229,8 @@ class ModelEvents:
             selected_checkpoint)    
         model.summary(expand_nested=True)  
         
-        # set device for training operations based on user configuration
-        logger.info('Setting device for training operations based on user configuration')                 
+        # set device for training operations
+        logger.info('Setting device for training operations')                 
         device = DeviceConfig(self.configuration) 
         device.set_device() 
 
