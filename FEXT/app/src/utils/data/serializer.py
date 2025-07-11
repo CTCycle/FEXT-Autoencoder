@@ -1,5 +1,6 @@
 import os
 import json
+
 from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
@@ -14,14 +15,13 @@ from FEXT.app.src.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, database : FEXTDatabase, configuration):        
+    def __init__(self, configuration):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
         self.seed = configuration.get('general_seed', 42)
-        self.database = database         
         self.configuration = configuration
-        
+        self.database = FEXTDatabase()
 
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------

@@ -42,13 +42,13 @@ class MainWindow:
         self.worker = None        
 
         # initialize database
-        self.database = FEXTDatabase(self.configuration)
+        self.database = FEXTDatabase()
         self.database.initialize_database()          
 
         # --- Create persistent handlers ---
         self.graphic_handler = GraphicsHandler()
-        self.validation_handler = ValidationEvents(self.database, self.configuration)
-        self.model_handler = ModelEvents(self.database, self.configuration)        
+        self.validation_handler = ValidationEvents(self.configuration)
+        self.model_handler = ModelEvents(self.configuration)        
 
         # setup UI elements
         self._set_states()
@@ -437,7 +437,7 @@ class MainWindow:
         
         self.pixmaps[idx_key].clear()
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.database, self.configuration)
+        self.validation_handler = ValidationEvents(self.configuration)
         
         img_paths = self.validation_handler.load_images_path(self.img_paths[idx_key])
         self.pixmaps[idx_key].extend(img_paths)
@@ -456,7 +456,7 @@ class MainWindow:
             return         
         
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.database, self.configuration)       
+        self.validation_handler = ValidationEvents(self.configuration)       
         # send message to status bar
         self._send_message("Calculating image dataset evaluation metrics...") 
         
@@ -480,7 +480,7 @@ class MainWindow:
             return 
                   
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.database, self.configuration)         
+        self.model_handler = ModelEvents(self.configuration)         
   
         # send message to status bar
         self._send_message("Training FEXT Autoencoder using a new model instance...")        
@@ -500,7 +500,7 @@ class MainWindow:
             return         
               
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.database, self.configuration)   
+        self.model_handler = ModelEvents(self.configuration)   
 
         # send message to status bar
         self._send_message(f"Resume training from checkpoint {self.selected_checkpoint}")         
@@ -524,7 +524,7 @@ class MainWindow:
             return 
 
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.database, self.configuration)         
+        self.validation_handler = ValidationEvents(self.configuration)         
         # send message to status bar
         self._send_message(f"Evaluating {self.selected_checkpoint} performances... ")
 
@@ -547,7 +547,7 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.validation_handler = ValidationEvents(self.database, self.configuration)           
+        self.validation_handler = ValidationEvents(self.configuration)           
         # send message to status bar
         self._send_message("Generating checkpoints summary...") 
         
@@ -569,7 +569,7 @@ class MainWindow:
             return 
         
         self.configuration = self.config_manager.get_configuration() 
-        self.model_handler = ModelEvents(self.database, self.configuration)            
+        self.model_handler = ModelEvents(self.configuration)            
         # send message to status bar
         self._send_message(f"Encoding images with {self.selected_checkpoint}") 
         

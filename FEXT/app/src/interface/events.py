@@ -67,14 +67,13 @@ class GraphicsHandler:
 ###############################################################################
 class ValidationEvents:
 
-    def __init__(self, database, configuration):        
-        self.database = database     
+    def __init__(self, configuration): 
         self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
     def load_images_path(self, path, sample_size=1.0):
-        serializer = DataSerializer(self.database, self.configuration)             
+        serializer = DataSerializer(self.configuration)             
         images_paths = serializer.get_images_path_from_directory(
             path, sample_size) 
         
@@ -83,7 +82,7 @@ class ValidationEvents:
     #--------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
         # initialize data serializer for saving and loading data         
-        serializer = DataSerializer(self.database, self.configuration) 
+        serializer = DataSerializer(self.configuration) 
         # get images path from the dataset folder and select a randomized fraction    
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
@@ -94,7 +93,7 @@ class ValidationEvents:
         # - noise-to-signal ratio
         # - max and min intensity      
         logger.info('Current metric: image dataset statistics')
-        analyzer = ImageAnalysis(self.database, self.configuration) 
+        analyzer = ImageAnalysis(self.configuration) 
         image_statistics = analyzer.calculate_image_statistics(
             images_paths, progress_callback=progress_callback, worker=worker)
         logger.info('Image dataset statistics have been updated in the database')                      
@@ -111,7 +110,7 @@ class ValidationEvents:
 
     #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None): 
-        summarizer = ModelEvaluationSummary(self.database, self.configuration)    
+        summarizer = ModelEvaluationSummary(self.configuration)    
         checkpoints_summary = summarizer.get_checkpoints_summary(
             progress_callback=progress_callback, worker=worker) 
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
@@ -135,7 +134,7 @@ class ValidationEvents:
 
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
-        serializer = DataSerializer(self.database, self.configuration)  
+        serializer = DataSerializer(self.configuration)  
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         _, validation_images = splitter.split_train_and_validation(images_paths)     
@@ -154,7 +153,7 @@ class ValidationEvents:
         if 'evaluation_report' in metrics:
             logger.info('Current metric: model loss and metrics evaluation')
             # evaluate model performance over the training and validation dataset 
-            summarizer = ModelEvaluationSummary(self.database, self.configuration)       
+            summarizer = ModelEvaluationSummary(self.configuration)       
             summarizer.get_evaluation_report(model, validation_dataset, worker=worker)              
 
         if 'image_reconstruction' in metrics:
@@ -170,8 +169,7 @@ class ValidationEvents:
 ###############################################################################
 class ModelEvents:
 
-    def __init__(self, database, configuration): 
-        self.database = database          
+    def __init__(self, configuration):
         self.configuration = configuration 
 
     #--------------------------------------------------------------------------
@@ -181,9 +179,9 @@ class ModelEvents:
             
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):  
-        logger.info('Preparing dataset of images based on splitting sizes')  
+        logger.info('Preparing dataset of images based on splitting sizes')
+        serializer = DataSerializer(self.configuration)  
         sample_size = self.configuration.get("train_sample_size", 1.0)
-        serializer = DataSerializer(self.database, self.configuration)  
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
 
         splitter = TrainValidationSplit(self.configuration) 
@@ -234,9 +232,9 @@ class ModelEvents:
         device = DeviceConfig(self.configuration) 
         device.set_device() 
 
-        logger.info('Preparing dataset of images based on splitting sizes')  
-        sample_size = train_config.get("train_sample_size", 1.0)
-        serializer = DataSerializer(self.database, train_config)  
+        logger.info('Preparing dataset of images based on splitting sizes')
+        serializer = DataSerializer(train_config) 
+        sample_size = train_config.get("train_sample_size", 1.0) 
         images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)     
@@ -270,7 +268,7 @@ class ModelEvents:
         device.set_device()
 
         # select images from the inference folder and retrieve current paths     
-        serializer = DataSerializer(self.database, train_config)     
+        serializer = DataSerializer(train_config)     
         images_paths = serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
         logger.info(f'{len(images_paths)} images have been found as inference input')  
 

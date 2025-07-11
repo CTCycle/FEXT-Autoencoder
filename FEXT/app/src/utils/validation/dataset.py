@@ -23,8 +23,8 @@ from FEXT.app.src.logger import logger
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, database, configuration):           
-        self.database = database                
+    def __init__(self, configuration):           
+                        
         self.configuration = configuration      
         self.DPI = 400 
 
