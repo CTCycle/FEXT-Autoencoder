@@ -7,7 +7,6 @@ from sqlalchemy.dialects.sqlite import insert
 from FEXT.app.src.constants import DATA_PATH
 from FEXT.app.src.logger import logger
 
-
 Base = declarative_base()
 
 

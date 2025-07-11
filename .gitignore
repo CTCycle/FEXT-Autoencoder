@@ -3,9 +3,9 @@ FEXT/resources/database/validation/*
 FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
-FEXT/app/python/*
-FEXT/app/git/*
-FEXT/app/.env
+FEXT/setup/python/*
+FEXT/setup/git/*
+FEXT/setup/.env
 
 
 __pycache__
