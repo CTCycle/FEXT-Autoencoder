@@ -62,17 +62,16 @@ class CheckpointSummary(Base):
 ###############################################################################
 class FEXTDatabase:
 
-    def __init__(self, configuration):             
-        self.db_path = os.path.join(DATA_PATH, 'FEXT_database.db')
+    def __init__(self):             
+        self.db_path = os.path.join(DATA_PATH, 'FEXT_database.db')  
         self.engine = create_engine(f'sqlite:///{self.db_path}', echo=False, future=True)
         self.Session = sessionmaker(bind=self.engine, future=True)
         self.insert_batch_size = 10000
-        self.configuration = configuration
         
     #--------------------------------------------------------------------------       
     def initialize_database(self):
         Base.metadata.create_all(self.engine)
-
+        
     #--------------------------------------------------------------------------
     def upsert_dataframe(self, df: pd.DataFrame, table_cls):
         table = table_cls.__table__
