@@ -111,7 +111,7 @@ class ModelSerializer:
             show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
             
     #-------------------------------------------------------------------------- 
-    def load_checkpoint(self, checkpoint_name):                     
+    def load_checkpoint(self, checkpoint_name : str):                     
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
