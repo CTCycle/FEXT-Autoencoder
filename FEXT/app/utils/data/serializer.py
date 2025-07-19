@@ -1,6 +1,7 @@
 import os
 import json
 
+import pandas as pd
 from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
@@ -35,7 +36,12 @@ class DataSerializer:
                 if os.path.splitext(file)[1].lower() in self.valid_extensions:
                     images_path.append(os.path.join(root, file))                
 
-        return images_path                
+        return images_path 
+
+    # get all valid images within a specified directory and return a list of paths
+    #--------------------------------------------------------------------------
+    def save_image_statistics(self, data : pd.DataFrame):            
+        self.database.save_image_statistics(data)                
     
     
 # [MODEL SERIALIZATION]

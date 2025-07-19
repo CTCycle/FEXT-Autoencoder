@@ -1,7 +1,5 @@
 import os
-import re
 import cv2
-import random
 import pandas as pd
 import numpy as np
 
@@ -11,7 +9,7 @@ import matplotlib
 matplotlib.use("Agg")   
 import matplotlib.pyplot as plt
 
-
+from FEXT.app.utils.data.serializer import DataSerializer
 from FEXT.app.interface.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import EVALUATION_PATH
 from FEXT.app.logger import logger
@@ -23,8 +21,8 @@ from FEXT.app.logger import logger
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration):           
-                        
+    def __init__(self, configuration): 
+        self.serializer = DataSerializer(self.configuration)
         self.configuration = configuration      
         self.DPI = 400 
 
@@ -35,7 +33,7 @@ class ImageAnalysis:
         
     #--------------------------------------------------------------------------
     def calculate_image_statistics(self, images_path, **kwargs):          
-        results= []     
+        results = []     
         for i, path in enumerate(tqdm(
             images_path, desc="Processing images", total=len(images_path), ncols=100)):                  
             img = cv2.imread(path)            
@@ -79,7 +77,7 @@ class ImageAnalysis:
 
         # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
-        self.database.save_image_statistics_table(stats_dataframe)               
+        self.serializer.save_image_statistics(stats_dataframe)               
         
         return stats_dataframe
     
