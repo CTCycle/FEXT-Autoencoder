@@ -67,15 +67,14 @@ class GraphicsHandler:
 ###############################################################################
 class ValidationEvents:
 
-    def __init__(self, configuration): 
+    def __init__(self, configuration : dict): 
         self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
     def load_images_path(self, path, sample_size=1.0):
         serializer = DataSerializer(self.configuration)             
-        images_paths = serializer.get_images_path_from_directory(
-            path, sample_size) 
+        images_paths = serializer.get_images_path_from_directory(path, sample_size) 
         
         return images_paths 
         

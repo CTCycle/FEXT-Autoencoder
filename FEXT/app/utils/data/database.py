@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import sqlalchemy
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import Column, Float, Integer, String, UniqueConstraint, create_engine
 from sqlalchemy.dialects.sqlite import insert
@@ -66,7 +67,7 @@ class FEXTDatabase:
         self.db_path = os.path.join(DATA_PATH, 'FEXT_database.db')  
         self.engine = create_engine(f'sqlite:///{self.db_path}', echo=False, future=True)
         self.Session = sessionmaker(bind=self.engine, future=True)
-        self.insert_batch_size = 10000
+        self.insert_batch_size = 50000
         
     #--------------------------------------------------------------------------       
     def initialize_database(self):
@@ -102,13 +103,13 @@ class FEXTDatabase:
             session.close()
 
     #--------------------------------------------------------------------------
-    def save_image_statistics_table(self, data : pd.DataFrame):      
+    def save_image_statistics(self, data : pd.DataFrame):      
         with self.engine.begin() as conn:
-            data.to_sql(
-                "IMAGE_STATISTICS", conn, if_exists='replace', index=False)
+            conn.execute(sqlalchemy.text(f"DELETE FROM IMAGE_STATISTICS"))        
+        data.to_sql('IMAGE_STATISTICS', self.engine, if_exists='append', index=False) 
         
     #--------------------------------------------------------------------------
-    def save_checkpoints_summary_table(self, data : pd.DataFrame):         
+    def save_checkpoints_summary(self, data : pd.DataFrame):         
         self.upsert_dataframe(data, CheckpointSummary)
         
 

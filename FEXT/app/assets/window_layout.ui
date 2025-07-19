@@ -47,6 +47,9 @@
             </item>
             <item>
              <widget class="QDoubleSpinBox" name="sampleSize">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample size for the image dataset, this will be used to select a certain fraction of data to evaluate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="maximum">
                <double>1.000000000000000</double>
               </property>
@@ -85,7 +88,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
              <item>
-              <widget class="QCheckBox" name="checkBox">
+              <widget class="QCheckBox" name="imgStatistics">
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of images statistics (mean, min, max, standard deviation, signal-to-noise ratio) to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -130,7 +133,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_12">
+         <widget class="QGroupBox" name="noiseGenGroup">
           <property name="title">
            <string>Noise generator</string>
           </property>

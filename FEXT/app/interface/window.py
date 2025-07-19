@@ -62,7 +62,7 @@ class MainWindow:
             # dataset evaluation group 
             (QDoubleSpinBox,'sampleSize','sample_size'),
             (QSpinBox,'seed','general_seed'),                      
-            (QCheckBox,'imgStats','image_statistics_metric'),      
+            (QCheckBox,'imgStatistics','image_statistics_metric'),      
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'),            
             
@@ -125,6 +125,7 @@ class MainWindow:
         self._connect_signals([ 
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
+            ('image_statistics_metric','toggled',self._update_metrics),
             ('pixel_distribution_metric','toggled',self._update_metrics),
             ('evaluate_dataset','clicked',self.run_dataset_evaluation_pipeline),           
             # 2. training tab page               
@@ -448,11 +449,13 @@ class MainWindow:
     # [DATASET TAB]
     #--------------------------------------------------------------------------        
     @Slot()
-    def run_dataset_evaluation_pipeline(self):  
-        if not self.data_metrics:
-            return 
-        
+    def run_dataset_evaluation_pipeline(self):   
+        if not self.selected_metrics['dataset']:
+            return
+
         if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
             return         
         
         self.configuration = self.config_manager.get_configuration() 
@@ -477,6 +480,8 @@ class MainWindow:
     @Slot()
     def train_from_scratch(self):
         if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
                   
         self.configuration = self.config_manager.get_configuration() 
@@ -521,6 +526,8 @@ class MainWindow:
     @Slot()
     def run_model_evaluation_pipeline(self):  
         if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
 
         self.configuration = self.config_manager.get_configuration() 
@@ -544,6 +551,8 @@ class MainWindow:
     @Slot()
     def get_checkpoints_summary(self):       
         if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
         
         self.configuration = self.config_manager.get_configuration() 
@@ -566,6 +575,8 @@ class MainWindow:
     @Slot()    
     def encode_images_with_checkpoint(self):  
         if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
         
         self.configuration = self.config_manager.get_configuration() 
