@@ -22,7 +22,7 @@ from FEXT.app.logger import logger
 class ImageAnalysis:
 
     def __init__(self, configuration): 
-        self.serializer = DataSerializer(self.configuration)
+        self.serializer = DataSerializer(configuration)
         self.configuration = configuration      
         self.DPI = 400 
 
@@ -73,7 +73,7 @@ class ImageAnalysis:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, len(images_path), kwargs.get('progress_callback', None))  
+                i+1, len(images_path), kwargs.get('progress_callback', None))  
 
         # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
@@ -99,12 +99,12 @@ class ImageAnalysis:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, len(images_path), kwargs.get('progress_callback', None))  
+                i+1, len(images_path), kwargs.get('progress_callback', None))  
 
         # Plot the combined pixel intensity histogram
         fig, ax = plt.subplots(figsize=(18,16), dpi=self.DPI)
         plt.bar(np.arange(256),image_histograms, alpha=0.7)
-        ax.set_title('Combined Pixel Intensity Histogram', fontsize=24)
+        ax.set_title('Pixel Intensity Histogram', fontsize=24)
         ax.set_xlabel('Pixel Intensity', fontsize=16, fontweight='bold')
         ax.set_ylabel('Frequency', fontsize=16, fontweight='bold')        
         ax.tick_params(axis='both', which='major', labelsize=14, labelcolor='black')
