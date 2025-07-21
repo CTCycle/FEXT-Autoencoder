@@ -76,7 +76,7 @@ class ModelEvaluationSummary:
             # check for thread status and progress bar update   
             check_thread_status(kwargs.get('worker', None))         
             update_progress_callback(
-                i, len(model_paths), kwargs.get('progress_callback', None)) 
+                i+1, len(model_paths), kwargs.get('progress_callback', None)) 
 
         dataframe = pd.DataFrame(model_parameters)
         self.database.save_checkpoints_summary_table(dataframe)    
@@ -149,7 +149,7 @@ class ImageReconstruction:
             # check for thread status and progress bar update
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, len(val_images), kwargs.get('progress_callback', None))
+                i+1, len(val_images), kwargs.get('progress_callback', None))
         
         plt.tight_layout()
         self.save_image(fig, 'images_recostruction.jpeg')

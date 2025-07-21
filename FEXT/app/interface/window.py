@@ -119,7 +119,8 @@ class MainWindow:
             (QRadioButton,'viewDataPlots','data_plots_view'),
             (QRadioButton,'viewEvalPlots','model_plots_view'),
             (QRadioButton,'viewInferenceImages','inference_images_view'),
-            (QRadioButton,'viewTrainImages','train_images_view'),            
+            (QRadioButton,'viewTrainImages','train_images_view'),
+            (QSpinBox, "imageDPI", 'image_resolution'),            
             ])
         
         self._connect_signals([ 
@@ -223,7 +224,9 @@ class MainWindow:
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
             # 3. model evaluation and inference tab page            
             ('inference_batch_size', 'valueChanged', 'inference_batch_size'),
-            ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'),             
+            ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'), 
+            # 4. viewer tab page
+            ('image_resolution', 'valueChanged', 'image_resolution')            
             ]
 
         self.data_metrics = [('image_statistics', self.image_statistics_metric),                             

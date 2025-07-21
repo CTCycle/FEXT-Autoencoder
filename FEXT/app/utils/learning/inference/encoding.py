@@ -43,7 +43,7 @@ class ImageEncoding:
             # check for worker thread status and update progress callback
             check_thread_status(kwargs.get('worker', None))
             update_progress_callback(
-                i, len(images_paths), kwargs.get('progress_callback', None))
+                i+1, len(images_paths), kwargs.get('progress_callback', None))
 
         # combine extracted features with images name and save them in numpy arrays    
         structured_data = np.array(
