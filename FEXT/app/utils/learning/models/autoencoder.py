@@ -32,11 +32,11 @@ class FeXTAutoEncoder:
         initial_LR = self.configuration.get('initial_RL', 0.001)
         LR_schedule = initial_LR        
         if self.configuration.get('use_scheduler', False):          
-            constant_lr_steps = self.configuration.get('constant_steps', 1000)   
+            constant_LR_steps = self.configuration.get('constant_steps', 1000)   
             decay_steps = self.configuration.get('decay_steps', 500)  
-            final_LR = self.configuration.get('final_LR', 0.0001)          
+            target_LR = self.configuration.get('target_LR', 0.0001)          
             LR_schedule = LinearDecayLRScheduler(
-                initial_LR, constant_lr_steps, decay_steps, final_LR)  
+                initial_LR, constant_LR_steps, decay_steps, target_LR)  
                   
         opt = optimizers.Adam(learning_rate=LR_schedule)
         loss = losses.MeanAbsoluteError()        

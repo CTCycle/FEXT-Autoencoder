@@ -36,10 +36,10 @@ class Configuration:
 
             # Learning rate scheduler
             'use_scheduler' : False,
-            'initial_lr': 0.001,
+            'initial_LR': 0.001,
             'constant_steps': 1000,
             'decay_steps': 500,
-            'final_lr': 0.0001,
+            'target_LR': 0.0001,
 
             # Inference   
             'inference_batch_size': 32,

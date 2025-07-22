@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
-from FEXT.app.utils.data.serializer import ModelSerializer
+from FEXT.app.utils.data.serializer import DataSerializer, ModelSerializer
 from FEXT.app.interface.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH 
 from FEXT.app.logger import logger
@@ -23,8 +23,7 @@ from FEXT.app.logger import logger
 class ModelEvaluationSummary:
 
     def __init__(self, configuration, remove_invalid=False):
-        self.remove_invalid = remove_invalid             
-               
+        self.remove_invalid = remove_invalid  
         self.configuration = configuration
 
     #---------------------------------------------------------------------------
@@ -42,35 +41,44 @@ class ModelEvaluationSummary:
 
     #---------------------------------------------------------------------------
     def get_checkpoints_summary(self, **kwargs):
-        serializer = ModelSerializer()      
+        modser = ModelSerializer() 
+        serializer = DataSerializer(self.configuration)             
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []            
         for i, model_path in enumerate(model_paths):            
-            model = serializer.load_checkpoint(model_path)
-            configuration, history = serializer.load_training_configuration(model_path)
+            model = modser.load_checkpoint(model_path)
+            configuration, history = modser.load_training_configuration(model_path)
             model_name = os.path.basename(model_path)                   
-            precision = 16 if configuration.get("use_mixed_precision", 'NA') else 32 
-            chkp_config = {'Checkpoint name': model_name,                                                  
-                           'Sample size': configuration.get("train_sample_size", 'NA'),
-                           'Validation size': configuration.get("validation_size", 'NA'),
-                           'Seed': configuration.get("train_seed", 'NA'),                           
-                           'Precision (bits)': precision,                      
-                           'Epochs': configuration.get("epochs", 'NA'),
-                           'Additional Epochs': configuration.get("additional_epochs", 'NA'),
-                           'Batch size': configuration.get("batch_size", 'NA'),           
-                           'Split seed': configuration.get("split_seed", 'NA'),
-                           'Image augmentation': configuration.get("img_augmentation", 'NA'),
-                           'Image height': 128,
-                           'Image width': 128,
-                           'Image channels': 3,                          
-                           'JIT Compile': configuration.get("jit_compile", 'NA'),                           
-                           'Device': configuration.get("device", 'NA'),                                                      
-                           'Number workers': configuration.get("num_workers", 'NA'),
-                           'LR Scheduler': configuration.get("use_scheduler", 'NA'),                                                      
-                           'Initial LR': configuration.get("initial_LR", 'NA'),
-                           'Constant steps': configuration.get("constant_steps", 'NA'),
-                           'Decay steps': configuration.get("decay_steps", 'NA')}
-
+            precision = 16 if configuration.get("use_mixed_precision", np.nan) else 32 
+            has_scheduler = configuration.get('use_scheduler', False)
+            scores = history.get('history', {})
+            chkp_config = {
+                    'checkpoint_name': model_name,
+                    'sample_size': configuration.get('sample_size', np.nan),
+                    'validation_size': configuration.get('validation_size', np.nan),
+                    'seed': configuration.get('train_seed', np.nan),
+                    'precision': precision,
+                    'epochs': history.get('epochs', np.nan),                    
+                    'batch_size': configuration.get('batch_size', np.nan),
+                    'split_seed': configuration.get('split_seed', np.nan),
+                    'image_augmentation': configuration.get('img_augmentation', np.nan),
+                    'image_height': 128,  
+                    'image_width': 128,
+                    'image_channels': 3,
+                    'jit_compile': configuration.get('jit_compile', np.nan),
+                    'has_tensorboard_logs': configuration.get('use_tensorboard', np.nan),
+                    'initial_LR': configuration.get('initial_LR', np.nan),
+                    'constant_steps_LR': configuration.get('constant_steps', np.nan) if has_scheduler else np.nan,
+                    'decay_steps_LR': configuration.get('decay_steps', np.nan),
+                    'target_LR': configuration.get('target_LR', np.nan),                    
+                    'initial_neurons': configuration.get('initial_neurons', np.nan),
+                    'dropout_rate': configuration.get('dropout_rate', np.nan),
+                    'train_loss': scores.get('loss', [np.nan])[-1], 
+                    'val_loss': scores.get('val_loss', [np.nan])[-1],
+                    'train_cosine_similarity': scores.get('cosine_similarity', [np.nan])[-1], 
+                    'val_cosine_similarity': scores.get('val_cosine_similarity', [np.nan])[-1],                 
+                    
+                }
             model_parameters.append(chkp_config)
 
             # check for thread status and progress bar update   
@@ -79,7 +87,7 @@ class ModelEvaluationSummary:
                 i+1, len(model_paths), kwargs.get('progress_callback', None)) 
 
         dataframe = pd.DataFrame(model_parameters)
-        self.database.save_checkpoints_summary_table(dataframe)    
+        serializer.save_checkpoints_summary(dataframe)    
             
         return dataframe
     

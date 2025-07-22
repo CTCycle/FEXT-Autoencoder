@@ -41,7 +41,12 @@ class DataSerializer:
     # get all valid images within a specified directory and return a list of paths
     #--------------------------------------------------------------------------
     def save_image_statistics(self, data : pd.DataFrame):            
-        self.database.save_image_statistics(data)                
+        self.database.save_image_statistics(data)       
+
+    # get all valid images within a specified directory and return a list of paths
+    #--------------------------------------------------------------------------
+    def save_checkpoints_summary(self, data : pd.DataFrame):            
+        self.database.save_checkpoints_summary(data)         
     
     
 # [MODEL SERIALIZATION]
@@ -57,8 +62,7 @@ class ModelSerializer:
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
         checkpoint_path = os.path.join(
             CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
-        os.makedirs(checkpoint_path, exist_ok=True)        
-        os.makedirs(os.path.join(checkpoint_path, 'data'), exist_ok=True)
+        os.makedirs(checkpoint_path, exist_ok=True)  
         logger.debug(f'Created checkpoint folder at {checkpoint_path}')
         
         return checkpoint_path    
