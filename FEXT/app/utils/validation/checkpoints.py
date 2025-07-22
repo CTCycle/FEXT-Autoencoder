@@ -94,25 +94,26 @@ class ModelEvaluationSummary:
     #--------------------------------------------------------------------------
     def get_evaluation_report(self, model, validation_dataset, **kwargs):
         callbacks_list = [LearningInterruptCallback(kwargs.get('worker', None))]
-        validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list)    
-        logger.info(
-            f'RMSE loss {validation[0]:.3f} - Cosine similarity {validation[1]:.3f}')     
+        validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list) 
+        logger.info(f'Evaluation of pretrained model has been completed')   
+        logger.info(f'RMSE loss {validation[0]:.3f}')
+        logger.info(f'Cosine similarity {validation[1]:.3f}')     
     
     
 # [IMAGE RECONSTRUCTION]
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, configuration, model, checkpoint_path):       
-        self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
-        os.makedirs(self.validation_path, exist_ok=True)  
-
+    def __init__(self, configuration, model, checkpoint_path): 
         self.num_images = configuration.get('num_evaluation_images', 6)
-        self.DPI = 400 
+        self.DPI = configuration.get('image_resolution', 400)
         self.file_type = 'jpeg'
         self.model = model  
         self.configuration = configuration
+
+        self.checkpoint_name = os.path.basename(checkpoint_path)        
+        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
+        os.makedirs(self.validation_path, exist_ok=True) 
 
     #--------------------------------------------------------------------------
     def save_image(self, fig, name):
