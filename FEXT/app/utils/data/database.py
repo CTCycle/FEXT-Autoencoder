@@ -69,7 +69,7 @@ class FEXTDatabase:
         self.db_path = os.path.join(DATA_PATH, 'FEXT_database.db')  
         self.engine = create_engine(f'sqlite:///{self.db_path}', echo=False, future=True)
         self.Session = sessionmaker(bind=self.engine, future=True)
-        self.insert_batch_size = 50000
+        self.insert_batch_size = 5000
         
     #--------------------------------------------------------------------------       
     def initialize_database(self):
@@ -100,6 +100,7 @@ class FEXTDatabase:
                     set_=update_cols
                 )
                 session.execute(stmt)
+                session.commit()
             session.commit()
         finally:
             session.close()

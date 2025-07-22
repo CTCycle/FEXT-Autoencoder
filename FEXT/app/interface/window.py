@@ -350,24 +350,6 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def load_checkpoints(self):       
-        checkpoints = self.model_handler.get_available_checkpoints()
-        self.checkpoints_list.clear()
-        if checkpoints:
-            self.checkpoints_list.addItems(checkpoints)
-            self.selected_checkpoint = checkpoints[0]
-            self.checkpoints_list.setCurrentText(checkpoints[0])
-        else:
-            self.selected_checkpoint = None
-            logger.warning("No checkpoints available")
-
-    #--------------------------------------------------------------------------
-    @Slot(str)
-    def select_checkpoint(self, name: str):
-        self.selected_checkpoint = name if name else None 
-
-    #--------------------------------------------------------------------------
-    @Slot()
     def _update_metrics(self):             
         self.selected_metrics['dataset'] = [
             name for name, box in self.data_metrics if box.isChecked()]
@@ -524,8 +506,26 @@ class MainWindow:
             on_interrupted=self.on_task_interrupted)
 
     #--------------------------------------------------------------------------
-    # [MODEL EVALUATION TAB]
-    #-------------------------------------------------------------------------- 
+    # [MODEL EVALUATION AND INFERENCE TAB]
+    #--------------------------------------------------------------------------
+    @Slot()
+    def load_checkpoints(self):       
+        checkpoints = self.model_handler.get_available_checkpoints()
+        self.checkpoints_list.clear()
+        if checkpoints:
+            self.checkpoints_list.addItems(checkpoints)
+            self.selected_checkpoint = checkpoints[0]
+            self.checkpoints_list.setCurrentText(checkpoints[0])
+        else:
+            self.selected_checkpoint = None
+            logger.warning("No checkpoints available")
+
+    #--------------------------------------------------------------------------
+    @Slot(str)
+    def select_checkpoint(self, name: str):
+        self.selected_checkpoint = name if name else None 
+
+    #--------------------------------------------------------------------------
     @Slot()
     def run_model_evaluation_pipeline(self):  
         if not self.selected_metrics['model']:
