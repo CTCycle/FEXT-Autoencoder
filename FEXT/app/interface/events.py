@@ -157,7 +157,7 @@ class ValidationEvents:
 
         if 'image_reconstruction' in metrics:
             logger.info('Current metric: image reconstruction')
-            validator = ImageReconstruction(train_config, model, checkpoint_path)      
+            validator = ImageReconstruction(self.configuration, model, checkpoint_path)      
             images.append(validator.visualize_reconstructed_images(
                 validation_images, progress_callback=progress_callback, worker=worker))   
             logger.info('Image reconstruction analysis successfully performed')    
