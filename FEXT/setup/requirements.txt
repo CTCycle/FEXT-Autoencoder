@@ -1,8 +1,6 @@
 # PyTorch (CUDA 12.4)
 --extra-index-url https://download.pytorch.org/whl/cu128
 torch==2.7.1+cu128
-#torchaudio==2.7.0+cu128
-#torchvision==0.22.0+cu128
 
 # TensorFlow
 tensorflow==2.19.0
@@ -11,7 +9,6 @@ tensorflow==2.19.0
 keras==3.10.0
 transformers==4.50.3
 scikit-learn==1.6.1
-scikit-image==0.25.1
 opencv-python==4.11.0.86
 
 # GUI, Plotting & Data
