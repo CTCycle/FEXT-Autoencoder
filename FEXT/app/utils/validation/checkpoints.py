@@ -22,8 +22,7 @@ from FEXT.app.logger import logger
 ################################################################################
 class ModelEvaluationSummary:
 
-    def __init__(self, configuration, remove_invalid=False):
-        self.remove_invalid = remove_invalid  
+    def __init__(self, configuration):         
         self.configuration = configuration
 
     #---------------------------------------------------------------------------
@@ -33,9 +32,7 @@ class ModelEvaluationSummary:
             if entry.is_dir():                
                 pretrained_model_path = os.path.join(entry.path, 'saved_model.keras')                
                 if os.path.isfile(pretrained_model_path):
-                    model_paths.append(entry.path)
-                elif not os.path.isfile(pretrained_model_path) and self.remove_invalid:                    
-                    shutil.rmtree(entry.path)
+                    model_paths.append(entry.path)                
 
         return model_paths  
 
@@ -76,9 +73,8 @@ class ModelEvaluationSummary:
                     'train_loss': scores.get('loss', [np.nan])[-1], 
                     'val_loss': scores.get('val_loss', [np.nan])[-1],
                     'train_cosine_similarity': scores.get('cosine_similarity', [np.nan])[-1], 
-                    'val_cosine_similarity': scores.get('val_cosine_similarity', [np.nan])[-1],                 
-                    
-                }
+                    'val_cosine_similarity': scores.get('val_cosine_similarity', [np.nan])[-1]}
+            
             model_parameters.append(chkp_config)
 
             # check for thread status and progress bar update   
