@@ -141,7 +141,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="trainTab">
+      <widget class="QWidget" name="modelTab">
        <attribute name="title">
         <string>Model</string>
        </attribute>
