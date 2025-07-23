@@ -75,7 +75,8 @@ class ImageAnalysis:
 
         # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
-        self.serializer.save_image_statistics(stats_dataframe)               
+        self.serializer.save_image_statistics(stats_dataframe) 
+        logger.info(f'Image statistics saved: {len(stats_dataframe)} records')              
         
         return stats_dataframe
     

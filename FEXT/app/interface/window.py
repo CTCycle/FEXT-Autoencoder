@@ -643,14 +643,14 @@ class MainWindow:
 
     ###########################################################################   
     # [NEGATIVE OUTCOME HANDLERS]
-    ###########################################################################    
-    @Slot(tuple)
-    def on_error(self, err_tb):         
+    ########################################################################### 
+    def on_error(self, err_tb):
         exc, tb = err_tb
         logger.error(f"{exc}\n{tb}")
-        QMessageBox.critical(self.main_win, 'Something went wrong!', f"{exc}\n\n{tb}")
-        self.progress_bar.setValue(0)
-        self.worker = self.worker.cleanup()
+        message = "An error occurred during the operation. Check the logs for details."
+        QMessageBox.critical(self.main_win, 'Something went wrong!', message)
+        self.progress_bar.setValue(0)      
+        self.worker = self.worker.cleanup()  
 
     ###########################################################################   
     # [INTERRUPTION HANDLERS]
