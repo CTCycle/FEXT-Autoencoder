@@ -23,8 +23,7 @@ class DataSerializer:
         self.seed = configuration.get('general_seed', 42)
         self.configuration = configuration
         self.database = FEXTDatabase()
-
-    # get all valid images within a specified directory and return a list of paths
+    
     #--------------------------------------------------------------------------
     def get_images_path_from_directory(self, path : str, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
@@ -37,13 +36,11 @@ class DataSerializer:
                     images_path.append(os.path.join(root, file))                
 
         return images_path 
-
-    # get all valid images within a specified directory and return a list of paths
+    
     #--------------------------------------------------------------------------
     def save_image_statistics(self, data : pd.DataFrame):            
         self.database.save_image_statistics(data)       
-
-    # get all valid images within a specified directory and return a list of paths
+    
     #--------------------------------------------------------------------------
     def save_checkpoints_summary(self, data : pd.DataFrame):            
         self.database.save_checkpoints_summary(data)         

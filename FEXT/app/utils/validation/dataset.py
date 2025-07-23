@@ -15,16 +15,14 @@ from FEXT.app.constants import EVALUATION_PATH
 from FEXT.app.logger import logger
 
 
-
-
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
 
     def __init__(self, configuration): 
         self.serializer = DataSerializer(configuration)
-        self.configuration = configuration      
-        self.DPI = 400 
+        self.DPI = configuration.get('image_resolution', 400)
+        self.configuration = configuration
 
     #--------------------------------------------------------------------------
     def save_image(self, fig, name):        
@@ -77,7 +75,8 @@ class ImageAnalysis:
 
         # create dataframe from calculated statistics and save table into database
         stats_dataframe = pd.DataFrame(results) 
-        self.serializer.save_image_statistics(stats_dataframe)               
+        self.serializer.save_image_statistics(stats_dataframe) 
+        logger.info(f'Image statistics saved: {len(stats_dataframe)} records')              
         
         return stats_dataframe
     
