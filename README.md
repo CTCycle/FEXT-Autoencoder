@@ -42,16 +42,15 @@ The main interface streamlines navigation across the application's core services
 
 ![data_tab](FEXT/app/assets/figures/data_tab.png)
 
-**Model training:** train the FEXT Autoencoder from scratch or resume training for previously trained models.
+**Model:** here you can train, evaluate and encode images with FEXT Autoencoder. You can either train from scratch or resume training for pretrained checkpoints. This tab provides also model inference and model evaluation functionalities. 
 
-![train_tab](FEXT/app/assets/figures/train_tab.png)
-
-**Inference:** this tab provides both model inference and evaluation functionalities. You can select a model checkpoint and use it to encode images into compact, abstract representations that capture their most relevant features. These low-dimensional embeddings are saved as .npy files in the *resources/inference* directory. For model evaluation, several metrics are computed, including:
+You can select a model checkpoint and use it to encode images into compact, abstract representations that capture their most relevant features. These low-dimensional embeddings are saved as .npy files in the *resources/inference* directory. For model evaluation, several metrics are computed, including:
 
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
-![inference_tab](FEXT/app/assets/figures/inference_tab.png)
+![model_tab](FEXT/app/assets/figures/model_tab.png)
+
 
 **Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
 - **Training images**: visualize training images located in *resources/database/dataset*  
