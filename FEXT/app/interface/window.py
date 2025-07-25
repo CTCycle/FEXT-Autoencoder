@@ -2,12 +2,13 @@ from FEXT.app.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
 from functools import partial
+
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, QTimer, Qt
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, 
-                               QSpinBox, QComboBox, QProgressBar, QGraphicsScene, 
-                               QGraphicsPixmapItem, QGraphicsView, QMessageBox)
+                               QSpinBox, QComboBox, QProgressBar, QGraphicsScene, QAction, 
+                               QGraphicsPixmapItem, QGraphicsView, QMessageBox, QFileDialog)
 
 from FEXT.app.utils.data.database import FEXTDatabase
 from FEXT.app.configuration import Configuration
@@ -54,6 +55,8 @@ class MainWindow:
         self._set_states()
         self.widgets = {}
         self._setup_configuration([ 
+            # actions
+            (QAction, 'saveConfig', 'save_configuration')
             # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
@@ -64,8 +67,7 @@ class MainWindow:
             (QSpinBox,'seed','seed'),                      
             (QCheckBox,'imgStatistics','image_statistics_metric'),      
             (QCheckBox,'pixDist','pixel_distribution_metric'),
-            (QPushButton,'evaluateDataset','evaluate_dataset'),            
-            
+            (QPushButton,'evaluateDataset','evaluate_dataset'), 
             # 2. training tab page
             # dataset settings group    
             (QCheckBox,'imgAugment','img_augmentation'),
@@ -124,6 +126,9 @@ class MainWindow:
             ])
         
         self._connect_signals([ 
+            # actions
+            ('save_config_action', 'triggered', self.save_config_to_json),
+            # out of tab widgets    
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
             ('image_statistics_metric','toggled',self._update_metrics),
@@ -356,6 +361,18 @@ class MainWindow:
         self.selected_metrics['model'] = [
             name for name, box in self.model_metrics if box.isChecked()]
         
+
+    #--------------------------------------------------------------------------
+    # [ACTIONS]
+    #--------------------------------------------------------------------------
+    @Slot()
+    def save_config_to_json(self):
+        # Show file dialog to choose save location
+        filepath, _ = QFileDialog.getSaveFileName(self.main_win, "Save Configuration", "config.json", "JSON Files (*.json)")
+        if filepath:
+            self.config_manager.save_configuration_to_json(filepath)
+            self._send_message(f"Configuration saved to {filepath}")
+        
     #--------------------------------------------------------------------------
     # [GRAPHICS]
     #--------------------------------------------------------------------------
@@ -429,6 +446,7 @@ class MainWindow:
         self.pixmaps[idx_key].extend(img_paths)
         self.current_fig[idx_key] = 0 
         self._update_graphics_view()    
+
 
     #--------------------------------------------------------------------------
     # [DATASET TAB]
