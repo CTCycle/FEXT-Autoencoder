@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1165</width>
-    <height>850</height>
+    <height>909</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -797,6 +797,13 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_9">
            <item>
+            <widget class="QCheckBox" name="deviceGPU">
+             <property name="text">
+              <string>Use GPU as available device</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QHBoxLayout" name="horizontalLayout_10">
              <item>
               <widget class="QLabel" name="label_7">
@@ -1017,14 +1024,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,7,2">
-      <item>
-       <widget class="QCheckBox" name="deviceGPU">
-        <property name="text">
-         <string>Use GPU as available device</string>
-        </property>
-       </widget>
-      </item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="7,2">
       <item>
        <widget class="QProgressBar" name="progressBar">
         <property name="value">
