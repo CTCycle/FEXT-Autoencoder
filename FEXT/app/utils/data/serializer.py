@@ -71,13 +71,11 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
-    def save_training_configuration(self, path, session, configuration : dict):         
+    def save_training_configuration(self, path, history, configuration : dict):         
         os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
         config_path = os.path.join(path, 'configuration', 'configuration.json')
         history_path = os.path.join(path, 'configuration', 'session_history.json')
-        history = {'history' : session.history,
-                   'epochs': session.epoch[-1] + 1}
-
+        
         # Save training and model configuration
         with open(config_path, 'w') as f:
             json.dump(configuration, f)
@@ -118,11 +116,7 @@ class ModelSerializer:
             show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
             
     #-------------------------------------------------------------------------- 
-    def load_checkpoint(self, checkpoint_name : str):   
-        if checkpoint_name is None:
-            logger.warning("No checkpoint has been selected")
-            return
-                          
+    def load_checkpoint(self, checkpoint_name : str):
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
