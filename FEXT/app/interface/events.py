@@ -115,7 +115,11 @@ class ValidationEvents:
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
-    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, progress_callback=None, worker=None):       
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, progress_callback=None, worker=None):    
+        if selected_checkpoint is None:
+            logger.warning('No checkpoint selected for resuming training')
+            return
+           
         logger.info(f'Loading {selected_checkpoint} checkpoint')   
         modser = ModelSerializer()       
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -261,6 +265,10 @@ class ModelEvents:
         
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
+        if selected_checkpoint is None:
+            logger.warning('No checkpoint selected for resuming training')
+            return
+        
         logger.info(f'Loading {selected_checkpoint} checkpoint')
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
