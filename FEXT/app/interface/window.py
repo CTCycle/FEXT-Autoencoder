@@ -61,7 +61,7 @@ class MainWindow:
             # 1. data tab page 
             # dataset evaluation group 
             (QDoubleSpinBox,'sampleSize','sample_size'),
-            (QSpinBox,'seed','general_seed'),                      
+            (QSpinBox,'seed','seed'),                      
             (QCheckBox,'imgStatistics','image_statistics_metric'),      
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'),            
@@ -188,7 +188,7 @@ class MainWindow:
             ('use_device_GPU', 'toggled', 'use_device_GPU'),
             # 1. data tab page
             # dataset evaluation group
-            ('general_seed', 'valueChanged', 'general_seed'),
+            ('seed', 'valueChanged', 'seed'),
             ('sample_size', 'valueChanged', 'sample_size'),            
             # 2. training tab page
             # dataset settings group            

@@ -20,7 +20,7 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration.get('general_seed', 42)
+        self.seed = configuration.get('seed', 42)
         self.configuration = configuration
         self.database = FEXTDatabase()
     
