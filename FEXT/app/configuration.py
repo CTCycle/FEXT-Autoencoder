@@ -1,4 +1,6 @@
+import os
 import json
+
 from FEXT.app.constants import CONFIG_PATH
 
 
@@ -62,7 +64,7 @@ class Configuration:
         self.configuration[key] = value
 
     #--------------------------------------------------------------------------
-    def save_configuration_to_json(self, filepath: str):  
-        full_path = os.path.join(CONFIG_PATH, filepath)      
+    def save_configuration_to_json(self, name : str):  
+        full_path = os.path.join(CONFIG_PATH, f'{name}.json')      
         with open(full_path, 'w') as f:
             json.dump(self.configuration, f, indent=4)

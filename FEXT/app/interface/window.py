@@ -2,13 +2,13 @@ from FEXT.app.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
 from functools import partial
-
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, QTimer, Qt
-from PySide6.QtGui import QPainter, QPixmap
+from PySide6.QtGui import QPainter, QPixmap, QAction
 from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpinBox, 
-                               QSpinBox, QComboBox, QProgressBar, QGraphicsScene, QAction, 
-                               QGraphicsPixmapItem, QGraphicsView, QMessageBox, QFileDialog)
+                               QSpinBox, QComboBox, QProgressBar, QGraphicsScene, QGraphicsPixmapItem, 
+                               QGraphicsView, QMessageBox, QDialog, QVBoxLayout, QLineEdit, 
+                               QLabel, QDialogButtonBox)
 
 from FEXT.app.utils.data.database import FEXTDatabase
 from FEXT.app.configuration import Configuration
@@ -56,7 +56,8 @@ class MainWindow:
         self.widgets = {}
         self._setup_configuration([ 
             # actions
-            (QAction, 'saveConfig', 'save_configuration')
+            (QAction, 'actionLoadConfig', 'load_configuration'),
+            (QAction, 'actionSaveConfig', 'save_configuration'),
             # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
@@ -127,7 +128,7 @@ class MainWindow:
         
         self._connect_signals([ 
             # actions
-            ('save_config_action', 'triggered', self.save_config_to_json),
+            ('save_configuration', 'triggered', self.save_config_to_json),
             # out of tab widgets    
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
@@ -367,11 +368,12 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def save_config_to_json(self):
-        # Show file dialog to choose save location
-        filepath, _ = QFileDialog.getSaveFileName(self.main_win, "Save Configuration", "config.json", "JSON Files (*.json)")
-        if filepath:
-            self.config_manager.save_configuration_to_json(filepath)
-            self._send_message(f"Configuration saved to {filepath}")
+        dialog = NameInputDialog(self.main_win)
+        if dialog.exec() == QDialog.Accepted:
+            name = dialog.get_name()
+            name = 'default_config' if not name else name            
+            self.config_manager.save_configuration_to_json(name)
+            self._send_message(f"Configuration [{name}] has been saved")
         
     #--------------------------------------------------------------------------
     # [GRAPHICS]
@@ -680,10 +682,27 @@ class MainWindow:
         self.worker = self.worker.cleanup()
         
        
-  
+###############################################################################
+class NameInputDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Save Configuration As")
+        self.layout = QVBoxLayout(self)
 
-    
-          
+        self.label = QLabel("Enter a name for your configuration:", self)
+        self.layout.addWidget(self.label)
+
+        self.name_edit = QLineEdit(self)
+        self.layout.addWidget(self.name_edit)
+
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        self.layout.addWidget(self.buttons)
+
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+
+    def get_name(self):
+        return self.name_edit.text().strip()
          
 
 
