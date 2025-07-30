@@ -61,7 +61,6 @@ class MainWindow:
             # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
-            (QCheckBox,'deviceGPU','use_device_GPU'),    
             # 1. data tab page 
             # dataset evaluation group 
             (QDoubleSpinBox,'sampleSize','sample_size'),
@@ -72,35 +71,34 @@ class MainWindow:
             # 2. training tab page
             # dataset settings group    
             (QCheckBox,'imgAugment','img_augmentation'),
-            (QCheckBox,'setShuffle','use_shuffle'),
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),
             (QDoubleSpinBox,'validationSize','validation_size'),
-            (QSpinBox,'shuffleSize','shuffle_size'),
-            # device settings group               
-            (QSpinBox,'deviceID','device_ID'),
-            (QSpinBox,'numWorkers','num_workers'),
+            (QSpinBox,'splitSeed','split_seed'),
+            (QCheckBox,'setShuffle','use_shuffle'),
+            (QSpinBox,'shuffleSize','shuffle_size'),            
             # training settings group
             (QCheckBox,'runTensorboard','use_tensorboard'),
             (QCheckBox,'realTimeHistory','real_time_history_callback'),
             (QCheckBox,'saveCheckpoints','save_checkpoints'),
-            (QSpinBox,'saveCPFrequency','checkpoints_frequency'),            
+            (QSpinBox,'saveCPFrequency','checkpoints_frequency'), 
+            (QSpinBox,'trainSeed','train_seed'),           
             (QSpinBox,'numEpochs','epochs'),
-            (QSpinBox,'batchSize','batch_size'),
-            (QSpinBox,'trainSeed','train_seed'),
-            (QSpinBox,'splitSeed','split_seed'), 
-            # RL scheduler settings group
-            (QCheckBox,'useScheduler','LR_scheduler'), 
-            (QDoubleSpinBox,'initialLearningRate','initial_LR'),
-            (QDoubleSpinBox,'targetLearningRate','target_LR'),            
-            (QSpinBox,'constantSteps','constant_steps'),
-            (QSpinBox,'decaySteps','decay_steps'), 
+            (QSpinBox,'batchSize','batch_size'),            
             # model settings group
             (QCheckBox,'mixedPrecision','use_mixed_precision'),
             (QCheckBox,'compileJIT','use_JIT_compiler'),   
             (QComboBox,'backendJIT','jit_backend'),         
             (QSpinBox,'initialNeurons','initial_neurons'),
             (QDoubleSpinBox,'dropoutRate','dropout_rate'), 
-            # session settings group                   
+            (QCheckBox,'useScheduler','LR_scheduler'), 
+            (QDoubleSpinBox,'initialLearningRate','initial_LR'),
+            (QDoubleSpinBox,'targetLearningRate','target_LR'),            
+            (QSpinBox,'constantSteps','constant_steps'),
+            (QSpinBox,'decaySteps','decay_steps'), 
+            # session settings group   
+            (QCheckBox,'deviceGPU','use_device_GPU'),         
+            (QSpinBox,'deviceID','device_ID'),
+            (QSpinBox,'numWorkers','num_workers'),         
             (QSpinBox,'numAdditionalEpochs','additional_epochs'),                      
             (QPushButton,'startTraining','start_training'),
             (QPushButton,'resumeTraining','resume_training'),            
@@ -119,10 +117,8 @@ class MainWindow:
             (QPushButton,'previousImg','previous_image'),
             (QPushButton,'nextImg','next_image'),
             (QPushButton,'clearImg','clear_images'),
-            (QRadioButton,'viewDataPlots','data_plots_view'),
-            (QRadioButton,'viewEvalPlots','model_plots_view'),
-            (QRadioButton,'viewInferenceImages','inference_images_view'),
-            (QRadioButton,'viewTrainImages','train_images_view'),
+            (QRadioButton,'viewInferenceImages','inference_img_view'),
+            (QRadioButton,'viewTrainImages','train_img_view'),
             (QSpinBox, "imageDPI", 'image_resolution'),            
             ])
         
@@ -146,12 +142,10 @@ class MainWindow:
             ('get_evaluation_report','toggled',self._update_metrics),            
             ('model_evaluation','clicked', self.run_model_evaluation_pipeline),
             ('checkpoints_summary','clicked',self.get_checkpoints_summary),                                      
-            ('encode_images','clicked',self.encode_images_with_checkpoint),            
-            # 4. viewer tab page 
-            ('data_plots_view', 'toggled', self._update_graphics_view),
-            ('model_plots_view', 'toggled', self._update_graphics_view),
-            ('inference_images_view', 'toggled', self._update_graphics_view), 
-            ('train_images_view', 'toggled', self._update_graphics_view), 
+            ('encode_images','clicked',self.encode_img_with_checkpoint),            
+            # 4. viewer tab page             
+            ('inference_img_view', 'toggled', self._update_graphics_view), 
+            ('train_img_view', 'toggled', self._update_graphics_view), 
             ('load_source_images','clicked', self.load_images),
             ('previous_image', 'clicked', self.show_previous_figure),
             ('next_image', 'clicked', self.show_next_figure),
@@ -163,7 +157,6 @@ class MainWindow:
         # Initial population of dynamic UI elements
         self.load_checkpoints()
         self._set_graphics() 
-
 
     # [SHOW WINDOW]
     ###########################################################################
@@ -251,10 +244,10 @@ class MainWindow:
         self.progress_bar.setValue(0)
 
     #--------------------------------------------------------------------------
-    def get_current_pixmaps_and_key(self):
-        for radio, (pixmap_key, idx_key) in self.pixmap_source_map.items():
+    def get_current_pixmaps_key(self):
+        for radio, idx_key in self.pixmap_sources.items():
             if radio.isChecked():
-                return self.pixmaps[pixmap_key], idx_key
+                return self.pixmaps[idx_key], idx_key
         return [], None 
 
     #--------------------------------------------------------------------------
@@ -270,18 +263,12 @@ class MainWindow:
             view.setRenderHint(hint, True)
 
         self.graphics = {'view': view, 'scene': scene, 'pixmap_item': pixmap_item}
-        self.pixmaps = {k: [] for k in (
-            'train_images', 'inference_images', 
-            'dataset_eval_images', 'model_eval_images')}
-
+        self.pixmaps = {k: [] for k in ('train_images', 'inference_images')}
         self.img_paths = {'train_images': IMG_PATH, 'inference_images': INFERENCE_INPUT_PATH}
         self.current_fig = {k: 0 for k in self.pixmaps}
 
-        self.pixmap_source_map = {
-            self.data_plots_view: ("dataset_eval_images", "dataset_eval_images"),
-            self.model_plots_view: ("model_eval_images", "model_eval_images"),
-            self.inference_images_view: ("inference_images", "inference_images"),
-            self.train_images_view: ("train_images", "train_images")}        
+        self.pixmap_sources = {self.inference_img_view: "inference_images",
+                               self.train_img_view: "train_images"}        
 
     #--------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot):        
@@ -382,7 +369,6 @@ class MainWindow:
             name for name, box in self.data_metrics if box.isChecked()]
         self.selected_metrics['model'] = [
             name for name, box in self.model_metrics if box.isChecked()]
-        
 
     #--------------------------------------------------------------------------
     # [ACTIONS]
@@ -411,7 +397,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot(str)
     def _update_graphics_view(self):  
-        pixmaps, idx_key = self.get_current_pixmaps_and_key()
+        pixmaps, idx_key = self.get_current_pixmaps_key()
         if not pixmaps or idx_key is None:
             self.graphics['pixmap_item'].setPixmap(QPixmap())
             self.graphics['scene'].setSceneRect(0, 0, 0, 0)
@@ -434,7 +420,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot(str)
     def show_previous_figure(self):             
-        pixmaps, idx_key = self.get_current_pixmaps_and_key()
+        pixmaps, idx_key = self.get_current_pixmaps_key()
         if not pixmaps or idx_key is None:
             return
         if self.current_fig[idx_key] > 0:
@@ -444,7 +430,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot(str)
     def show_next_figure(self):
-        pixmaps, idx_key = self.get_current_pixmaps_and_key()
+        pixmaps, idx_key = self.get_current_pixmaps_key()
         if not pixmaps or idx_key is None:
             return
         if self.current_fig[idx_key] < len(pixmaps) - 1:
@@ -454,7 +440,7 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot(str)
     def clear_figures(self):
-        pixmaps, idx_key = self.get_current_pixmaps_and_key()
+        pixmaps, idx_key = self.get_current_pixmaps_key()
         if not pixmaps or idx_key is None:
             return
         self.pixmaps[idx_key].clear()
@@ -467,7 +453,7 @@ class MainWindow:
     #--------------------------------------------------------------------------    
     @Slot()
     def load_images(self):          
-        pixmaps, idx_key = self.get_current_pixmaps_and_key()
+        pixmaps, idx_key = self.get_current_pixmaps_key()
         if idx_key not in self.img_paths.keys():
             return
         
@@ -475,11 +461,10 @@ class MainWindow:
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)
         
-        img_paths = self.validation_handler.load_images_path(self.img_paths[idx_key])
+        img_paths = self.validation_handler.load_img_path(self.img_paths[idx_key])
         self.pixmaps[idx_key].extend(img_paths)
         self.current_fig[idx_key] = 0 
-        self._update_graphics_view()    
-
+        self._update_graphics_view()   
 
     #--------------------------------------------------------------------------
     # [DATASET TAB]
@@ -630,7 +615,7 @@ class MainWindow:
     # [INFERENCE TAB]
     #--------------------------------------------------------------------------   
     @Slot()    
-    def encode_images_with_checkpoint(self):  
+    def encode_img_with_checkpoint(self):  
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
@@ -656,15 +641,7 @@ class MainWindow:
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################       
-    def on_dataset_evaluation_finished(self, plots):   
-        key = 'dataset_eval_images'      
-        if plots:            
-            self.pixmaps[key].extend(
-                [self.graphic_handler.convert_fig_to_qpixmap(p) 
-                 for p in plots])
-            
-        self.current_fig[key] = 0
-        self._update_graphics_view()
+    def on_dataset_evaluation_finished(self, plots):
         self._send_message('Figures have been generated')
         self.worker = self.worker.cleanup()
         
@@ -675,14 +652,6 @@ class MainWindow:
       
     #--------------------------------------------------------------------------
     def on_model_evaluation_finished(self, plots):  
-        key = 'model_eval_images'         
-        if plots is not None:            
-            self.pixmaps[key].extend(
-                [self.graphic_handler.convert_fig_to_qpixmap(p)
-                for p in plots])
-            
-        self.current_fig[key] = 0
-        self._update_graphics_view()
         self._send_message(f'Model {self.selected_checkpoint} has been evaluated')
         self.worker = self.worker.cleanup()
 

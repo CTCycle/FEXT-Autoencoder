@@ -25,7 +25,7 @@ class ImageEncoding:
         self.encoder_model = Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths, **kwargs):    
+    def encode_img_features(self, images_paths, **kwargs):    
         dataloader = ImageDataLoader(self.configuration, shuffle=False)    
         features = {}
         for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
@@ -48,7 +48,7 @@ class ImageEncoding:
         structured_data = np.array(
             [(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(
-            INFERENCE_PATH, f'encoded_images_{self.checkpoint_name}.npy')
+            INFERENCE_PATH, f'encoded_img_{self.checkpoint_name}.npy')
         np.save(file_loc, structured_data)
         
         return features

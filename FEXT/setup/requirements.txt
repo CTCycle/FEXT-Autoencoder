@@ -3,7 +3,7 @@
 torch==2.7.1+cu128
 
 # TensorFlow
-tensorflow==2.19.0
+tensorflow-cpu==2.19.0
 
 # Deep Learning & Computer Vision
 keras==3.10.0
