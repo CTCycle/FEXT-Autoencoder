@@ -9,8 +9,10 @@ FEXT/setup/.env
 
 
 __pycache__
+*.vscode
 *.db
 *.log
 *.npy
+*.json
 *.egg-info
 !.gitkeep

@@ -11,6 +11,7 @@ EVALUATION_PATH = join(DATA_PATH, 'validation')
 CHECKPOINT_PATH = join(RSC_PATH, 'checkpoints')
 INFERENCE_PATH = join(DATA_PATH, 'inference')
 INFERENCE_INPUT_PATH = join(INFERENCE_PATH, 'images')
+CONFIG_PATH = join(RSC_PATH, 'configurations')
 LOGS_PATH = join(RSC_PATH, 'logs')
 
 # [UI LAYOUT PATH]

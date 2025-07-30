@@ -72,9 +72,9 @@ class ValidationEvents:
         self.configuration = configuration  
 
     #--------------------------------------------------------------------------
-    def load_images_path(self, path, sample_size=1.0):
+    def load_img_path(self, path, sample_size=1.0):
         serializer = DataSerializer(self.configuration)             
-        images_paths = serializer.get_images_path_from_directory(path, sample_size) 
+        images_paths = serializer.get_img_path_from_directory(path, sample_size) 
         
         return images_paths 
         
@@ -84,7 +84,7 @@ class ValidationEvents:
         serializer = DataSerializer(self.configuration) 
         # get images path from the dataset folder and select a randomized fraction    
         sample_size = self.configuration.get("sample_size", 1.0)
-        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')            
 
         # perform image dataset statistical analysis to retrieve common statistics
@@ -115,7 +115,11 @@ class ValidationEvents:
         logger.info(f'Checkpoints summary has been created for {checkpoints_summary.shape[0]} models')   
     
     #--------------------------------------------------------------------------
-    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, progress_callback=None, worker=None):       
+    def run_model_evaluation_pipeline(self, metrics, selected_checkpoint, progress_callback=None, worker=None):    
+        if selected_checkpoint is None:
+            logger.warning('No checkpoint selected for resuming training')
+            return
+           
         logger.info(f'Loading {selected_checkpoint} checkpoint')   
         modser = ModelSerializer()       
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -134,7 +138,7 @@ class ValidationEvents:
         logger.info('Preparing dataset of images based on splitting sizes')  
         sample_size = train_config.get("train_sample_size", 1.0)
         serializer = DataSerializer(self.configuration)  
-        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         _, validation_images = splitter.split_train_and_validation(images_paths)     
 
@@ -181,7 +185,7 @@ class ModelEvents:
         logger.info('Preparing dataset of images based on splitting sizes')
         serializer = DataSerializer(self.configuration)  
         sample_size = self.configuration.get("train_sample_size", 1.0)
-        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
 
         splitter = TrainValidationSplit(self.configuration) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
@@ -220,6 +224,10 @@ class ModelEvents:
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
+        if selected_checkpoint is None:
+            logger.warning('No checkpoint selected for resuming training')
+            return
+        
         logger.info(f'Loading {selected_checkpoint} checkpoint') 
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -234,7 +242,7 @@ class ModelEvents:
         logger.info('Preparing dataset of images based on splitting sizes')
         serializer = DataSerializer(train_config) 
         sample_size = train_config.get("train_sample_size", 1.0) 
-        images_paths = serializer.get_images_path_from_directory(IMG_PATH, sample_size)
+        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)     
 
@@ -249,13 +257,18 @@ class ModelEvents:
                             
         # resume training from pretrained model    
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
-        trainer = ModelTraining(self.configuration) 
+        additional_epochs = self.configuration.get('additional_epochs', 10)
+        trainer = ModelTraining(train_config) 
         trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
-            progress_callback=progress_callback, worker=worker)
+            additional_epochs, progress_callback=progress_callback, worker=worker)
         
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
+        if selected_checkpoint is None:
+            logger.warning('No checkpoint selected for resuming training')
+            return
+        
         logger.info(f'Loading {selected_checkpoint} checkpoint')
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -268,7 +281,7 @@ class ModelEvents:
 
         # select images from the inference folder and retrieve current paths     
         serializer = DataSerializer(train_config)     
-        images_paths = serializer.get_images_path_from_directory(INFERENCE_INPUT_PATH)
+        images_paths = serializer.get_img_path_from_directory(INFERENCE_INPUT_PATH)
         logger.info(f'{len(images_paths)} images have been found as inference input')  
 
         # check worker status to allow interruption
@@ -278,7 +291,7 @@ class ModelEvents:
         # takes the list of images path from inference as input    
         encoder = ImageEncoding(model, train_config, checkpoint_path)  
         logger.info(f'Start encoding images using model {selected_checkpoint}')  
-        encoder.encode_images_features(
+        encoder.encode_img_features(
             images_paths, progress_callback=progress_callback, worker=worker) 
         logger.info('Encoded images have been saved as .npy')
            

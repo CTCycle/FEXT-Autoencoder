@@ -20,12 +20,12 @@ class DataSerializer:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration.get('general_seed', 42)
+        self.seed = configuration.get('seed', 42)
         self.configuration = configuration
         self.database = FEXTDatabase()
     
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path : str, sample_size=1.0):            
+    def get_img_path_from_directory(self, path : str, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):
@@ -71,13 +71,11 @@ class ModelSerializer:
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
-    def save_training_configuration(self, path, session, configuration : dict):         
+    def save_training_configuration(self, path, history, configuration : dict):         
         os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
         config_path = os.path.join(path, 'configuration', 'configuration.json')
         history_path = os.path.join(path, 'configuration', 'session_history.json')
-        history = {'history' : session.history,
-                   'epochs': session.epoch[-1] + 1}
-
+        
         # Save training and model configuration
         with open(config_path, 'w') as f:
             json.dump(configuration, f)
@@ -118,7 +116,7 @@ class ModelSerializer:
             show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
             
     #-------------------------------------------------------------------------- 
-    def load_checkpoint(self, checkpoint_name : str):                     
+    def load_checkpoint(self, checkpoint_name : str):
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
