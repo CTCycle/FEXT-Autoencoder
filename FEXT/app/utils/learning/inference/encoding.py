@@ -17,22 +17,21 @@ class ImageEncoding:
     
     def __init__(self, model, configuration, checkpoint_path):       
         set_random_seed(configuration.get('train_seed', 42)) 
-        self.dataloader = ImageDataLoader(configuration, shuffle=False)
         self.checkpoint_name = os.path.basename(checkpoint_path)        
         self.configuration = configuration
         self.model = model 
-
         # isolate the encoder submodel from the autoencoder model             
         encoder_output = model.get_layer('compression_layer').output 
         self.encoder_model = Model(inputs=model.input, outputs=encoder_output)              
 
     #--------------------------------------------------------------------------
-    def encode_images_features(self, images_paths, **kwargs):        
+    def encode_img_features(self, images_paths, **kwargs):    
+        dataloader = ImageDataLoader(self.configuration, shuffle=False)    
         features = {}
         for i, pt in enumerate(tqdm(images_paths, desc='Encoding images', total=len(images_paths))):
             image_name = os.path.basename(pt)
             try:
-                image = self.dataloader.load_image(pt, as_array=True)
+                image = dataloader.load_image(pt, as_array=True)
                 image = np.expand_dims(image, axis=0)
                 extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
@@ -49,7 +48,7 @@ class ImageEncoding:
         structured_data = np.array(
             [(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(
-            INFERENCE_PATH, f'encoded_images_{self.checkpoint_name}.npy')
+            INFERENCE_PATH, f'encoded_img_{self.checkpoint_name}.npy')
         np.save(file_loc, structured_data)
         
         return features
