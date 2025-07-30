@@ -119,7 +119,6 @@ class MainWindow:
             (QPushButton,'clearImg','clear_images'),
             (QRadioButton,'viewInferenceImages','inference_img_view'),
             (QRadioButton,'viewTrainImages','train_img_view'),
-            (QSpinBox, "imageDPI", 'image_resolution'),            
             ])
         
         self._connect_signals([ 
@@ -225,8 +224,6 @@ class MainWindow:
             # 3. model evaluation and inference tab page            
             ('inference_batch_size', 'valueChanged', 'inference_batch_size'),
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'), 
-            # 4. viewer tab page
-            ('image_resolution', 'valueChanged', 'image_resolution')            
             ]
 
         self.data_metrics = [('image_statistics', self.image_statistics_metric),                             
