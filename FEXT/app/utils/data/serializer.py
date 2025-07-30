@@ -25,7 +25,7 @@ class DataSerializer:
         self.database = FEXTDatabase()
     
     #--------------------------------------------------------------------------
-    def get_images_path_from_directory(self, path : str, sample_size=1.0):            
+    def get_img_path_from_directory(self, path : str, sample_size=1.0):            
         logger.debug(f'Valid extensions are: {self.valid_extensions}')
         images_path = []
         for root, _, files in os.walk(path):

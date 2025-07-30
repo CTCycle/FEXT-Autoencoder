@@ -116,13 +116,13 @@ class ImageAnalysis:
         return fig              
     
     #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_images_path, val_images_path, **kwargs):                
+    def compare_train_and_validation_PID(self, train_img_path, val_img_path, **kwargs):                
         # Initialize histograms for training and validation images
         train_hist = np.zeros(256, dtype=np.int64)
         val_hist = np.zeros(256, dtype=np.int64)
 
         # Process training images
-        for path in tqdm(train_images_path, desc="Processing training images", total=len(train_images_path), ncols=100):
+        for path in tqdm(train_img_path, desc="Processing training images", total=len(train_img_path), ncols=100):
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load training image at {path}.")
@@ -131,8 +131,8 @@ class ImageAnalysis:
             train_hist += hist.astype(np.int64)
 
         # Process validation images
-        for path in tqdm(val_images_path, desc="Processing validation images", 
-                         total=len(val_images_path), ncols=100):
+        for path in tqdm(val_img_path, desc="Processing validation images", 
+                         total=len(val_img_path), ncols=100):
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
             if img is None:
                 logger.warning(f"Warning: Unable to load validation image at {path}.")
