@@ -39,6 +39,7 @@ class Configuration:
             'plot_training_metrics' : True,
             'use_tensorboard': False,            
             'save_checkpoints': False,
+            'checkpoints_frequency': 1,
 
             # Learning rate scheduler
             'use_scheduler' : False,
