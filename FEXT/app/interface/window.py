@@ -194,7 +194,9 @@ class MainWindow:
             ('img_augmentation', 'toggled', 'img_augmentation'),
             ('use_shuffle', 'toggled', 'shuffle_dataset'),
             ('shuffle_size', 'valueChanged', 'shuffle_size'),
-            ('train_sample_size', 'valueChanged', 'train_sample_size'),            
+            ('train_sample_size', 'valueChanged', 'train_sample_size'),  
+            ('validation_size', 'valueChanged', 'validation_size'),    
+            ('split_seed', 'valueChanged', 'split_seed'),           
             # device settings group
             ('device_ID', 'valueChanged', 'device_id'),
             ('num_workers', 'valueChanged', 'num_workers'),
@@ -206,7 +208,6 @@ class MainWindow:
             ('epochs', 'valueChanged', 'epochs'),
             ('batch_size', 'valueChanged', 'batch_size'),
             ('train_seed', 'valueChanged', 'train_seed'),
-            ('split_seed', 'valueChanged', 'split_seed'),            
             # RL scheduler settings group
             ('LR_scheduler', 'toggled', 'use_LR_scheduler'),
             ('initial_LR', 'valueChanged', 'initial_LR'),

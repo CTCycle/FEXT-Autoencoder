@@ -50,7 +50,7 @@ class ModelEvaluationSummary:
             has_scheduler = configuration.get('use_scheduler', False)
             scores = history.get('history', {})
             chkp_config = {
-                    'checkpoint_name': model_name,
+                    'checkpoint': model_name,
                     'sample_size': configuration.get('sample_size', np.nan),
                     'validation_size': configuration.get('validation_size', np.nan),
                     'seed': configuration.get('train_seed', np.nan),
@@ -107,8 +107,8 @@ class ImageReconstruction:
         self.model = model  
         self.configuration = configuration
 
-        self.checkpoint_name = os.path.basename(checkpoint_path)        
-        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint_name)       
+        self.checkpoint = os.path.basename(checkpoint_path)        
+        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint)       
         os.makedirs(self.validation_path, exist_ok=True) 
 
     #--------------------------------------------------------------------------

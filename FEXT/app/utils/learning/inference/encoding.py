@@ -17,7 +17,7 @@ class ImageEncoding:
     
     def __init__(self, model, configuration, checkpoint_path):       
         set_random_seed(configuration.get('train_seed', 42)) 
-        self.checkpoint_name = os.path.basename(checkpoint_path)        
+        self.checkpoint = os.path.basename(checkpoint_path)        
         self.configuration = configuration
         self.model = model 
         # isolate the encoder submodel from the autoencoder model             
@@ -48,7 +48,7 @@ class ImageEncoding:
         structured_data = np.array(
             [(image, features[image]) for image in features], dtype=object)
         file_loc = os.path.join(
-            INFERENCE_PATH, f'encoded_img_{self.checkpoint_name}.npy')
+            INFERENCE_PATH, f'encoded_img_{self.checkpoint}.npy')
         np.save(file_loc, structured_data)
         
         return features
