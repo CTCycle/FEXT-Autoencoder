@@ -49,7 +49,7 @@ You can select a model checkpoint and use it to encode images into compact, abst
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
-![model_tab](FEXT/app/assets/figures/model_tab.png)
+![model_tab](FEXT/app/assets/figures/model_tab.gif)
 
 
 **Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
