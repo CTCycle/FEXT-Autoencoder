@@ -16,7 +16,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv) 
 
     # setup stylesheet
-    apply_stylesheet(app, theme='dark_teal.xml')
+    extra = {'density_scale': '-1'}
+    apply_stylesheet(app, theme='dark_teal.xml', extra=extra)
 
     main_window = MainWindow(UI_PATH)   
     main_window.show()
