@@ -6,7 +6,7 @@ from FEXT.app.logger import logger
 ###############################################################################
 class TrainValidationSplit:
 
-    def __init__(self, configuration): 
+    def __init__(self, configuration : dict): 
         self.validation_size = configuration.get('validation_size', 42)
         np.random.seed(configuration.get('split_seed', 42))   
         self.configuration = configuration               
