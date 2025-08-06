@@ -195,6 +195,9 @@ class ModelEvents:
         builder = ImageDataLoader(self.configuration)          
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
+
+        # check worker status to allow interruption
+        check_thread_status(worker)
         
         # set device for training operations        
         logger.info('Setting device for training operations')                 
@@ -207,13 +210,9 @@ class ModelEvents:
         checkpoint_path = modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
         autoencoder = FeXTAutoEncoder(self.configuration)           
-        model = autoencoder.get_model(model_summary=True) 
-
+        model = autoencoder.get_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
-        modser.save_model_plot(model, checkpoint_path)
-
-        # check worker status to allow interruption
-        check_thread_status(worker)
+        modser.save_model_plot(model, checkpoint_path)        
         
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
