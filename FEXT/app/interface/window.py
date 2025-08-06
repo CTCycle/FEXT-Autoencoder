@@ -69,8 +69,11 @@ class MainWindow:
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'), 
             # 2. training tab page
-            # dataset settings group    
+            # dataset settings group  
+            (QSpinBox,'imgHeight','image_height'),
+            (QSpinBox,'imgWidth','image_width'),  
             (QCheckBox,'imgAugment','img_augmentation'),
+            (QCheckBox,'grayScale','use_grayscale'),
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),
             (QDoubleSpinBox,'validationSize','validation_size'),
             (QSpinBox,'splitSeed','split_seed'),
@@ -190,7 +193,10 @@ class MainWindow:
             ('seed', 'valueChanged', 'seed'),
             ('sample_size', 'valueChanged', 'sample_size'),            
             # 2. training tab page
-            # dataset settings group            
+            # dataset settings group  
+            ('image_height', 'valueChanged', 'image_height'),
+            ('image_width', 'valueChanged', 'image_width'),
+            ('use_grayscale', 'toggled', 'use_grayscale'),          
             ('img_augmentation', 'toggled', 'img_augmentation'),
             ('use_shuffle', 'toggled', 'shuffle_dataset'),
             ('shuffle_size', 'valueChanged', 'shuffle_size'),

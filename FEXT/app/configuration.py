@@ -11,14 +11,18 @@ class Configuration:
         self.configuration = { 
             # Dataset
             'seed': 42,
-            'sample_size': 1.0,
+            'sample_size': 1.0,            
             'validation_size': 0.2,
+            'image_height': 128,
+            'image_width': 128,
+            'use_grayscale' : False,
             'img_augmentation': False,
             'shuffle_dataset': True,
             'shuffle_size': 256,
 
             # Model 
-            'initial_neurons': 64,
+            
+
             'dropout_rate': 0.2,
             'jit_compile': False,
             'jit_backend': 'inductor',
