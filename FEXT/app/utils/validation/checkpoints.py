@@ -22,7 +22,7 @@ from FEXT.app.logger import logger
 ################################################################################
 class ModelEvaluationSummary:
 
-    def __init__(self, configuration):         
+    def __init__(self, configuration : dict):         
         self.configuration = configuration
 
     #---------------------------------------------------------------------------

@@ -16,7 +16,7 @@ from FEXT.app.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, configuration):        
+    def __init__(self, configuration : dict):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
