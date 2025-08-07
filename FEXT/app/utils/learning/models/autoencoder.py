@@ -11,20 +11,19 @@ from FEXT.app.utils.learning.models.convolutionals import ResidualConvolutivePoo
 # autoencoder model built using the functional keras API. use get_model() method
 # to build and compile the model (print summary as optional)
 ###############################################################################
-class FeXTAutoEncoder: 
+class FeXTAutoEncoders: 
 
-    def __init__(self, configuration : dict):  
-        self.image_shape = (128, 128, 3)
-        self.seed = configuration.get('training_seed', 42) 
+    def __init__(self, configuration : dict):
+        self.image_height = configuration.get('image_height', 256) 
+        self.image_width = configuration.get('image_width', 256)   
+        self.channels = 1 if configuration.get('use_grayscale', False) else 3
+        self.image_shape = (self.image_height, self.image_width, self.channels)
+         
+        self.model_type = configuration.get('model_type', None)
         self.dropout_rate = configuration.get('dropout_rate', 0.2)           
         self.jit_compile = configuration.get('jit_compile', False)
         self.jit_backend = configuration.get('jit_backend', 'inductor')
-        
-        self.initial_neurons = configuration.get('initial_neurons', 64)  
-        self.low_depth_neurons = self.initial_neurons * 2
-        self.mid_depth_neurons = self.initial_neurons * 4  
-        self.high_depth_neurons = self.initial_neurons * 8       
-
+        self.seed = configuration.get('training_seed', 42)
         self.configuration = configuration  
   
     #--------------------------------------------------------------------------
@@ -48,48 +47,47 @@ class FeXTAutoEncoder:
         if self.jit_compile:
             model = torch_compile(model, backend=self.jit_backend, mode='default')
 
-        return model         
+        return model     
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def get_model(self, model_summary=True):       
-       
-        # [ENCODER SUBMODEL]
-        #----------------------------------------------------------------------
-        inputs = layers.Input(shape=self.image_shape, name='image_input')        
-        
+    def get_model(self, model_summary=True):
+        model = self.build_medium_depth_autoencoder()
+        model = self.compile_model(model, model_summary=model_summary) 
+
+        return model          
+
+    # build model given the architecture
+    #--------------------------------------------------------------------------
+    def build_medium_depth_autoencoder(self):         
+        inputs = layers.Input(shape=self.image_shape, name='image_input')  
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
-        layer = ResidualConvolutivePooling(self.initial_neurons, num_layers=3)(inputs)              
-        layer = ResidualConvolutivePooling(self.initial_neurons, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(self.low_depth_neurons, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(self.low_depth_neurons, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(self.mid_depth_neurons, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(self.mid_depth_neurons, num_layers=5)(layer)        
-
-        # [BOTTLENECK SUBMODEL]
-        #--------------------------------------------------------------------
+        layer = ResidualConvolutivePooling(32, num_layers=3)(inputs)              
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(256, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(512, num_layers=5)(layer) 
+        # bottleneck
         encoder_output = CompressionLayer(
-            self.high_depth_neurons, dropout_rate=self.dropout_rate, num_layers=5)(layer) 
+            512, dropout_rate=self.dropout_rate, num_layers=5)(layer) 
         decoder_input = DecompressionLayer(
-            self.high_depth_neurons, num_layers=5)(encoder_output)
+            512, num_layers=5)(encoder_output)
         
-        # [DECODER SUBMODEL]
-        #----------------------------------------------------------------------          
-        layer = ResidualTransConvolutiveUpsampling(self.mid_depth_neurons, num_layers=5)(decoder_input)       
-        layer = ResidualTransConvolutiveUpsampling(self.mid_depth_neurons, num_layers=4)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(self.low_depth_neurons, num_layers=4)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(self.low_depth_neurons, num_layers=3)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(self.initial_neurons, num_layers=3)(layer) 
-
-        output = layers.Dense(3, kernel_initializer='he_uniform')(layer) 
+        # decoder         
+        layer = ResidualTransConvolutiveUpsampling(512, num_layers=5)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(32, num_layers=3)(layer) 
+        # image reconstruction head
+        output = layers.Dense(self.channels, kernel_initializer='he_uniform')(layer) 
         output = layers.BatchNormalization()(output)       
-        output = activations.relu(output, max_value=1.0)  
-        
+        output = activations.relu(output, max_value=1.0)
         # define the model using the image as input and output       
         model = Model(inputs=inputs, outputs=output, name='FEXT_model')
-        model = self.compile_model(model, model_summary=model_summary)        
 
         return model
        
