@@ -60,10 +60,11 @@ class ModelSerializer:
         checkpoint_path = os.path.join(
             CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
         os.makedirs(checkpoint_path, exist_ok=True)  
+        os.makedirs(os.path.join(checkpoint_path, 'configuration'), exist_ok=True)
         logger.debug(f'Created checkpoint folder at {checkpoint_path}')
         
-        return checkpoint_path    
-
+        return checkpoint_path
+    
     #--------------------------------------------------------------------------
     def save_pretrained_model(self, model, path):
         model_files_path = os.path.join(path, 'saved_model.keras')
@@ -72,7 +73,6 @@ class ModelSerializer:
 
     #--------------------------------------------------------------------------
     def save_training_configuration(self, path, history, configuration : dict):         
-        os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
         config_path = os.path.join(path, 'configuration', 'configuration.json')
         history_path = os.path.join(path, 'configuration', 'session_history.json')
         
@@ -83,7 +83,20 @@ class ModelSerializer:
         # Save session history
         with open(history_path, 'w') as f:
             json.dump(history, f)
+
+    #--------------------------------------------------------------------------
+    def load_training_configuration(self, path):
+        config_path = os.path.join(path, 'configuration', 'configuration.json')   
+        history_path = os.path.join(path, 'configuration', 'session_history.json')
+
+        with open(config_path, 'r') as f:
+            configuration = json.load(f)    
         
+        with open(history_path, 'r') as f:
+            history = json.load(f)
+
+        return configuration, history
+    
     #-------------------------------------------------------------------------- 
     def scan_checkpoints_folder(self):
         model_folders = []
@@ -96,21 +109,7 @@ class ModelSerializer:
                 if has_keras:
                     model_folders.append(entry.name)
                     
-        return model_folders     
-
-    #--------------------------------------------------------------------------
-    def load_training_configuration(self, path):
-        config_path = os.path.join(
-            path, 'configuration', 'configuration.json')        
-        with open(config_path, 'r') as f:
-            configuration = json.load(f)        
-
-        history_path = os.path.join(
-            path, 'configuration', 'session_history.json')
-        with open(history_path, 'r') as f:
-            history = json.load(f)
-
-        return configuration, history
+        return model_folders   
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):
