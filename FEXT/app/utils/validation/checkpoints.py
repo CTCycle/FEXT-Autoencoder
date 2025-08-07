@@ -1,10 +1,11 @@
 import os
 import re
-import shutil
 import random
+
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
+from keras import Model
 
 import matplotlib
 matplotlib.use("Agg")   
@@ -88,7 +89,7 @@ class ModelEvaluationSummary:
         return dataframe
     
     #--------------------------------------------------------------------------
-    def get_evaluation_report(self, model, validation_dataset, **kwargs):
+    def get_evaluation_report(self, model : Model, validation_dataset, **kwargs):
         callbacks_list = [LearningInterruptCallback(kwargs.get('worker', None))]
         validation = model.evaluate(validation_dataset, verbose=1, callbacks=callbacks_list) 
         logger.info(f'Evaluation of pretrained model has been completed')   
@@ -100,7 +101,7 @@ class ModelEvaluationSummary:
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, configuration, model, checkpoint_path): 
+    def __init__(self, configuration : dict, model : Model, checkpoint_path): 
         self.num_images = configuration.get('num_evaluation_images', 6)
         self.DPI = configuration.get('image_resolution', 400)
         self.file_type = 'jpeg'
