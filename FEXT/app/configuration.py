@@ -21,8 +21,7 @@ class Configuration:
             'shuffle_size': 256,
 
             # Model 
-            
-
+            'model_type' : 'medium_depth',
             'dropout_rate': 0.2,
             'jit_compile': False,
             'jit_backend': 'inductor',

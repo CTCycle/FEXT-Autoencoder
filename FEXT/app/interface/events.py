@@ -8,7 +8,7 @@ from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.utils.data.process import TrainValidationSplit
 from FEXT.app.utils.learning.device import DeviceConfig
 from FEXT.app.utils.learning.training.fitting import ModelTraining
-from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoder
+from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
 from FEXT.app.utils.learning.inference.encoding import ImageEncoding
 from FEXT.app.utils.validation.dataset import ImageAnalysis
 from FEXT.app.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
@@ -209,7 +209,7 @@ class ModelEvents:
         modser = ModelSerializer() 
         checkpoint_path = modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
-        autoencoder = FeXTAutoEncoder(self.configuration)           
+        autoencoder = FeXTAutoEncoders(self.configuration)           
         model = autoencoder.get_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
         modser.save_model_plot(model, checkpoint_path)        
