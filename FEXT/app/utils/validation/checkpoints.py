@@ -4,12 +4,9 @@ import random
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from keras import Model
-
-import matplotlib
-matplotlib.use("Agg")   
-import matplotlib.pyplot as plt
 
 from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
@@ -60,9 +57,9 @@ class ModelEvaluationSummary:
                     'batch_size': configuration.get('batch_size', np.nan),
                     'split_seed': configuration.get('split_seed', np.nan),
                     'image_augmentation': configuration.get('img_augmentation', np.nan),
-                    'image_height': 128,  
-                    'image_width': 128,
-                    'image_channels': 3,
+                    'image_height': configuration.get('image_height', np.nan),  
+                    'image_width': configuration.get('image_width', np.nan), 
+                    'image_channels': 1 if configuration.get('use_grayscale', None) else 3,
                     'jit_compile': configuration.get('jit_compile', np.nan),
                     'has_tensorboard_logs': configuration.get('use_tensorboard', np.nan),
                     'initial_LR': configuration.get('initial_LR', np.nan),
