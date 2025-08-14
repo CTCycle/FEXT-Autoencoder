@@ -96,7 +96,7 @@ class MainWindow:
             (QCheckBox,'saveCheckpoints','save_checkpoints'),
             (QSpinBox,'saveCPFrequency','checkpoints_frequency'),         
             # model settings group
-            (QComboBox,'modelType','model_type'), 
+            (QComboBox,'modelType','selected_model'), 
             (QDoubleSpinBox,'dropoutRate','dropout_rate'),
             # session settings group   
             (QCheckBox,'deviceGPU','use_device_GPU'),         
@@ -221,7 +221,7 @@ class MainWindow:
             ('constant_steps', 'valueChanged', 'constant_steps'),
             ('decay_steps', 'valueChanged', 'decay_steps'),
             # model settings group
-            ('model_type', 'currentTextChanged', 'model_type'),
+            ('selected_model', 'currentTextChanged', 'selected_model'),
             ('use_mixed_precision', 'toggled', 'mixed_precision'),
             ('use_JIT_compiler', 'toggled', 'use_jit_compiler'),
             ('jit_backend', 'currentTextChanged', 'jit_backend'),
@@ -475,13 +475,13 @@ class MainWindow:
     #--------------------------------------------------------------------------        
     @Slot()
     def run_dataset_evaluation_pipeline(self):   
-        if not self.selected_metrics['dataset']:
-            return
-
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
-            return         
+            return 
+                
+        if not self.selected_metrics['dataset']:
+            return
         
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)       
@@ -531,8 +531,7 @@ class MainWindow:
             QMessageBox.warning(self.main_win, "Application is still busy", message)
             return    
 
-        if self.selected_checkpoint is None:
-            logger.warning('No checkpoint selected for resuming training')
+        if not self.selected_checkpoint:
             return    
               
         self.configuration = self.config_manager.get_configuration() 
@@ -573,14 +572,14 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def run_model_evaluation_pipeline(self):  
-        if not self.selected_metrics['model']:
-            return
-        
+    def run_model_evaluation_pipeline(self):          
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
+        
+        if not self.selected_metrics['model'] or not self.selected_checkpoint:
+            return
 
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)         
@@ -631,8 +630,7 @@ class MainWindow:
             QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
         
-        if self.selected_checkpoint is None:
-            logger.warning('No checkpoint selected for resuming training')
+        if not self.selected_checkpoint:            
             return 
         
         self.configuration = self.config_manager.get_configuration() 
