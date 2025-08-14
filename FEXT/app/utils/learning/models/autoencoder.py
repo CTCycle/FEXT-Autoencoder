@@ -19,12 +19,14 @@ class FeXTAutoEncoders:
         self.channels = 1 if configuration.get('use_grayscale', False) else 3
         self.image_shape = (self.image_height, self.image_width, self.channels)
          
-        self.model_type = configuration.get('model_type', None)
+        self.selected_model = configuration.get('selected_model', None)
         self.dropout_rate = configuration.get('dropout_rate', 0.2)           
         self.jit_compile = configuration.get('jit_compile', False)
         self.jit_backend = configuration.get('jit_backend', 'inductor')
         self.seed = configuration.get('training_seed', 42)
         self.configuration = configuration  
+
+        self.models = {'FeXTAERedux' : self.build_FeXTAERedux}
   
     #--------------------------------------------------------------------------
     def compile_model(self, model : Model, model_summary=True):
@@ -51,15 +53,49 @@ class FeXTAutoEncoders:
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def get_model(self, model_summary=True):
-        model = self.build_medium_depth_autoencoder()
+    def get_selected_model(self, model_summary=True):
+        model = self.models[self.selected_model](model_summary)
         model = self.compile_model(model, model_summary=model_summary) 
 
         return model          
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def build_medium_depth_autoencoder(self):         
+    def build_redux_autoencoder(self):         
+        inputs = layers.Input(shape=self.image_shape, name='image_input')  
+        # perform series of convolution pooling on raw image and then concatenate
+        # the results with the obtained gradients          
+        layer = ResidualConvolutivePooling(32, num_layers=3)(inputs)              
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(256, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(512, num_layers=5)(layer) 
+        # bottleneck
+        encoder_output = CompressionLayer(
+            512, dropout_rate=self.dropout_rate, num_layers=5)(layer) 
+        decoder_input = DecompressionLayer(
+            512, num_layers=5)(encoder_output)
+        
+        # decoder         
+        layer = ResidualTransConvolutiveUpsampling(512, num_layers=5)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(32, num_layers=3)(layer) 
+        # image reconstruction head
+        output = layers.Dense(self.channels, kernel_initializer='he_uniform')(layer) 
+        output = layers.BatchNormalization()(output)       
+        output = activations.relu(output, max_value=1.0)
+        # define the model using the image as input and output       
+        model = Model(inputs=inputs, outputs=output, name='FEXT_model')
+
+        return model
+    
+    # build model given the architecture
+    #--------------------------------------------------------------------------
+    def build_medium_autoencoder(self):         
         inputs = layers.Input(shape=self.image_shape, name='image_input')  
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
@@ -91,4 +127,37 @@ class FeXTAutoEncoders:
 
         return model
        
+    # build model given the architecture
+    #--------------------------------------------------------------------------
+    def build_large_autoencoder(self):         
+        inputs = layers.Input(shape=self.image_shape, name='image_input')  
+        # perform series of convolution pooling on raw image and then concatenate
+        # the results with the obtained gradients          
+        layer = ResidualConvolutivePooling(32, num_layers=3)(inputs)              
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(256, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(512, num_layers=5)(layer) 
+        # bottleneck
+        encoder_output = CompressionLayer(
+            512, dropout_rate=self.dropout_rate, num_layers=5)(layer) 
+        decoder_input = DecompressionLayer(
+            512, num_layers=5)(encoder_output)
+        
+        # decoder         
+        layer = ResidualTransConvolutiveUpsampling(512, num_layers=5)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(32, num_layers=3)(layer) 
+        # image reconstruction head
+        output = layers.Dense(self.channels, kernel_initializer='he_uniform')(layer) 
+        output = layers.BatchNormalization()(output)       
+        output = activations.relu(output, max_value=1.0)
+        # define the model using the image as input and output       
+        model = Model(inputs=inputs, outputs=output, name='FEXT_model')
+
+        return model
 
