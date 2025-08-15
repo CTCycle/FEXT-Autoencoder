@@ -56,8 +56,11 @@ class MainWindow:
         self.widgets = {}
         self._setup_configuration([ 
             # actions
+            (QAction, 'actionReloadApp', 'reload_app_action'),
             (QAction, 'actionLoadConfig', 'load_configuration_action'),
             (QAction, 'actionSaveConfig', 'save_configuration_action'),
+            (QAction, 'actionDeleteData', 'delete_data_action'),
+            (QAction, 'actionExportData', 'export_data_action'),
             # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
@@ -69,11 +72,11 @@ class MainWindow:
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'), 
             # 2. training tab page
-            # dataset settings group  
-            (QSpinBox,'imgHeight','image_height'),
-            (QSpinBox,'imgWidth','image_width'),  
+            # dataset settings group 
             (QCheckBox,'grayScale','use_grayscale'),
-            (QCheckBox,'imgAugment','img_augmentation'),            
+            (QCheckBox,'imgAugment','img_augmentation'), 
+            (QSpinBox,'imgHeight','image_height'),
+            (QSpinBox,'imgWidth','image_width'),   
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),
             (QDoubleSpinBox,'validationSize','validation_size'),
             (QSpinBox,'splitSeed','split_seed'),
@@ -126,8 +129,11 @@ class MainWindow:
         
         self._connect_signals([ 
             # actions
+            #('reload_app', 'triggered', self.save_configuration),   
             ('save_configuration_action', 'triggered', self.save_configuration),   
             ('load_configuration_action', 'triggered', self.load_configuration),
+            ('delete_data_action', 'triggered', self.load_configuration),   
+            ('export_data_action', 'triggered', self.load_configuration),
             # out of tab widgets    
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
