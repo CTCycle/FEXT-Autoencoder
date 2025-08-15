@@ -33,110 +33,121 @@
        <attribute name="title">
         <string>Data</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_24">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="SSLabel">
-              <property name="text">
-               <string>Sample size</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QDoubleSpinBox" name="sampleSize">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample size for the image dataset, this will be used to select a certain fraction of data to evaluate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.050000000000000</double>
-              </property>
-              <property name="value">
-               <double>1.000000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="seedLayout">
-            <item>
-             <widget class="QLabel" name="seedLabel">
-              <property name="text">
-               <string>Seed</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="seed">
-              <property name="value">
-               <number>42</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="datasetEvalGroup">
-            <property name="title">
-             <string>Dataset evaluation</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Data source</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QCheckBox" name="imgStatistics">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of images statistics (mean, min, max, standard deviation, signal-to-noise ratio) to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
+              <widget class="QLabel" name="SSLabel">
                <property name="text">
-                <string>Image statistics</string>
+                <string>Sample size</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="pixDist">
+              <widget class="QDoubleSpinBox" name="sampleSize">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of pixel intensity distribution and related histogram to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample size for the image dataset, this will be used to select a certain fraction of data to evaluate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
-               <property name="text">
-                <string>Pixel intensity distribution</string>
+               <property name="maximum">
+                <double>1.000000000000000</double>
                </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer">
-               <property name="orientation">
-                <enum>Qt::Orientation::Vertical</enum>
+               <property name="singleStep">
+                <double>0.050000000000000</double>
                </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="evaluateDataset">
-               <property name="text">
-                <string>Evaluate dataset</string>
+               <property name="value">
+                <double>1.000000000000000</double>
                </property>
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-         </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="seedLayout">
+             <item>
+              <widget class="QLabel" name="seedLabel">
+               <property name="text">
+                <string>Seed</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="seed">
+               <property name="value">
+                <number>42</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
-        <item>
-         <widget class="QGroupBox" name="noiseGenGroup">
-          <property name="title">
-           <string>Noise generator</string>
+        <item row="0" column="1">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="datasetEvalGroup">
+          <property name="title">
+           <string>Dataset evaluation</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QCheckBox" name="imgStatistics">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of images statistics (mean, min, max, standard deviation, signal-to-noise ratio) to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Image statistics</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="pixDist">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add calculation of pixel intensity distribution and related histogram to evaluation pipeline&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="text">
+              <string>Pixel intensity distribution</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="evaluateDataset">
+             <property name="text">
+              <string>Evaluate dataset</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -184,7 +195,7 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_21">
                  <item>
-                  <widget class="QLabel" name="label_5">
+                  <widget class="QLabel" name="ISLabel">
                    <property name="text">
                     <string>Image size (H x W)</string>
                    </property>
@@ -352,7 +363,7 @@
                  <item>
                   <widget class="QLabel" name="MTLabel">
                    <property name="text">
-                    <string>Autoencoder model</string>
+                    <string>Select autoencoder</string>
                    </property>
                   </widget>
                  </item>
@@ -1016,14 +1027,14 @@
               </item>
              </layout>
             </item>
-            <item>
-             <widget class="QPushButton" name="clearImg">
-              <property name="text">
-               <string>Clear</string>
-              </property>
-             </widget>
-            </item>
            </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearImg">
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1076,8 +1087,16 @@
     <addaction name="actionSaveConfig"/>
     <addaction name="actionLoadConfig"/>
    </widget>
+   <widget class="QMenu" name="menuDatabase">
+    <property name="title">
+     <string>Database</string>
+    </property>
+    <addaction name="actionDeleteData"/>
+    <addaction name="actionExportData"/>
+   </widget>
    <addaction name="menuApp"/>
    <addaction name="menuConfiguration"/>
+   <addaction name="menuDatabase"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionReloadApp">
@@ -1093,6 +1112,16 @@
   <action name="actionLoadConfig">
    <property name="text">
     <string>Load configuration</string>
+   </property>
+  </action>
+  <action name="actionDeleteData">
+   <property name="text">
+    <string>Delete data</string>
+   </property>
+  </action>
+  <action name="actionExportData">
+   <property name="text">
+    <string>Export data</string>
    </property>
   </action>
  </widget>
