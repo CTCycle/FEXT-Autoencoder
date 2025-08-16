@@ -11,9 +11,9 @@ from PySide6.QtWidgets import (QPushButton, QRadioButton, QCheckBox, QDoubleSpin
 
 from FEXT.app.utils.data.database import FEXTDatabase
 from FEXT.app.configuration import Configuration
-from FEXT.app.interface.dialogs import SaveConfigDialog, LoadConfigDialog
-from FEXT.app.interface.events import GraphicsHandler, ValidationEvents, ModelEvents
-from FEXT.app.interface.workers import ThreadWorker, ProcessWorker
+from FEXT.app.client.dialogs import SaveConfigDialog, LoadConfigDialog
+from FEXT.app.client.events import GraphicsHandler, ValidationEvents, ModelEvents
+from FEXT.app.client.workers import ThreadWorker, ProcessWorker
 from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.logger import logger
 

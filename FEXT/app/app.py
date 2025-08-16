@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.app.interface.window import MainWindow
+from FEXT.app.client.window import MainWindow
 from FEXT.app.constants import UI_PATH
 
 # [RUN MAIN]
