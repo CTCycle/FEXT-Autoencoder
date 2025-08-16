@@ -7,9 +7,22 @@ FeXT AutoEncoder is a project centered around the implementation, training and e
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
-As briefly explained, the encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 2x2 and a single-pixel stride, being followed by max pooling. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization, in order to mitigate issues related to vanishing gradient in deep networks.
+The FeXT AutoEncoder is a deep convolutional autoencoder designed to learn compact yet expressive latent representations of images.
 
-In contrast, the decoder is responsible for reconstructing the original image from the lower-dimensional latent space. This is achieved using transposed 2D convolutions and direct nearest-pixel upsampling with 2x2 kernels. The scope of the decoder is to faithfully restore the original image by reconstructing details and pixel distribution by solely using the compressed image projections as a reference.
+The encoder progressively compresses input images into a low-dimensional latent space. It uses stacked convolutional layers with small kernels and stride-1 convolutions, followed by max pooling, to reduce spatial dimensions while expanding feature depth. This allows the model to capture increasingly abstract patterns in the data.
+Each block leverages residual connections with layer normalization, ensuring more stable training and mitigating vanishing gradients in deeper networks.
+
+At the center of the architecture, a Compression Layer serves as the bottleneck, condensing information into a dense latent representation. This layer may optionally apply dropout regularization to improve generalization.
+
+Eventually, the decoder mirrors the encoder, reconstructing the original image from the latent space. Instead of pooling, it uses transposed convolutions and nearest-pixel upsampling with residual connections. This setup enables the model to faithfully restore fine details, pixel distributions, and overall image structure.
+
+FeXT provides three scalable model configurations to balance efficiency and accuracy. Each variant follows the same encoder–bottleneck–decoder pattern, differing mainly in the number of convolutional layers and channel sizes.
+
+- **FextAE Redux** – A lightweight version for faster training and reduced computational cost.
+
+- **FextAE Medium** – A balanced architecture suitable for most use cases.
+
+- **FextAE Large** – A deeper network with more layers and higher channel capacity for tasks requiring maximum fidelity.
 
 ## 3. Training dataset
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. However, this model can be trained on virtually any image dataset, as the inputs will be automatically resized and normalized.
