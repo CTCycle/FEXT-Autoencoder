@@ -25,9 +25,9 @@ class FeXTAutoEncoders:
         self.seed = configuration.get('training_seed', 42)
         self.configuration = configuration  
 
-        self.models = {'FeXTAERedux' : self.build_redux_autoencoder,
-                       'FeXTAEMedium' : self.build_medium_autoencoder,
-                       'FeXTAELarge' : self.build_large_autoencoder}
+        self.models = {'FextAE Redux' : self.build_redux_autoencoder,
+                       'FextAE Medium' : self.build_medium_autoencoder,
+                       'FextAE Large' : self.build_large_autoencoder}
   
     #--------------------------------------------------------------------------
     def compile_model(self, model : Model, model_summary=True):
@@ -88,7 +88,7 @@ class FeXTAutoEncoders:
         output = layers.BatchNormalization()(output)       
         output = activations.relu(output, max_value=1.0)
         # define the model using the image as input and output       
-        model = Model(inputs=inputs, outputs=output, name='FEXTReduxAE')
+        model = Model(inputs=inputs, outputs=output, name='FextAE Redux')
 
         return model
     
@@ -122,7 +122,7 @@ class FeXTAutoEncoders:
         output = layers.BatchNormalization()(output)       
         output = activations.relu(output, max_value=1.0)
         # define the model using the image as input and output       
-        model = Model(inputs=inputs, outputs=output, name='FEXTMediumAE')
+        model = Model(inputs=inputs, outputs=output, name='FextAE Medium')
 
         return model
        
@@ -133,29 +133,33 @@ class FeXTAutoEncoders:
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
         layer = ResidualConvolutivePooling(32, num_layers=3)(inputs)   
-        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)            
-        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
-        layer = ResidualConvolutivePooling(128, num_layers=3)(layer)        
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)       
+        layer = ResidualConvolutivePooling(64, num_layers=3)(layer)      
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
+        layer = ResidualConvolutivePooling(128, num_layers=4)(layer)        
         layer = ResidualConvolutivePooling(256, num_layers=4)(layer)        
-        layer = ResidualConvolutivePooling(256, num_layers=4)(layer)
+        layer = ResidualConvolutivePooling(256, num_layers=5)(layer)
+        layer = ResidualConvolutivePooling(512, num_layers=5)(layer)
         # bottleneck
         encoder_output = CompressionLayer(
-            512, dropout_rate=self.dropout_rate, num_layers=4)(layer) 
+            512, dropout_rate=self.dropout_rate, num_layers=6)(layer) 
         decoder_input = DecompressionLayer(
-            512, num_layers=4)(encoder_output)
+            512, num_layers=6)(encoder_output)
         
         # decoder         
-        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(decoder_input)       
+        layer = ResidualTransConvolutiveUpsampling(512, num_layers=5)(decoder_input)       
         layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)    
-        layer = ResidualTransConvolutiveUpsampling(128, num_layers=3)(layer)       
-        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)  
-        layer = ResidualTransConvolutiveUpsampling(32, num_layers=3)(layer) 
+        layer = ResidualTransConvolutiveUpsampling(256, num_layers=4)(layer)    
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)       
+        layer = ResidualTransConvolutiveUpsampling(128, num_layers=4)(layer)  
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer) 
+        layer = ResidualTransConvolutiveUpsampling(64, num_layers=3)(layer)
+        layer = ResidualTransConvolutiveUpsampling(32, num_layers=3)(layer)
         # image reconstruction head
         output = layers.Dense(self.channels, kernel_initializer='he_uniform')(layer) 
         output = layers.BatchNormalization()(output)       
         output = activations.relu(output, max_value=1.0)
         # define the model using the image as input and output       
-        model = Model(inputs=inputs, outputs=output, name='FEXTMediumAE')
+        model = Model(inputs=inputs, outputs=output, name='FextAE Large')
 
         return model
