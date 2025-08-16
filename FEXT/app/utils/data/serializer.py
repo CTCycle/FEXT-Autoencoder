@@ -2,6 +2,7 @@ import os
 import json
 
 import pandas as pd
+from keras import Model
 from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
@@ -50,8 +51,8 @@ class DataSerializer:
 ###############################################################################
 class ModelSerializer:
 
-    def __init__(self):        
-        self.model_name = 'FeXT_AE'        
+    def __init__(self, model_name : str | None = None):        
+        self.model_name = model_name        
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -66,7 +67,7 @@ class ModelSerializer:
         return checkpoint_path
     
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model, path):
+    def save_pretrained_model(self, model : Model, path):
         model_files_path = os.path.join(path, 'saved_model.keras')
         model.save(model_files_path)
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')

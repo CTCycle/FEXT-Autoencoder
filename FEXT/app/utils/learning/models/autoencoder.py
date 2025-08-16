@@ -54,7 +54,7 @@ class FeXTAutoEncoders:
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def get_selected_model(self, model_summary=True):
+    def get_selected_model(self, model_summary=True) -> Model:
         model = self.models[self.selected_model](model_summary)
         model = self.compile_model(model, model_summary=model_summary) 
 
@@ -62,7 +62,7 @@ class FeXTAutoEncoders:
 
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def build_redux_autoencoder(self):         
+    def build_redux_autoencoder(self) -> Model:         
         inputs = layers.Input(shape=self.image_shape, name='image_input')  
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
@@ -94,7 +94,7 @@ class FeXTAutoEncoders:
     
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def build_medium_autoencoder(self):         
+    def build_medium_autoencoder(self) -> Model:         
         inputs = layers.Input(shape=self.image_shape, name='image_input')  
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
@@ -128,7 +128,7 @@ class FeXTAutoEncoders:
        
     # build model given the architecture
     #--------------------------------------------------------------------------
-    def build_large_autoencoder(self):         
+    def build_large_autoencoder(self) -> Model:         
         inputs = layers.Input(shape=self.image_shape, name='image_input')  
         # perform series of convolution pooling on raw image and then concatenate
         # the results with the obtained gradients          
