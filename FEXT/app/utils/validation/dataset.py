@@ -1,13 +1,10 @@
 import os
+
 import cv2
 import pandas as pd
 import numpy as np
-
-from tqdm import tqdm
-
-import matplotlib
-matplotlib.use("Agg")   
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from FEXT.app.utils.data.serializer import DataSerializer
 from FEXT.app.interface.workers import check_thread_status, update_progress_callback
@@ -19,7 +16,7 @@ from FEXT.app.logger import logger
 ###############################################################################
 class ImageAnalysis:
 
-    def __init__(self, configuration): 
+    def __init__(self, configuration : dict): 
         self.serializer = DataSerializer(configuration)
         self.DPI = configuration.get('image_resolution', 400)
         self.configuration = configuration
