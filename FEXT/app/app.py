@@ -1,7 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-
 # [SETTING WARNINGS]
 import warnings
 warnings.simplefilter(action='ignore', category=Warning)

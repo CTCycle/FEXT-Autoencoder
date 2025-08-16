@@ -25,7 +25,7 @@ def apply_style(app : QApplication):
     extra = {'density_scale': '-1'}
     apply_stylesheet(app, theme=f'{theme}.xml', extra=extra)
 
-    # Make % text visible/centered for ALL progress bars (after the theme!)
+    # Make % text visible/centered for ALL progress bars
     app.setStyleSheet(app.styleSheet() + """
     QProgressBar {
         text-align: center;   /* align percentage to the center */
@@ -76,7 +76,6 @@ class MainWindow:
         self.widgets = {}
         self._setup_configuration([ 
             # actions
-            #(QAction, 'actionReloadApp', 'reload_app_action'),
             (QAction, 'actionLoadConfig', 'load_configuration_action'),
             (QAction, 'actionSaveConfig', 'save_configuration_action'),
             (QAction, 'actionDeleteData', 'delete_data_action'),
@@ -149,7 +148,6 @@ class MainWindow:
         
         self._connect_signals([ 
             # actions
-            #('reload_app', 'triggered', self.save_configuration),   
             ('save_configuration_action', 'triggered', self.save_configuration),   
             ('load_configuration_action', 'triggered', self.load_configuration),
             ('delete_data_action', 'triggered', self.delete_all_data),   
