@@ -11,7 +11,7 @@ from keras import Model
 from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
 from FEXT.app.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.app.interface.workers import check_thread_status, update_progress_callback
+from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH 
 from FEXT.app.logger import logger
 

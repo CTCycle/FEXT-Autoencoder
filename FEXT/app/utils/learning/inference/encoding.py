@@ -5,7 +5,7 @@ from tqdm import tqdm
 from keras.utils import set_random_seed
 from keras import Model
 
-from FEXT.app.interface.workers import check_thread_status, update_progress_callback
+from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.constants import INFERENCE_PATH
 from FEXT.app.logger import logger
