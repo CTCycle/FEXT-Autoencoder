@@ -3,9 +3,9 @@ import keras
 import webbrowser
 import subprocess
 import time
-)import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-from FEXT.app.interface.workers import WorkerInterrupted
+from FEXT.app.client.workers import WorkerInterrupted
 from FEXT.app.logger import logger
 
 
