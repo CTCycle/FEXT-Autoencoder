@@ -335,6 +335,36 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_11">
                <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="MTLabel">
+                   <property name="text">
+                    <string>Select autoencoder</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="modelType">
+                   <item>
+                    <property name="text">
+                     <string>FextAE Redux</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>FextAE Medium</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>FextAE Large</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_27">
                  <item>
                   <widget class="QLabel" name="label_22">
@@ -354,26 +384,6 @@
                    <property name="value">
                     <double>0.200000000000000</double>
                    </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_20">
-                 <item>
-                  <widget class="QLabel" name="MTLabel">
-                   <property name="text">
-                    <string>Select autoencoder</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="modelType">
-                   <item>
-                    <property name="text">
-                     <string>FeXT medium</string>
-                    </property>
-                   </item>
                   </widget>
                  </item>
                 </layout>
