@@ -3,10 +3,7 @@ import keras
 import webbrowser
 import subprocess
 import time
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+)import matplotlib.pyplot as plt
 
 from FEXT.app.interface.workers import WorkerInterrupted
 from FEXT.app.logger import logger
@@ -111,7 +108,7 @@ class RealTimeHistory(keras.callbacks.Callback):
     
 # [CALLBACKS HANDLER]
 ###############################################################################
-def initialize_callbacks_handler(configuration, checkpoint_path, session=None,
+def initialize_callbacks_handler(configuration : dict, checkpoint_path, session=None,
                                  total_epochs=100, **kwargs):    
     from_epoch = 0  
     additional_epochs = configuration.get('additional_epochs', 10)

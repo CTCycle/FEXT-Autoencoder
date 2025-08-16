@@ -56,8 +56,11 @@ class MainWindow:
         self.widgets = {}
         self._setup_configuration([ 
             # actions
+            (QAction, 'actionReloadApp', 'reload_app_action'),
             (QAction, 'actionLoadConfig', 'load_configuration_action'),
             (QAction, 'actionSaveConfig', 'save_configuration_action'),
+            (QAction, 'actionDeleteData', 'delete_data_action'),
+            (QAction, 'actionExportData', 'export_data_action'),
             # out of tab widgets            
             (QProgressBar,'progressBar','progress_bar'),      
             (QPushButton,'stopThread','stop_thread'),
@@ -69,32 +72,35 @@ class MainWindow:
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'), 
             # 2. training tab page
-            # dataset settings group    
-            (QCheckBox,'imgAugment','img_augmentation'),
+            # dataset settings group 
+            (QCheckBox,'grayScale','use_grayscale'),
+            (QCheckBox,'imgAugment','img_augmentation'), 
+            (QSpinBox,'imgHeight','image_height'),
+            (QSpinBox,'imgWidth','image_width'),   
             (QDoubleSpinBox,'trainSampleSize','train_sample_size'),
             (QDoubleSpinBox,'validationSize','validation_size'),
             (QSpinBox,'splitSeed','split_seed'),
             (QCheckBox,'setShuffle','use_shuffle'),
             (QSpinBox,'shuffleSize','shuffle_size'),            
             # training settings group
-            (QCheckBox,'runTensorboard','use_tensorboard'),
-            (QCheckBox,'realTimeHistory','real_time_history_callback'),
-            (QCheckBox,'saveCheckpoints','save_checkpoints'),
-            (QSpinBox,'saveCPFrequency','checkpoints_frequency'), 
-            (QSpinBox,'trainSeed','train_seed'),           
-            (QSpinBox,'numEpochs','epochs'),
-            (QSpinBox,'batchSize','batch_size'),            
-            # model settings group
             (QCheckBox,'mixedPrecision','use_mixed_precision'),
             (QCheckBox,'compileJIT','use_JIT_compiler'),   
-            (QComboBox,'backendJIT','jit_backend'),         
-            (QSpinBox,'initialNeurons','initial_neurons'),
-            (QDoubleSpinBox,'dropoutRate','dropout_rate'), 
+            (QComboBox,'backendJIT','jit_backend'), 
+            (QSpinBox,'trainSeed','train_seed'),           
+            (QSpinBox,'numEpochs','epochs'),
+            (QSpinBox,'batchSize','batch_size'),   
             (QCheckBox,'useScheduler','LR_scheduler'), 
             (QDoubleSpinBox,'initialLearningRate','initial_LR'),
             (QDoubleSpinBox,'targetLearningRate','target_LR'),            
             (QSpinBox,'constantSteps','constant_steps'),
-            (QSpinBox,'decaySteps','decay_steps'), 
+            (QSpinBox,'decaySteps','decay_steps'),  
+            (QCheckBox,'runTensorboard','use_tensorboard'),
+            (QCheckBox,'realTimeHistory','real_time_history_callback'),
+            (QCheckBox,'saveCheckpoints','save_checkpoints'),
+            (QSpinBox,'saveCPFrequency','checkpoints_frequency'),         
+            # model settings group
+            (QComboBox,'modelType','selected_model'), 
+            (QDoubleSpinBox,'dropoutRate','dropout_rate'),
             # session settings group   
             (QCheckBox,'deviceGPU','use_device_GPU'),         
             (QSpinBox,'deviceID','device_ID'),
@@ -123,8 +129,11 @@ class MainWindow:
         
         self._connect_signals([ 
             # actions
+            #('reload_app', 'triggered', self.save_configuration),   
             ('save_configuration_action', 'triggered', self.save_configuration),   
             ('load_configuration_action', 'triggered', self.load_configuration),
+            ('delete_data_action', 'triggered', self.load_configuration),   
+            ('export_data_action', 'triggered', self.load_configuration),
             # out of tab widgets    
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
@@ -190,7 +199,10 @@ class MainWindow:
             ('seed', 'valueChanged', 'seed'),
             ('sample_size', 'valueChanged', 'sample_size'),            
             # 2. training tab page
-            # dataset settings group            
+            # dataset settings group  
+            ('image_height', 'valueChanged', 'image_height'),
+            ('image_width', 'valueChanged', 'image_width'),
+            ('use_grayscale', 'toggled', 'use_grayscale'),          
             ('img_augmentation', 'toggled', 'img_augmentation'),
             ('use_shuffle', 'toggled', 'shuffle_dataset'),
             ('shuffle_size', 'valueChanged', 'shuffle_size'),
@@ -215,10 +227,10 @@ class MainWindow:
             ('constant_steps', 'valueChanged', 'constant_steps'),
             ('decay_steps', 'valueChanged', 'decay_steps'),
             # model settings group
+            ('selected_model', 'currentTextChanged', 'selected_model'),
             ('use_mixed_precision', 'toggled', 'mixed_precision'),
             ('use_JIT_compiler', 'toggled', 'use_jit_compiler'),
             ('jit_backend', 'currentTextChanged', 'jit_backend'),
-            ('initial_neurons', 'valueChanged', 'initial_neurons'),
             ('dropout_rate', 'valueChanged', 'dropout_rate'),
             # session settings group
             ('additional_epochs', 'valueChanged', 'additional_epochs'),
@@ -469,13 +481,13 @@ class MainWindow:
     #--------------------------------------------------------------------------        
     @Slot()
     def run_dataset_evaluation_pipeline(self):   
-        if not self.selected_metrics['dataset']:
-            return
-
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
-            return         
+            return 
+                
+        if not self.selected_metrics['dataset']:
+            return
         
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)       
@@ -520,8 +532,13 @@ class MainWindow:
     #--------------------------------------------------------------------------
     @Slot()
     def resume_training_from_checkpoint(self): 
-        if self.worker or not self.selected_checkpoint:            
-            return         
+        if self.worker:            
+            message = "A task is currently running, wait for it to finish and then try again"
+            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            return    
+
+        if not self.selected_checkpoint:
+            return    
               
         self.configuration = self.config_manager.get_configuration() 
         self.model_handler = ModelEvents(self.configuration)   
@@ -561,14 +578,14 @@ class MainWindow:
 
     #--------------------------------------------------------------------------
     @Slot()
-    def run_model_evaluation_pipeline(self):  
-        if not self.selected_metrics['model']:
-            return
-        
+    def run_model_evaluation_pipeline(self):          
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
             return 
+        
+        if not self.selected_metrics['model'] or not self.selected_checkpoint:
+            return
 
         self.configuration = self.config_manager.get_configuration() 
         self.validation_handler = ValidationEvents(self.configuration)         
@@ -617,6 +634,9 @@ class MainWindow:
         if self.worker:            
             message = "A task is currently running, wait for it to finish and then try again"
             QMessageBox.warning(self.main_win, "Application is still busy", message)
+            return 
+        
+        if not self.selected_checkpoint:            
             return 
         
         self.configuration = self.config_manager.get_configuration() 

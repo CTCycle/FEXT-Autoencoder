@@ -7,15 +7,28 @@ FeXT AutoEncoder is a project centered around the implementation, training and e
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
-As briefly explained, the encoder component of the FeXT AutoEncoder is responsible for image encoding into a lower-dimension latent space. It achieves this through a series of convolutional layers with a kernel size of 2x2 and a single-pixel stride, being followed by max pooling. This allows to progressively downsample the spatial dimensions of the input image while expanding the channel dimensions (depth), effectively capturing the abstract representations of the image content. Each stack of convolutional layers is parametrized to use residual connections with layer normalization, in order to mitigate issues related to vanishing gradient in deep networks.
+The FeXT AutoEncoder is a deep convolutional autoencoder designed to learn compact yet expressive latent representations of images.
 
-In contrast, the decoder is responsible for reconstructing the original image from the lower-dimensional latent space. This is achieved using transposed 2D convolutions and direct nearest-pixel upsampling with 2x2 kernels. The scope of the decoder is to faithfully restore the original image by reconstructing details and pixel distribution by solely using the compressed image projections as a reference.
+The encoder progressively compresses input images into a low-dimensional latent space. It uses stacked convolutional layers with small kernels and stride-1 convolutions, followed by max pooling, to reduce spatial dimensions while expanding feature depth. This allows the model to capture increasingly abstract patterns in the data.
+Each block leverages residual connections with layer normalization, ensuring more stable training and mitigating vanishing gradients in deeper networks.
+
+At the center of the architecture, a Compression Layer serves as the bottleneck, condensing information into a dense latent representation. This layer may optionally apply dropout regularization to improve generalization.
+
+Eventually, the decoder mirrors the encoder, reconstructing the original image from the latent space. Instead of pooling, it uses transposed convolutions and nearest-pixel upsampling with residual connections. This setup enables the model to faithfully restore fine details, pixel distributions, and overall image structure.
+
+FeXT provides three scalable model configurations to balance efficiency and accuracy. Each variant follows the same encoder–bottleneck–decoder pattern, differing mainly in the number of convolutional layers and channel sizes.
+
+- **FextAE Redux** – A lightweight version for faster training and reduced computational cost.
+
+- **FextAE Medium** – A balanced architecture suitable for most use cases.
+
+- **FextAE Large** – A deeper network with more layers and higher channel capacity for tasks requiring maximum fidelity.
 
 ## 3. Training dataset
 The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. However, this model can be trained on virtually any image dataset, as the inputs will be automatically resized and normalized.
 
 ## 4. Installation
-The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, and a portable version of Git, minimizing user interaction and ensuring all components are ready for local use.  
+The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, minimizing user interaction and ensuring all components are ready for local use.  
 
 **Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
 
@@ -30,7 +43,7 @@ The installation process for Windows is fully automated. Simply run the script *
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. For Windows users, a precompiled Triton wheel is bundled with the installation, ensuring seamless integration and performance improvements.
 
 ## 5. How to use
-On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception for your Anaconda or Miniconda environments in your antivirus settings.
+On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception in your antivirus settings.
 
 The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Models training supports customizable configurations and also allows resuming previous sessions using pretrained models.
 
@@ -82,10 +95,11 @@ This folder organizes data and results across various stages of the project, suc
  
 **Environmental variables** are stored in the *app* folder (within the project folder). For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *app* directory.
 
-| Variable              | Description                                              |
-|-----------------------|----------------------------------------------------------|
-| KERAS_BACKEND         | Sets the backend for Keras, default is PyTorch           |
-| TF_CPP_MIN_LOG_LEVEL  | TensorFlow logging verbosity                             |
+| Variable              | Description                                      |
+|-----------------------|--------------------------------------------------|
+| KERAS_BACKEND         | Sets the backend for Keras, default is PyTorch   |
+| TF_CPP_MIN_LOG_LEVEL  | TensorFlow logging verbosity                     |
+| MPLBACKEND            | Matplotlib backend, keep default as Agg          |
 
 ## 6. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.

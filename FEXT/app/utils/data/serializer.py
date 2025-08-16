@@ -2,6 +2,7 @@ import os
 import json
 
 import pandas as pd
+from keras import Model
 from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
@@ -16,7 +17,7 @@ from FEXT.app.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, configuration):        
+    def __init__(self, configuration : dict):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
@@ -50,8 +51,8 @@ class DataSerializer:
 ###############################################################################
 class ModelSerializer:
 
-    def __init__(self):        
-        self.model_name = 'FeXT_AE'        
+    def __init__(self, model_name : str | None = None):        
+        self.model_name = model_name        
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
@@ -60,19 +61,19 @@ class ModelSerializer:
         checkpoint_path = os.path.join(
             CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
         os.makedirs(checkpoint_path, exist_ok=True)  
+        os.makedirs(os.path.join(checkpoint_path, 'configuration'), exist_ok=True)
         logger.debug(f'Created checkpoint folder at {checkpoint_path}')
         
-        return checkpoint_path    
-
+        return checkpoint_path
+    
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model, path):
+    def save_pretrained_model(self, model : Model, path):
         model_files_path = os.path.join(path, 'saved_model.keras')
         model.save(model_files_path)
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
 
     #--------------------------------------------------------------------------
     def save_training_configuration(self, path, history, configuration : dict):         
-        os.makedirs(os.path.join(path, 'configuration'), exist_ok=True)        
         config_path = os.path.join(path, 'configuration', 'configuration.json')
         history_path = os.path.join(path, 'configuration', 'session_history.json')
         
@@ -83,29 +84,33 @@ class ModelSerializer:
         # Save session history
         with open(history_path, 'w') as f:
             json.dump(history, f)
+
+    #--------------------------------------------------------------------------
+    def load_training_configuration(self, path):
+        config_path = os.path.join(path, 'configuration', 'configuration.json')   
+        history_path = os.path.join(path, 'configuration', 'session_history.json')
+
+        with open(config_path, 'r') as f:
+            configuration = json.load(f)    
         
+        with open(history_path, 'r') as f:
+            history = json.load(f)
+
+        return configuration, history
+    
     #-------------------------------------------------------------------------- 
     def scan_checkpoints_folder(self):
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
-                model_folders.append(entry.name)
-        
-        return model_folders     
-
-    #--------------------------------------------------------------------------
-    def load_training_configuration(self, path):
-        config_path = os.path.join(
-            path, 'configuration', 'configuration.json')        
-        with open(config_path, 'r') as f:
-            configuration = json.load(f)        
-
-        history_path = os.path.join(
-            path, 'configuration', 'session_history.json')
-        with open(history_path, 'r') as f:
-            history = json.load(f)
-
-        return configuration, history
+                # Check if the folder contains at least one .keras file
+                has_keras = any(
+                    f.name.endswith('.keras') and f.is_file()
+                    for f in os.scandir(entry.path))
+                if has_keras:
+                    model_folders.append(entry.name)
+                    
+        return model_folders   
 
     #--------------------------------------------------------------------------
     def save_model_plot(self, model, path):

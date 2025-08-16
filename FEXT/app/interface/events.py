@@ -8,7 +8,7 @@ from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.utils.data.process import TrainValidationSplit
 from FEXT.app.utils.learning.device import DeviceConfig
 from FEXT.app.utils.learning.training.fitting import ModelTraining
-from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoder
+from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
 from FEXT.app.utils.learning.inference.encoding import ImageEncoding
 from FEXT.app.utils.validation.dataset import ImageAnalysis
 from FEXT.app.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
@@ -172,7 +172,7 @@ class ValidationEvents:
 ###############################################################################
 class ModelEvents:
 
-    def __init__(self, configuration):
+    def __init__(self, configuration : dict):
         self.configuration = configuration 
 
     #--------------------------------------------------------------------------
@@ -195,6 +195,9 @@ class ModelEvents:
         builder = ImageDataLoader(self.configuration)          
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
+
+        # check worker status to allow interruption
+        check_thread_status(worker)
         
         # set device for training operations        
         logger.info('Setting device for training operations')                 
@@ -202,18 +205,15 @@ class ModelEvents:
         device.set_device() 
 
         # initialize the model serializer and create checkpoint folder
-        logger.info('Building FeXT AutoEncoder model') 
-        modser = ModelSerializer() 
+        model_name = self.configuration.get('selected_model', None)
+        logger.info(f'Building {model_name} model') 
+        modser = ModelSerializer(model_name) 
         checkpoint_path = modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
-        autoencoder = FeXTAutoEncoder(self.configuration)           
-        model = autoencoder.get_model(model_summary=True) 
-
+        autoencoder = FeXTAutoEncoders(self.configuration)           
+        model = autoencoder.get_selected_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
-        modser.save_model_plot(model, checkpoint_path)
-
-        # check worker status to allow interruption
-        check_thread_status(worker)
+        modser.save_model_plot(model, checkpoint_path)        
         
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
@@ -224,10 +224,6 @@ class ModelEvents:
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
-        if selected_checkpoint is None:
-            logger.warning('No checkpoint selected for resuming training')
-            return
-        
         logger.info(f'Loading {selected_checkpoint} checkpoint') 
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
@@ -265,10 +261,6 @@ class ModelEvents:
         
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
-        if selected_checkpoint is None:
-            logger.warning('No checkpoint selected for resuming training')
-            return
-        
         logger.info(f'Loading {selected_checkpoint} checkpoint')
         modser = ModelSerializer()         
         model, train_config, session, checkpoint_path = modser.load_checkpoint(
