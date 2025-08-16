@@ -1,4 +1,5 @@
 FEXT/resources/database/dataset/*
+FEXT/resources/database/export/*
 FEXT/resources/database/validation/*
 FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
