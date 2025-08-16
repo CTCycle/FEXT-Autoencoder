@@ -205,12 +205,13 @@ class ModelEvents:
         device.set_device() 
 
         # initialize the model serializer and create checkpoint folder
-        logger.info('Building FeXT AutoEncoder model') 
-        modser = ModelSerializer() 
+        model_name = self.configuration.get('selected_model', None)
+        logger.info(f'Building {model_name} model') 
+        modser = ModelSerializer(model_name) 
         checkpoint_path = modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
         autoencoder = FeXTAutoEncoders(self.configuration)           
-        model = autoencoder.get_model(model_summary=True)
+        model = autoencoder.get_selected_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
         modser.save_model_plot(model, checkpoint_path)        
         
