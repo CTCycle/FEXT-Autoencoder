@@ -33,7 +33,7 @@ class ImageDataLoader:
             image = tf.io.read_file(path)
             image = tf.image.decode_image(
                 image, channels=self.channels, expand_animations=False)        
-            image = tf.image.resize(image, self.img_shape)
+            image = tf.image.resize(image, self.img_shape[:-1])
         
         return image      
     
