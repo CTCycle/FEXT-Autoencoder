@@ -7,7 +7,7 @@ from keras.utils import plot_model
 from keras.models import load_model
 from datetime import datetime
 
-from FEXT.app.utils.data.database import FEXTDatabase
+from FEXT.app.utils.data.database import database
 from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
 from FEXT.app.constants import CHECKPOINT_PATH
 from FEXT.app.logger import logger
@@ -22,8 +22,7 @@ class DataSerializer:
         self.num_channels = self.img_shape[-1] 
         self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
         self.seed = configuration.get('seed', 42)
-        self.configuration = configuration
-        self.database = FEXTDatabase()
+        self.configuration = configuration        
     
     #--------------------------------------------------------------------------
     def get_img_path_from_directory(self, path : str, sample_size=1.0):            
@@ -40,11 +39,11 @@ class DataSerializer:
     
     #--------------------------------------------------------------------------
     def save_image_statistics(self, data : pd.DataFrame):            
-        self.database.save_image_statistics(data)       
+        database.save_image_statistics(data)       
     
     #--------------------------------------------------------------------------
     def save_checkpoints_summary(self, data : pd.DataFrame):            
-        self.database.save_checkpoints_summary(data)         
+        database.save_checkpoints_summary(data)         
     
     
 # [MODEL SERIALIZATION]
@@ -113,12 +112,16 @@ class ModelSerializer:
         return model_folders   
 
     #--------------------------------------------------------------------------
-    def save_model_plot(self, model, path):
-        logger.debug(f'Plotting model architecture graph at {path}')
-        plot_path = os.path.join(path, 'model_layout.png')       
-        plot_model(
-            model, to_file=plot_path, show_shapes=True, show_layer_names=True, 
-            show_layer_activations=True, expand_nested=True, rankdir='TB', dpi=400)        
+    def save_model_plot(self, model, path):  
+        try: 
+            plot_path = os.path.join(path, "model_layout.png")       
+            plot_model(model, to_file=plot_path, show_shapes=True,
+                show_layer_names=True, show_layer_activations=True,
+                expand_nested=True, rankdir="TB", dpi=400)
+            logger.debug(f"Model architecture plot generated as {plot_path}") 
+        except (OSError, FileNotFoundError, ImportError) as e:
+            logger.warning(
+                "Could not generate model architecture plot (graphviz/pydot not correctly installed)")
             
     #-------------------------------------------------------------------------- 
     def load_checkpoint(self, checkpoint : str):
