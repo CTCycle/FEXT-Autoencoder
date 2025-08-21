@@ -5,6 +5,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import Column, Float, Integer, String, UniqueConstraint, create_engine
 from sqlalchemy.dialects.sqlite import insert
 
+from FEXT.app.utils.singleton import singleton
 from FEXT.app.constants import DATA_PATH
 from FEXT.app.logger import logger
 
@@ -63,6 +64,7 @@ class CheckpointSummary(Base):
 
 # [DATABASE]
 ###############################################################################
+@singleton
 class FEXTDatabase:
 
     def __init__(self):             
@@ -160,4 +162,5 @@ class FEXTDatabase:
                 conn.execute(table.delete())
             
 
-    
+#------------------------------------------------------------------------------
+database = FEXTDatabase()        
