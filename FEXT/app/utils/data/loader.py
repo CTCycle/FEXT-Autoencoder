@@ -7,15 +7,17 @@ import tensorflow as tf
 ###############################################################################
 class ImageDataLoader:
 
-    def __init__(self, configuration, shuffle=True):
-        self.img_shape = (128, 128)   
-        self.num_channels = 3   
+    def __init__(self, configuration : dict, shuffle=True):
+        self.image_height = configuration.get('image_height', 256) 
+        self.image_width = configuration.get('image_width', 256)   
+        self.channels = 1 if configuration.get('use_grayscale', False) else 3
+        self.img_shape = (self.image_height, self.image_width, self.channels)  
         self.augmentation = configuration.get('use_img_augmentation', False)
         self.batch_size = configuration.get('batch_size', 32)
         self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.shuffle_samples = configuration.get('shuffle_size', 1024)
         self.buffer_size = tf.data.AUTOTUNE                  
-        self.color_encoding = cv2.COLOR_BGR2RGB if self.num_channels==3 else cv2.COLOR_BGR2GRAY
+        self.color_encoding = cv2.COLOR_BGR2RGB if self.channels==3 else cv2.COLOR_BGR2GRAY
         self.configuration = configuration
         self.shuffle = shuffle  
 
@@ -30,8 +32,8 @@ class ImageDataLoader:
         else:
             image = tf.io.read_file(path)
             image = tf.image.decode_image(
-                image, channels=self.num_channels, expand_animations=False)        
-            image = tf.image.resize(image, self.img_shape)
+                image, channels=self.channels, expand_animations=False)        
+            image = tf.image.resize(image, self.img_shape[:-1])
         
         return image      
     

@@ -55,7 +55,7 @@ class FeXTAutoEncoders:
     # build model given the architecture
     #--------------------------------------------------------------------------
     def get_selected_model(self, model_summary=True) -> Model:
-        model = self.models[self.selected_model](model_summary)
+        model = self.models[self.selected_model]()
         model = self.compile_model(model, model_summary=model_summary) 
 
         return model          
