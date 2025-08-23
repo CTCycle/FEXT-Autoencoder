@@ -68,6 +68,8 @@ class GraphicsHandler:
 class ValidationEvents:
 
     def __init__(self, configuration : dict): 
+        self.serializer = DataSerializer() 
+        self.modser = ModelSerializer()    
         self.inference_batch_size = configuration.get('inference_batch_size', 32)
         self.configuration = configuration  
 
@@ -80,11 +82,9 @@ class ValidationEvents:
         
     #--------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
-        # initialize data serializer for saving and loading data         
-        serializer = DataSerializer(self.configuration) 
         # get images path from the dataset folder and select a randomized fraction    
         sample_size = self.configuration.get("sample_size", 1.0)
-        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
+        images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         logger.info(f'The image dataset is composed of {len(images_paths)} images')            
 
         # perform image dataset statistical analysis to retrieve common statistics
@@ -93,7 +93,7 @@ class ValidationEvents:
         # - max and min intensity      
         logger.info('Current metric: image dataset statistics')
         analyzer = ImageAnalysis(self.configuration) 
-        image_statistics = analyzer.calculate_image_statistics(
+        image_statistics = analyzer.calculate_img_dataset_statistics(
             images_paths, progress_callback=progress_callback, worker=worker)
         logger.info('Image dataset statistics have been updated in the database')                      
 
@@ -120,9 +120,8 @@ class ValidationEvents:
             logger.warning('No checkpoint selected for resuming training')
             return
            
-        logger.info(f'Loading {selected_checkpoint} checkpoint')   
-        modser = ModelSerializer()       
-        model, train_config, session, checkpoint_path = modser.load_checkpoint(
+        logger.info(f'Loading {selected_checkpoint} checkpoint')
+        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
@@ -136,9 +135,8 @@ class ValidationEvents:
         encoder_model = encoder.encoder_model 
 
         logger.info('Preparing dataset of images based on splitting sizes')  
-        sample_size = train_config.get("train_sample_size", 1.0)
-        serializer = DataSerializer(self.configuration)  
-        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
+        sample_size = train_config.get("train_sample_size", 1.0)        
+        images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         _, validation_images = splitter.split_train_and_validation(images_paths)     
 
@@ -173,19 +171,20 @@ class ValidationEvents:
 class ModelEvents:
 
     def __init__(self, configuration : dict):
+        self.serializer = DataSerializer()  
+        self.modser = ModelSerializer()
         self.configuration = configuration 
 
     #--------------------------------------------------------------------------
-    def get_available_checkpoints(self):
-        serializer = ModelSerializer()
-        return serializer.scan_checkpoints_folder()
+    def get_available_checkpoints(self):        
+        return self.modser.scan_checkpoints_folder()
             
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):  
         logger.info('Preparing dataset of images based on splitting sizes')
-        serializer = DataSerializer(self.configuration)  
+        
         sample_size = self.configuration.get("train_sample_size", 1.0)
-        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
+        images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
 
         splitter = TrainValidationSplit(self.configuration) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
@@ -207,13 +206,12 @@ class ModelEvents:
         # initialize the model serializer and create checkpoint folder
         model_name = self.configuration.get('selected_model', None)
         logger.info(f'Building {model_name} model') 
-        modser = ModelSerializer(model_name) 
-        checkpoint_path = modser.create_checkpoint_folder()
+        checkpoint_path = self.modser.create_checkpoint_folder()
         # initialize and build FEXT Autoencoder
         autoencoder = FeXTAutoEncoders(self.configuration)           
         model = autoencoder.get_selected_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
-        modser.save_model_plot(model, checkpoint_path)        
+        self.modser.save_model_plot(model, checkpoint_path)        
         
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
@@ -225,8 +223,7 @@ class ModelEvents:
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint') 
-        modser = ModelSerializer()         
-        model, train_config, session, checkpoint_path = modser.load_checkpoint(
+        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
         
@@ -236,9 +233,8 @@ class ModelEvents:
         device.set_device() 
 
         logger.info('Preparing dataset of images based on splitting sizes')
-        serializer = DataSerializer(train_config) 
         sample_size = train_config.get("train_sample_size", 1.0) 
-        images_paths = serializer.get_img_path_from_directory(IMG_PATH, sample_size)
+        images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
         splitter = TrainValidationSplit(train_config) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)     
 
@@ -261,9 +257,8 @@ class ModelEvents:
         
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
-        logger.info(f'Loading {selected_checkpoint} checkpoint')
-        modser = ModelSerializer()         
-        model, train_config, session, checkpoint_path = modser.load_checkpoint(
+        logger.info(f'Loading {selected_checkpoint} checkpoint')        
+        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
@@ -271,9 +266,8 @@ class ModelEvents:
         device = DeviceConfig(self.configuration) 
         device.set_device()
 
-        # select images from the inference folder and retrieve current paths     
-        serializer = DataSerializer(train_config)     
-        images_paths = serializer.get_img_path_from_directory(INFERENCE_INPUT_PATH)
+        # select images from the inference folder and retrieve current paths 
+        images_paths = self.serializer.get_img_path_from_directory(INFERENCE_INPUT_PATH)
         logger.info(f'{len(images_paths)} images have been found as inference input')  
 
         # check worker status to allow interruption

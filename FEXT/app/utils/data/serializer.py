@@ -17,12 +17,10 @@ from FEXT.app.logger import logger
 ###############################################################################
 class DataSerializer:
 
-    def __init__(self, configuration : dict):        
+    def __init__(self):        
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1] 
-        self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}        
-        self.seed = configuration.get('seed', 42)
-        self.configuration = configuration        
+        self.valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp'}   
     
     #--------------------------------------------------------------------------
     def get_img_path_from_directory(self, path : str, sample_size=1.0):            
