@@ -17,7 +17,7 @@ from FEXT.app.logger import logger
 class ImageAnalysis:
 
     def __init__(self, configuration : dict): 
-        self.serializer = DataSerializer(configuration)
+        self.serializer = DataSerializer()
         self.DPI = configuration.get('image_resolution', 400)
         self.configuration = configuration
 
