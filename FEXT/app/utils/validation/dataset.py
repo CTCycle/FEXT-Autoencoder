@@ -112,47 +112,4 @@ class ImageAnalysis:
 
         return fig              
     
-    #--------------------------------------------------------------------------
-    def compare_train_and_validation_PID(self, train_img_path, val_img_path, **kwargs):                
-        # Initialize histograms for training and validation images
-        train_hist = np.zeros(256, dtype=np.int64)
-        val_hist = np.zeros(256, dtype=np.int64)
-
-        # Process training images
-        for path in tqdm(train_img_path, desc="Processing training images", total=len(train_img_path), ncols=100):
-            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-            if img is None:
-                logger.warning(f"Warning: Unable to load training image at {path}.")
-                continue
-            hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
-            train_hist += hist.astype(np.int64)
-
-        # Process validation images
-        for path in tqdm(val_img_path, desc="Processing validation images", 
-                         total=len(val_img_path), ncols=100):
-            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-            if img is None:
-                logger.warning(f"Warning: Unable to load validation image at {path}.")
-                continue
-            hist = cv2.calcHist([img], [0], None, [256], [0, 256]).flatten()
-            val_hist += hist.astype(np.int64)
-
-        # Plot the histograms overlapped
-        plt.figure(figsize=(14, 12))
-        # Offset the positions slightly so that the bars don't completely overlap
-        x = np.arange(256)
-        width = 0.4  # width of each bar
-        plt.bar(x - width/2, train_hist, width=width, label='Train', alpha=0.7)
-        plt.bar(x + width/2, val_hist, width=width, label='Validation', alpha=0.7)
-        plt.title('Pixel Intensity Histogram Comparison', fontsize=16)
-        plt.xlabel('Pixel Intensity', fontsize=12)
-        plt.ylabel('Frequency', fontsize=12)
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(
-            os.path.join(EVALUATION_PATH, 'pixel_intensity_histogram_comparison.jpeg'),
-            dpi=self.DPI)
-        plt.close()
-
-        return train_hist, val_hist
-
+    
