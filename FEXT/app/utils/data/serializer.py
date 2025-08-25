@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Tuple
 
 import pandas as pd
 from keras import Model
@@ -36,12 +37,36 @@ class DataSerializer:
         return images_path 
     
     #--------------------------------------------------------------------------
-    def save_image_statistics(self, data : pd.DataFrame):            
-        database.save_image_statistics(data)       
+    def save_images_statistics(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_STATISTICS') 
+
+    #--------------------------------------------------------------------------
+    def save_images_exposure_metrics(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_EXPOSURE') 
+
+    #--------------------------------------------------------------------------
+    def save_images_entropy_metrics(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_ENTROPY')  
+
+    #--------------------------------------------------------------------------
+    def save_images_sharpness_metrics(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_SHARPNESS')  
+
+    #--------------------------------------------------------------------------
+    def save_images_edges_metrics(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_EDGES')     
+
+    #--------------------------------------------------------------------------
+    def save_images_colorimetry(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_COLORIMETRY')    
+
+    #--------------------------------------------------------------------------
+    def save_images_texture_metric(self, data : pd.DataFrame):            
+        database.upsert_into_database(data, 'IMAGE_TEXTURE_LBP')      
     
     #--------------------------------------------------------------------------
     def save_checkpoints_summary(self, data : pd.DataFrame):            
-        database.save_checkpoints_summary(data)         
+        database.save_into_database(data, 'CHECKPOINTS_SUMMARY')         
     
     
 # [MODEL SERIALIZATION]
@@ -53,7 +78,7 @@ class ModelSerializer:
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
-    def create_checkpoint_folder(self):   
+    def create_checkpoint_folder(self) -> str:   
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
         checkpoint_path = os.path.join(
             CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
@@ -64,7 +89,7 @@ class ModelSerializer:
         return checkpoint_path
     
     #--------------------------------------------------------------------------
-    def save_pretrained_model(self, model : Model, path):
+    def save_pretrained_model(self, model : Model, path) -> None:
         model_files_path = os.path.join(path, 'saved_model.keras')
         model.save(model_files_path)
         logger.info(f'Training session is over. Model {os.path.basename(path)} has been saved')
@@ -83,7 +108,7 @@ class ModelSerializer:
             json.dump(history, f)
 
     #--------------------------------------------------------------------------
-    def load_training_configuration(self, path):
+    def load_training_configuration(self, path : str) -> Tuple[dict, dict]:
         config_path = os.path.join(path, 'configuration', 'configuration.json')   
         history_path = os.path.join(path, 'configuration', 'session_history.json')
 

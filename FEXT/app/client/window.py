@@ -86,7 +86,13 @@ class MainWindow:
             # dataset evaluation group 
             (QDoubleSpinBox,'sampleSize','sample_size'),
             (QSpinBox,'seed','seed'),                      
-            (QCheckBox,'imgStatistics','image_statistics_metric'),      
+            (QCheckBox,'imgStatistics','img_statistics_metric'),      
+            (QCheckBox,'imgExposure','img_exposure_metric'),
+            (QCheckBox,'imgColor','img_color_metric'),  
+            (QCheckBox,'imgEntropy','img_entropy_metric'),      
+            (QCheckBox,'imgEdges','img_edges_metric'),
+            (QCheckBox,'imgSharpness','img_sharpness_metric'),           
+            (QCheckBox,'textureLTB','img_texture_metric'), 
             (QCheckBox,'pixDist','pixel_distribution_metric'),
             (QPushButton,'evaluateDataset','evaluate_dataset'), 
             # 2. training tab page
@@ -154,7 +160,7 @@ class MainWindow:
             # out of tab widgets    
             ('stop_thread','clicked',self.stop_running_worker),          
             # 1. data tab page                      
-            ('image_statistics_metric','toggled',self._update_metrics),
+            ('img_statistics_metric','toggled',self._update_metrics),
             ('pixel_distribution_metric','toggled',self._update_metrics),
             ('evaluate_dataset','clicked',self.run_dataset_evaluation_pipeline),           
             # 2. training tab page               
@@ -256,7 +262,13 @@ class MainWindow:
             ('num_evaluation_images', 'valueChanged', 'num_evaluation_images'), 
             ]
 
-        self.data_metrics = [('image_statistics', self.image_statistics_metric),                             
+        self.data_metrics = [('image_statistics', self.img_statistics_metric), 
+                             ('image_exposure', self.img_exposure_metric),
+                             ('image_entropy', self.img_entropy_metric),   
+                             ('image_colorimetry', self.img_color_metric),                         
+                             ('image_edges', self.img_edges_metric),
+                             ('image_sharpness', self.img_sharpness_metric),
+                             ('image_texture', self.img_texture_metric),
                              ('pixels_distribution', self.pixel_distribution_metric)]
         self.model_metrics = [('evaluation_report', self.get_evaluation_report),
                               ('image_reconstruction', self.image_reconstruction)]                

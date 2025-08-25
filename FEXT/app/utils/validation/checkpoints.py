@@ -5,6 +5,7 @@ import random
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from sklearn.decomposition import PCA
 from keras import Model
 
@@ -35,7 +36,7 @@ class ModelEvaluationSummary:
         return model_paths  
 
     #---------------------------------------------------------------------------
-    def get_checkpoints_summary(self, **kwargs):
+    def get_checkpoints_summary(self, **kwargs) -> pd.DataFrame:
         modser = ModelSerializer() 
         serializer = DataSerializer(self.configuration)             
         model_paths = self.scan_checkpoint_folder()
@@ -98,22 +99,22 @@ class ModelEvaluationSummary:
 ###############################################################################
 class ImageReconstruction:
 
-    def __init__(self, configuration : dict, model : Model, checkpoint_path): 
+    def __init__(self, configuration : dict, model : Model, checkpoint_path : str): 
         self.num_images = configuration.get('num_evaluation_images', 6)
-        self.DPI = configuration.get('image_resolution', 400)
+        self.img_resolution = 400
         self.file_type = 'jpeg'
         self.model = model  
         self.configuration = configuration
-
+        # extract checkpoint name and create subfolder in resources/validation
         self.checkpoint = os.path.basename(checkpoint_path)        
         self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint)       
         os.makedirs(self.validation_path, exist_ok=True) 
 
     #--------------------------------------------------------------------------
-    def save_image(self, fig, name):
+    def save_image(self, fig : Figure, name):
         name = re.sub(r'[^0-9A-Za-z_]', '_', name)
         out_path = os.path.join(self.validation_path, name)
-        fig.savefig(out_path, bbox_inches='tight', dpi=self.DPI)         
+        fig.savefig(out_path, bbox_inches='tight', dpi=self.img_resolution)         
 
     #-------------------------------------------------------------------------- 
     def get_images(self, data):
