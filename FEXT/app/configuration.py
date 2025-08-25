@@ -55,8 +55,7 @@ class Configuration:
             'inference_batch_size': 32,
             'num_evaluation_images': 6,    
 
-            # viewer
-            'image_resolution' : 400,              
+            # viewer                         
         }
 
     #--------------------------------------------------------------------------  

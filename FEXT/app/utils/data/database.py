@@ -29,7 +29,72 @@ class ImageStatistics(Base):
     __table_args__ = (
         UniqueConstraint('name'),
     )
+
+###############################################################################
+class ImageExposure(Base):
+    __tablename__ = 'IMAGE_EXPOSURE'   
+    name = Column(String, primary_key=True)
+    underexposed_pct = Column(Float)   
+    overexposed_pct = Column(Float)    
+    midtone_pct = Column(Float)        
+    mean_gray = Column(Float)
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
+
+###############################################################################
+class ImageEntropy(Base):
+    __tablename__ = 'IMAGE_ENTROPY'
+    name = Column(String, primary_key=True)
+    entropy_bits = Column(Float)         
+    normalized_entropy = Column(Float)  
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
     
+###############################################################################
+class ImageSharpness(Base):
+    __tablename__ = 'IMAGE_SHARPNESS'
+    name = Column(String, primary_key=True)
+    var_laplacian = Column(Float)               
+    tenengrad = Column(Float)                   
+    spectral_highfreq_ratio = Column(Float) 
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
+
+###############################################################################
+class ImageColorimetry(Base):
+    __tablename__ = 'IMAGE_COLORIMETRY'
+    name = Column(String, primary_key=True)
+    colorfulness = Column(Float)       
+    mean_saturation = Column(Float)    
+    low_sat_pct = Column(Float)        
+    high_sat_pct = Column(Float)
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
+
+###############################################################################
+class ImageEdge(Base):
+    __tablename__ = 'IMAGE_EDGES'
+    name = Column(String, primary_key=True)
+    edge_density = Column(Float)     
+    mean_gradient = Column(Float)  
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
+
+###############################################################################
+class ImageTextureLbp(Base):
+    __tablename__ = 'IMAGE_TEXTURE_LBP'
+    name = Column(String, primary_key=True)
+    lbp_energy = Column(Float)     
+    lbp_entropy = Column(Float)  
+    __table_args__ = (
+        UniqueConstraint('name'),        
+    )
+
 ###############################################################################
 class CheckpointSummary(Base):
     __tablename__ = 'CHECKPOINTS_SUMMARY'
@@ -76,9 +141,16 @@ class FEXTDatabase:
     #--------------------------------------------------------------------------       
     def initialize_database(self):
         Base.metadata.create_all(self.engine)
+
+    #-------------------------------------------------------------------------- 
+    def get_table_class(self, table_name: str):    
+        for cls in Base.__subclasses__():
+            if hasattr(cls, '__tablename__') and cls.__tablename__ == table_name:
+                return cls
+        raise ValueError(f"No table class found for name {table_name}")
         
     #--------------------------------------------------------------------------
-    def upsert_dataframe(self, df: pd.DataFrame, table_cls):
+    def _upsert_dataframe(self, df: pd.DataFrame, table_cls):
         table = table_cls.__table__
         session = self.Session()
         try:
@@ -100,21 +172,21 @@ class FEXTDatabase:
                 stmt = stmt.on_conflict_do_update(
                     index_elements=unique_cols,
                     set_=update_cols)
-                session.execute(stmt)
-                session.commit()
+                session.execute(stmt)                
             session.commit()
         finally:
             session.close()
 
     #--------------------------------------------------------------------------
-    def save_image_statistics(self, data : pd.DataFrame):      
-        with self.engine.begin() as conn:
-            conn.execute(sqlalchemy.text(f"DELETE FROM IMAGE_STATISTICS"))        
-        data.to_sql('IMAGE_STATISTICS', self.engine, if_exists='append', index=False) 
-        
+    def save_into_database(self, df: pd.DataFrame, table_name: str):        
+        with self.engine.begin() as conn:            
+            conn.execute(sqlalchemy.text(f'DELETE FROM "{table_name}"'))
+            df.to_sql(table_name, self.engine, if_exists='append', index=False)
+
     #--------------------------------------------------------------------------
-    def save_checkpoints_summary(self, data : pd.DataFrame):         
-        self.upsert_dataframe(data, CheckpointSummary)
+    def upsert_into_database(self, df: pd.DataFrame, table_name: str):
+        table_cls = self.get_table_class(table_name)
+        self._upsert_dataframe(df, table_cls)    
 
     #--------------------------------------------------------------------------
     def export_all_tables_as_csv(self, chunksize: int | None = None):        

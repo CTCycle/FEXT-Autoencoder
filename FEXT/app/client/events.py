@@ -10,7 +10,7 @@ from FEXT.app.utils.learning.device import DeviceConfig
 from FEXT.app.utils.learning.training.fitting import ModelTraining
 from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
 from FEXT.app.utils.learning.inference.encoding import ImageEncoding
-from FEXT.app.utils.validation.dataset import ImageAnalysis
+from FEXT.app.utils.validation.images import ImageAnalysis
 from FEXT.app.utils.validation.checkpoints import ModelEvaluationSummary, ImageReconstruction
 from FEXT.app.client.workers import check_thread_status
 
@@ -81,32 +81,35 @@ class ValidationEvents:
         return images_paths 
         
     #--------------------------------------------------------------------------
-    def run_dataset_evaluation_pipeline(self, metrics, progress_callback=None, worker=None):
+    def run_dataset_evaluation_pipeline(self, metrics : list[str], progress_callback=None, worker=None):
         # get images path from the dataset folder and select a randomized fraction    
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
-        logger.info(f'The image dataset is composed of {len(images_paths)} images')            
-
-        # perform image dataset statistical analysis to retrieve common statistics
-        # - pixel mean and standard deviation
-        # - noise-to-signal ratio
-        # - max and min intensity      
-        logger.info('Current metric: image dataset statistics')
+        logger.info(f'The image dataset is composed of {len(images_paths)} images')  
         analyzer = ImageAnalysis(self.configuration) 
-        image_statistics = analyzer.calculate_img_dataset_statistics(
-            images_paths, progress_callback=progress_callback, worker=worker)
-        logger.info('Image dataset statistics have been updated in the database')                      
-
         images = []
-        # calculate and plot the pixel intensity histogram  
-        if 'pixels_distribution' in metrics:
-            logger.info('Current metric: pixel intensity distribution')
-            images.append(analyzer.calculate_pixel_intensity_distribution(
-                images_paths, progress_callback=progress_callback, worker=worker))
-            logger.info('Pixel intensity distribution plot is available in viewer')
 
-        return images 
+        # Mapping metric name to method and arguments
+        metric_map = {
+            'image_statistics': analyzer.calculate_image_statistics,
+            'pixels_distribution': analyzer.calculate_pixel_intensity_distribution,
+            'image_exposure': analyzer.calculate_exposure_metrics,
+            'image_entropy': analyzer.calculate_entropy,
+            'image_sharpness': analyzer.calculate_sharpness_metrics,
+            'image_colorimetry': analyzer.calculate_color_metrics,
+            'image_edges': analyzer.calculate_edge_metrics,
+            'image_texture': analyzer.calculate_texture_lbp_metrics}
 
+        for metric in metrics:
+            if metric in metric_map:
+                metric_name = metric.replace('_', ' ').title()
+                logger.info(f'Current metric: {metric_name}')  
+                result = metric_map[metric](
+                    images_paths, progress_callback=progress_callback, worker=worker)
+                images.append(result)   
+
+        return images
+    
     #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None): 
         summarizer = ModelEvaluationSummary(self.configuration)    
