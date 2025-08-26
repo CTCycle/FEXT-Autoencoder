@@ -21,7 +21,9 @@ from FEXT.app.logger import logger
 ################################################################################
 class ModelEvaluationSummary:
 
-    def __init__(self, configuration : dict):         
+    def __init__(self, configuration : dict): 
+        self.serializer = DataSerializer() 
+        self.modser = ModelSerializer()            
         self.configuration = configuration
 
     #---------------------------------------------------------------------------
@@ -37,13 +39,11 @@ class ModelEvaluationSummary:
 
     #---------------------------------------------------------------------------
     def get_checkpoints_summary(self, **kwargs) -> pd.DataFrame:
-        modser = ModelSerializer() 
-        serializer = DataSerializer(self.configuration)             
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []            
         for i, model_path in enumerate(model_paths):            
-            model = modser.load_checkpoint(model_path)
-            configuration, history = modser.load_training_configuration(model_path)
+            model = self.modser.load_checkpoint(model_path)
+            configuration, history = self.modser.load_training_configuration(model_path)
             model_name = os.path.basename(model_path)                   
             precision = 16 if configuration.get("use_mixed_precision", np.nan) else 32 
             has_scheduler = configuration.get('use_scheduler', False)
@@ -82,7 +82,7 @@ class ModelEvaluationSummary:
                 i+1, len(model_paths), kwargs.get('progress_callback', None)) 
 
         dataframe = pd.DataFrame(model_parameters)
-        serializer.save_checkpoints_summary(dataframe)    
+        self.serializer.save_checkpoints_summary(dataframe)    
             
         return dataframe
     

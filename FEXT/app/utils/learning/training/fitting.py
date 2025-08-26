@@ -2,7 +2,6 @@ from keras import Model
 from keras.utils import set_random_seed
 
 from FEXT.app.utils.learning.callbacks import initialize_callbacks_handler
-from FEXT.app.utils.data.serializer import ModelSerializer
 from FEXT.app.logger import logger
 
 
@@ -31,10 +30,7 @@ class ModelTraining:
         history = {'history' : session.history,
                    'epochs': session.epoch[-1] + 1}
 
-        serializer = ModelSerializer()  
-        serializer.save_pretrained_model(model, checkpoint_path)       
-        serializer.save_training_configuration(
-            checkpoint_path, history, self.configuration)
+        return model, history        
         
     #--------------------------------------------------------------------------
     def resume_training(self, model : Model, train_data, validation_data, checkpoint_path, 
@@ -58,10 +54,7 @@ class ModelTraining:
         history = {'history' : new_history,
                    'epochs': new_session.epoch[-1] + 1}
        
-        serializer = ModelSerializer()  
-        serializer.save_pretrained_model(model, checkpoint_path)       
-        serializer.save_training_configuration(
-            checkpoint_path, history, self.configuration)
+        return model, history
 
         
 

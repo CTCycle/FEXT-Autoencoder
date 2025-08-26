@@ -66,7 +66,7 @@ class DataSerializer:
     
     #--------------------------------------------------------------------------
     def save_checkpoints_summary(self, data : pd.DataFrame):            
-        database.save_into_database(data, 'CHECKPOINTS_SUMMARY')         
+        database.upsert_into_database(data, 'CHECKPOINTS_SUMMARY')         
     
     
 # [MODEL SERIALIZATION]
