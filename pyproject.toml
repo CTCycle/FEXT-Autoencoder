@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "FEXT"
-version = "1.2"
+version = "1.5"
 
 [tool.setuptools.packages.find]
 where = ["."]
