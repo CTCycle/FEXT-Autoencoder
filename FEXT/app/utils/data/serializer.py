@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 import pandas as pd
 from keras import Model
@@ -73,15 +73,15 @@ class DataSerializer:
 ###############################################################################
 class ModelSerializer:
 
-    def __init__(self, model_name : str | None = None):        
-        self.model_name = model_name        
+    def __init__(self):        
+       pass       
         
     # function to create a folder where to save model checkpoints
     #--------------------------------------------------------------------------
-    def create_checkpoint_folder(self) -> str:   
+    def create_checkpoint_folder(self, model_name : str | None = None) -> str:   
         today_datetime = datetime.now().strftime('%Y%m%dT%H%M%S')        
         checkpoint_path = os.path.join(
-            CHECKPOINT_PATH, f'{self.model_name}_{today_datetime}')         
+            CHECKPOINT_PATH, f'{model_name}_{today_datetime}')         
         os.makedirs(checkpoint_path, exist_ok=True)  
         os.makedirs(os.path.join(checkpoint_path, 'configuration'), exist_ok=True)
         logger.debug(f'Created checkpoint folder at {checkpoint_path}')

@@ -99,6 +99,8 @@ class ValidationEvents:
 
         for metric in metrics:
             if metric in metric_map:
+                # check worker status to allow interruption
+                check_thread_status(worker)
                 metric_name = metric.replace('_', ' ').title()
                 logger.info(f'Current metric: {metric_name}')  
                 result = metric_map[metric](
@@ -202,10 +204,11 @@ class ModelEvents:
         device.set_device() 
 
         # initialize the model serializer and create checkpoint folder
-        model_name = self.configuration.get('selected_model', None)
-        logger.info(f'Building {model_name} model') 
-        checkpoint_path = self.modser.create_checkpoint_folder()
+        model_name = self.configuration.get('selected_model', None)        
+        checkpoint_path = self.modser.create_checkpoint_folder(model_name)
+
         # initialize and build FEXT Autoencoder
+        logger.info(f'Building {model_name} model') 
         autoencoder = FeXTAutoEncoders(self.configuration)           
         model = autoencoder.get_selected_model(model_summary=True)
         # generate training log report and graphviz plot for the model layout               
