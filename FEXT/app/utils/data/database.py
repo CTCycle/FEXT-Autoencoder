@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 import sqlalchemy
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -176,6 +177,13 @@ class FEXTDatabase:
             session.commit()
         finally:
             session.close()
+
+    #--------------------------------------------------------------------------
+    def load_from_database(self, table_name: str) -> pd.DataFrame:        
+        with self.engine.connect() as conn:
+            data = pd.read_sql_table(table_name, conn)
+
+        return data
 
     #--------------------------------------------------------------------------
     def save_into_database(self, df: pd.DataFrame, table_name: str):        

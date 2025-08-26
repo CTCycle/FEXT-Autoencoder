@@ -75,10 +75,7 @@ class ValidationEvents:
 
     #--------------------------------------------------------------------------
     def load_img_path(self, path, sample_size=1.0):
-        serializer = DataSerializer(self.configuration)             
-        images_paths = serializer.get_img_path_from_directory(path, sample_size) 
-        
-        return images_paths 
+        return self.serializer.get_img_path_from_directory(path, sample_size) 
         
     #--------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(self, metrics : list[str], progress_callback=None, worker=None):
@@ -184,11 +181,9 @@ class ModelEvents:
             
     #--------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):  
-        logger.info('Preparing dataset of images based on splitting sizes')
-        
+        logger.info('Preparing dataset of images based on splitting sizes')        
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(IMG_PATH, sample_size)
-
         splitter = TrainValidationSplit(self.configuration) 
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
         
@@ -219,9 +214,13 @@ class ModelEvents:
         # perform training and save model at the end
         logger.info('Starting FeXT AutoEncoder training') 
         trainer = ModelTraining(self.configuration)  
-        trainer.train_model(
+        model, history = trainer.train_model(
             model, train_dataset, validation_dataset, checkpoint_path, 
-            progress_callback=progress_callback, worker=worker)      
+            progress_callback=progress_callback, worker=worker)  
+
+        self.modser.save_pretrained_model(model, checkpoint_path)       
+        self.modser.save_training_configuration(
+            checkpoint_path, history, self.configuration)    
         
     #--------------------------------------------------------------------------
     def resume_training_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
@@ -254,14 +253,18 @@ class ModelEvents:
         logger.info(f'Resuming training from checkpoint {selected_checkpoint}') 
         additional_epochs = self.configuration.get('additional_epochs', 10)
         trainer = ModelTraining(train_config) 
-        trainer.resume_training(
+        model, history = trainer.resume_training(
             model, train_dataset, validation_dataset, checkpoint_path, session,
             additional_epochs, progress_callback=progress_callback, worker=worker)
+        
+        self.modser.save_pretrained_model(model, checkpoint_path)       
+        self.modser.save_training_configuration(
+            checkpoint_path, history, self.configuration)
         
     #--------------------------------------------------------------------------
     def run_inference_pipeline(self, selected_checkpoint, progress_callback=None, worker=None):
         logger.info(f'Loading {selected_checkpoint} checkpoint')        
-        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+        model, train_config, _, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint)    
         model.summary(expand_nested=True)  
 
