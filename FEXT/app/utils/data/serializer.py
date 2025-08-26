@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Tuple
+from typing import Tuple, Dict
 
 import pandas as pd
 from keras import Model
@@ -121,7 +121,7 @@ class ModelSerializer:
         return configuration, history
     
     #-------------------------------------------------------------------------- 
-    def scan_checkpoints_folder(self):
+    def scan_checkpoints_folder(self) -> List[str]:
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
@@ -147,7 +147,7 @@ class ModelSerializer:
                 "Could not generate model architecture plot (graphviz/pydot not correctly installed)")
             
     #-------------------------------------------------------------------------- 
-    def load_checkpoint(self, checkpoint : str):
+    def load_checkpoint(self, checkpoint : str) -> Tuple[Model, Dict, Dict, str]:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {'LinearDecayLRScheduler': LinearDecayLRScheduler}                
