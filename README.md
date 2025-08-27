@@ -1,6 +1,6 @@
 # FeXT AutoEncoder: Extraction of Images Features
 
-## 1. Project Overview
+## 1. Introduction
 FeXT AutoEncoder is a project centered around the implementation, training and evaluation of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction (https://keras.io/api/applications/vgg/). Hence, the FEXT model implements a stack of convolutional layers, where pooling operations are performed to decrease the spatial dimensions multiple times. Both the encoder and the decoder collaboratively work to extract the most representative features from input images, projecting the original information into a lower-dimensional latent space that could be used for a wide range of downstream tasks.
 
 ![VGG16 encoder](FEXT/app/assets/figures/VGG16_encoder.png)
@@ -30,14 +30,7 @@ The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset
 ## 4. Installation
 The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, minimizing user interaction and ensuring all components are ready for local use.  
 
-**Important:** After installation, if the project folder is moved or its path is changed, the application will no longer function correctly. To fix this, you can either:
 
-- Open the main menu, select *Setup and maintentance* and choose *Install project in editable mode*
-- Manually run the following commands in the terminal, ensuring the project folder is set as the current working directory (CWD):
-
-    `conda activate FEXT`
-
-    `pip install -e . --use-pep517` 
 
 ### 4.1 Just-In-Time (JIT) Compiler
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. 
@@ -77,7 +70,7 @@ You can select a model checkpoint and use it to encode images into compact, abst
 **Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
 
 - **Run installation:** run the application installer for Windows
-- **Enable root path imports:** refresh root path imports if the main folder has been moved or renamed
+
 - **Update project:** check for updates from Github
 - **Remove logs:** remove all logs file from *resources/logs*
 

@@ -4,6 +4,7 @@ FEXT/resources/database/inference/images/*
 FEXT/resources/checkpoints/*
 
 FEXT/setup/python/*
+FEXT/setup/uv/*
 FEXT/setup/.env
 
 __pycache__
@@ -13,4 +14,6 @@ __pycache__
 *.npy
 *.json
 *.egg-info
+*.lock
+*.venv
 !.gitkeep
