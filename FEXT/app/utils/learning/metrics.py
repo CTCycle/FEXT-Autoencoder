@@ -28,7 +28,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         # Create the Gaussian window for StructuralSimilarityIndexMeasure computation
         self.window = self._create_gaussian_window(filter_size, filter_sigma)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def _create_gaussian_window(self, size, sigma):
         coords = ops.arange(size) - size // 2
         g = ops.exp(-(coords**2) / (2 * sigma**2))
@@ -40,7 +40,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         window = window[None, None, ...]
         return window
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def _apply_conv2d(self, x, window):
         # x: [batch_size, channels, height, width]
         # window: [1, 1, filter_size, filter_size]
@@ -65,7 +65,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
 
         return out
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, y_true, y_pred):
         # Ensure inputs are float32
         y_true = ops.cast(y_true, "float32")
@@ -107,7 +107,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         loss = 1 - ops.mean(StructuralSimilarityIndexMeasure_map)
         return loss
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         base_config = super(StructuralSimilarityIndexMeasure, self).get_config()
         return {
@@ -132,7 +132,7 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         self.loss = losses.MeanAbsoluteError(reduction=None)
         self.size = size
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, y_true, y_pred):
         loss = self.loss(y_true, y_pred)
         penalty_factor = ops.power((self.size[0] * self.size[1] / 255), 1 / 3)
@@ -140,7 +140,7 @@ class PenalizedMeanAbsoluteError(losses.Loss):
 
         return loss
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         base_config = super(PenalizedMeanAbsoluteError, self).get_config()
         return {**base_config, "name": self.name}

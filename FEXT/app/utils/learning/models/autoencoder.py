@@ -36,8 +36,8 @@ class FeXTAutoEncoders:
             "FextAE Large": self.build_large_autoencoder,
         }
 
-    # --------------------------------------------------------------------------
-    def compile_model(self, model: Model, model_summary=True):
+    #-------------------------------------------------------------------------
+    def compile_model(self, model: Model, model_summary : bool = True):
         initial_LR = self.configuration.get("initial_RL", 0.001)
         LR_schedule = initial_LR
         if self.configuration.get("use_scheduler", False):
@@ -61,7 +61,7 @@ class FeXTAutoEncoders:
         return model
 
     # build model given the architecture
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_selected_model(self, model_summary=True) -> Model:
         model = self.models[self.selected_model]()
         model = self.compile_model(model, model_summary=model_summary)
@@ -69,7 +69,7 @@ class FeXTAutoEncoders:
         return model
 
     # build model given the architecture
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def build_redux_autoencoder(self) -> Model:
         inputs = layers.Input(shape=self.image_shape, name="image_input")
         # perform series of convolution pooling on raw image and then concatenate
@@ -101,7 +101,7 @@ class FeXTAutoEncoders:
         return model
 
     # build model given the architecture
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def build_medium_autoencoder(self) -> Model:
         inputs = layers.Input(shape=self.image_shape, name="image_input")
         # perform series of convolution pooling on raw image and then concatenate
@@ -135,7 +135,7 @@ class FeXTAutoEncoders:
         return model
 
     # build model given the architecture
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def build_large_autoencoder(self) -> Model:
         inputs = layers.Input(shape=self.image_shape, name="image_input")
         # perform series of convolution pooling on raw image and then concatenate

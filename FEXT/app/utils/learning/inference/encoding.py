@@ -23,7 +23,7 @@ class ImageEncoding:
         encoder_output = model.get_layer("compression_layer").output
         self.encoder_model = Model(inputs=model.input, outputs=encoder_output)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def encode_img_features(self, images_paths, **kwargs):
         dataloader = ImageDataLoader(self.configuration, shuffle=False)
         features = {}

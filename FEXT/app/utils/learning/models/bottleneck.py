@@ -21,7 +21,7 @@ class CompressionLayer(layers.Layer):
         ]
         self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, inputs, training=None):
         batch_size, height, width, channels = ops.shape(inputs)
         sequence_dim = height * width
@@ -35,7 +35,7 @@ class CompressionLayer(layers.Layer):
         return layer
 
     # serialize layer for saving
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         config = super(CompressionLayer, self).get_config()
         config.update(
@@ -49,7 +49,7 @@ class CompressionLayer(layers.Layer):
         return config
 
     # deserialization method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)
@@ -72,7 +72,7 @@ class DecompressionLayer(layers.Layer):
             layers.BatchNormalization() for _ in range(num_layers)
         ]
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, inputs, training=None):
         batch_size, sequence_dims, channels = ops.shape(inputs)
         original_dims = ops.sqrt(sequence_dims)
@@ -88,7 +88,7 @@ class DecompressionLayer(layers.Layer):
         return layer
 
     # serialize layer for saving
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         config = super(DecompressionLayer, self).get_config()
         config.update(
@@ -97,7 +97,7 @@ class DecompressionLayer(layers.Layer):
         return config
 
     # deserialization method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)

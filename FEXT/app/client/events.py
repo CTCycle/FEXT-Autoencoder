@@ -28,7 +28,7 @@ class GraphicsHandler:
         self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
         self.BGR_encoding = cv2.COLOR_BGR2RGB
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def convert_fig_to_qpixmap(self, fig):
         canvas = FigureCanvasAgg(fig)
         canvas.draw()
@@ -40,7 +40,7 @@ class GraphicsHandler:
 
         return QPixmap.fromImage(qimg)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def load_image_as_pixmap(self, path):
         img = cv2.imread(path, self.image_encoding)
         if img is None:
@@ -73,11 +73,11 @@ class ValidationEvents:
         self.inference_batch_size = configuration.get("inference_batch_size", 32)
         self.configuration = configuration
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def load_img_path(self, path, sample_size=1.0):
         return self.serializer.get_img_path_from_directory(path, sample_size)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(
         self, metrics: list[str], progress_callback=None, worker=None
     ):
@@ -115,7 +115,7 @@ class ValidationEvents:
 
         return images
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None):
         summarizer = ModelEvaluationSummary(self.configuration)
         checkpoints_summary = summarizer.get_checkpoints_summary(
@@ -125,7 +125,7 @@ class ValidationEvents:
             f"Checkpoints summary has been created for {checkpoints_summary.shape[0]} models"
         )
 
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def run_model_evaluation_pipeline(
         self, metrics : list[str], selected_checkpoint : str, progress_callback=None, worker=None
     ):
@@ -195,11 +195,11 @@ class ModelEvents:
         self.modser = ModelSerializer()
         self.configuration = configuration
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_available_checkpoints(self)  -> list[str]:
         return self.modser.scan_checkpoints_folder()
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):
         logger.info("Preparing dataset of images based on splitting sizes")
         sample_size = self.configuration.get("train_sample_size", 1.0)
@@ -253,7 +253,7 @@ class ModelEvents:
             checkpoint_path, history, self.configuration
         )
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def resume_training_pipeline(
         self, selected_checkpoint, progress_callback=None, worker=None
     ):
@@ -307,7 +307,7 @@ class ModelEvents:
             checkpoint_path, history, self.configuration
         )
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def run_inference_pipeline(
         self, selected_checkpoint, progress_callback=None, worker=None
     ):
