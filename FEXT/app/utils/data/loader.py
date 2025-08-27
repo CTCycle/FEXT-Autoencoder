@@ -28,7 +28,7 @@ class ImageDataLoader:
         if as_array:
             image = cv2.imread(path)
             image = cv2.cvtColor(image, self.color_encoding)
-            image = np.asarray(cv2.resize(image, self.img_shape), dtype=np.float32)
+            image = np.asarray(cv2.resize(image, self.img_shape[:-1]), dtype=np.float32)
         else:
             image = tf.io.read_file(path)
             image = tf.image.decode_image(

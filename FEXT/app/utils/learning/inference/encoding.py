@@ -14,7 +14,7 @@ from FEXT.app.logger import logger
 # [INFERENCE]
 ###############################################################################
 class ImageEncoding:
-    def __init__(self, model, configuration, checkpoint_path):
+    def __init__(self, model : Model, configuration : dict, checkpoint_path : str):
         set_random_seed(configuration.get("train_seed", 42))
         self.checkpoint = os.path.basename(checkpoint_path)
         self.configuration = configuration
