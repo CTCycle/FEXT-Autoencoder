@@ -1,5 +1,5 @@
+from keras import activations, layers
 from keras.saving import register_keras_serializable
-from keras import layers, activations
 
 
 # [CONVOLUTIONAL BLOCKS]

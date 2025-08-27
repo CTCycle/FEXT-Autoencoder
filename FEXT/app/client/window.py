@@ -3,33 +3,34 @@ from FEXT.app.variables import EnvironmentVariables
 EV = EnvironmentVariables()
 
 from functools import partial
-from qt_material import apply_stylesheet
+
+from PySide6.QtCore import QFile, QIODevice, Qt, QThreadPool, QTimer, Slot
+from PySide6.QtGui import QAction, QPainter, QPixmap
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Slot, QThreadPool, QTimer, Qt
-from PySide6.QtGui import QPainter, QPixmap, QAction
 from PySide6.QtWidgets import (
-    QPushButton,
-    QRadioButton,
+    QApplication,
     QCheckBox,
-    QDoubleSpinBox,
-    QSpinBox,
     QComboBox,
-    QProgressBar,
-    QGraphicsScene,
+    QDialog,
+    QDoubleSpinBox,
     QGraphicsPixmapItem,
+    QGraphicsScene,
     QGraphicsView,
     QMessageBox,
-    QDialog,
-    QApplication,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QSpinBox,
 )
+from qt_material import apply_stylesheet
 
-from FEXT.app.utils.data.database import database
+from FEXT.app.client.dialogs import LoadConfigDialog, SaveConfigDialog
+from FEXT.app.client.events import GraphicsHandler, ModelEvents, ValidationEvents
+from FEXT.app.client.workers import ProcessWorker, ThreadWorker
 from FEXT.app.configuration import Configuration
-from FEXT.app.client.dialogs import SaveConfigDialog, LoadConfigDialog
-from FEXT.app.client.events import GraphicsHandler, ValidationEvents, ModelEvents
-from FEXT.app.client.workers import ThreadWorker, ProcessWorker
 from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.data.database import database
 
 
 ###############################################################################
