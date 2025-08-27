@@ -125,9 +125,9 @@ class ValidationEvents:
             f"Checkpoints summary has been created for {checkpoints_summary.shape[0]} models"
         )
 
-    # --------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     def run_model_evaluation_pipeline(
-        self, metrics, selected_checkpoint, progress_callback=None, worker=None
+        self, metrics : list[str], selected_checkpoint : str, progress_callback=None, worker=None
     ):
         if selected_checkpoint is None:
             logger.warning("No checkpoint selected for resuming training")
@@ -154,38 +154,36 @@ class ValidationEvents:
             IMG_PATH, sample_size
         )
         splitter = TrainValidationSplit(train_config)
-        _, validation_images = splitter.split_train_and_validation(images_paths)
-
-        # create the tf.datasets using the previously initialized generators
+        _, validation_images = splitter.split_train_and_validation(images_paths)        
+        
+        # use tf.data.Dataset to build the model dataloader with a larger batch size
+        # the dataset is built on top of the training and validation data
         logger.info(
             "Building model data loaders with prefetching and parallel processing"
         )
-        # use tf.data.Dataset to build the model dataloader with a larger batch size
-        # the dataset is built on top of the training and validation data
         loader = ImageDataLoader(train_config, shuffle=False)
-        validation_dataset = loader.build_training_dataloader(validation_images)
+        validation_dataset = loader.build_training_dataloader(validation_images) 
 
-        # check worker status to allow interruption
-        check_thread_status(worker)
+        summarizer = ModelEvaluationSummary(model, self.configuration) 
+        validator = ImageReconstruction(self.configuration, model, checkpoint_path)            
+
+        # Mapping metric name to method and arguments
+        metric_map = {
+            "evaluation_report": summarizer.get_evaluation_report,
+            "image_reconstruction": validator.visualize_reconstructed_images,           
+        }
 
         images = []
-        if "evaluation_report" in metrics:
-            logger.info("Current metric: model loss and metrics evaluation")
-            # evaluate model performance over the training and validation dataset
-            summarizer = ModelEvaluationSummary(self.configuration)
-            summarizer.get_evaluation_report(model, validation_dataset, worker=worker)
-
-        if "image_reconstruction" in metrics:
-            logger.info("Current metric: image reconstruction")
-            validator = ImageReconstruction(self.configuration, model, checkpoint_path)
-            images.append(
-                validator.visualize_reconstructed_images(
-                    validation_images,
-                    progress_callback=progress_callback,
-                    worker=worker,
+        for metric in metrics:
+            if metric in metric_map:
+                # check worker status to allow interruption
+                check_thread_status(worker)
+                metric_name = metric.replace("_", " ").title()
+                logger.info(f"Current metric: {metric_name}")
+                result = metric_map[metric](
+                    validation_dataset, progress_callback=progress_callback, worker=worker
                 )
-            )
-            logger.info("Image reconstruction analysis successfully performed")
+                images.append(result)
 
         return images
 
@@ -198,7 +196,7 @@ class ModelEvents:
         self.configuration = configuration
 
     # --------------------------------------------------------------------------
-    def get_available_checkpoints(self):
+    def get_available_checkpoints(self)  -> list[str]:
         return self.modser.scan_checkpoints_folder()
 
     # --------------------------------------------------------------------------
