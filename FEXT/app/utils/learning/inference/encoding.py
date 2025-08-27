@@ -1,14 +1,14 @@
 import os
 
 import numpy as np
-from tqdm import tqdm
-from keras.utils import set_random_seed
 from keras import Model
+from keras.utils import set_random_seed
+from tqdm import tqdm
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
-from FEXT.app.utils.data.loader import ImageDataLoader
 from FEXT.app.constants import INFERENCE_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.data.loader import ImageDataLoader
 
 
 # [INFERENCE]

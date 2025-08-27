@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 from FEXT.app.constants import CONFIG_PATH
 
@@ -68,5 +68,5 @@ class Configuration:
     #-------------------------------------------------------------------------
     def load_configuration_from_json(self, name: str):
         full_path = os.path.join(CONFIG_PATH, name)
-        with open(full_path, "r") as f:
+        with open(full_path) as f:
             self.configuration = json.load(f)

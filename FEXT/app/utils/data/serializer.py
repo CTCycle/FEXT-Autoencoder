@@ -1,17 +1,16 @@
-import os
 import json
-from typing import Tuple, Dict, List
+import os
+from datetime import datetime
 
 import pandas as pd
 from keras import Model
-from keras.utils import plot_model
 from keras.models import load_model
-from datetime import datetime
+from keras.utils import plot_model
 
-from FEXT.app.utils.data.database import database
-from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
 from FEXT.app.constants import CHECKPOINT_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.data.database import database
+from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
 
 
 # [DATA SERIALIZATION]
@@ -109,20 +108,20 @@ class ModelSerializer:
             json.dump(history, f)
 
     #-------------------------------------------------------------------------
-    def load_training_configuration(self, path: str) -> Tuple[dict, dict]:
+    def load_training_configuration(self, path: str) -> tuple[dict, dict]:
         config_path = os.path.join(path, "configuration", "configuration.json")
         history_path = os.path.join(path, "configuration", "session_history.json")
 
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             configuration = json.load(f)
 
-        with open(history_path, "r") as f:
+        with open(history_path) as f:
             history = json.load(f)
 
         return configuration, history
 
     #-------------------------------------------------------------------------
-    def scan_checkpoints_folder(self) -> List[str]:
+    def scan_checkpoints_folder(self) -> list[str]:
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
@@ -157,7 +156,7 @@ class ModelSerializer:
             )
 
     #-------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint: str) -> Tuple[Model, Dict, Dict, str]:
+    def load_checkpoint(self, checkpoint: str) -> tuple[Model, dict, dict, str]:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {"LinearDecayLRScheduler": LinearDecayLRScheduler}
