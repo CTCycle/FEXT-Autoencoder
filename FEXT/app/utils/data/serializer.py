@@ -22,7 +22,7 @@ class DataSerializer:
         self.num_channels = self.img_shape[-1]
         self.valid_extensions = {".jpg", ".jpeg", ".png", ".bmp"}
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_img_path_from_directory(self, path: str, sample_size=1.0):
         logger.debug(f"Valid extensions are: {self.valid_extensions}")
         images_path = []
@@ -35,35 +35,35 @@ class DataSerializer:
 
         return images_path
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_statistics(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_STATISTICS")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_exposure_metrics(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_EXPOSURE")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_entropy_metrics(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_ENTROPY")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_sharpness_metrics(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_SHARPNESS")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_edges_metrics(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_EDGES")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_colorimetry(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_COLORIMETRY")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_images_texture_metric(self, data: pd.DataFrame):
         database.upsert_into_database(data, "IMAGE_TEXTURE_LBP")
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_checkpoints_summary(self, data: pd.DataFrame):
         database.upsert_into_database(data, "CHECKPOINTS_SUMMARY")
 
@@ -75,7 +75,7 @@ class ModelSerializer:
         pass
 
     # function to create a folder where to save model checkpoints
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def create_checkpoint_folder(self, model_name: str | None = None) -> str:
         today_datetime = datetime.now().strftime("%Y%m%dT%H%M%S")
         checkpoint_path = os.path.join(
@@ -87,7 +87,7 @@ class ModelSerializer:
 
         return checkpoint_path
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_pretrained_model(self, model: Model, path) -> None:
         model_files_path = os.path.join(path, "saved_model.keras")
         model.save(model_files_path)
@@ -95,7 +95,7 @@ class ModelSerializer:
             f"Training session is over. Model {os.path.basename(path)} has been saved"
         )
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_training_configuration(self, path, history, configuration: dict):
         config_path = os.path.join(path, "configuration", "configuration.json")
         history_path = os.path.join(path, "configuration", "session_history.json")
@@ -108,7 +108,7 @@ class ModelSerializer:
         with open(history_path, "w") as f:
             json.dump(history, f)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def load_training_configuration(self, path: str) -> Tuple[dict, dict]:
         config_path = os.path.join(path, "configuration", "configuration.json")
         history_path = os.path.join(path, "configuration", "session_history.json")
@@ -121,7 +121,7 @@ class ModelSerializer:
 
         return configuration, history
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def scan_checkpoints_folder(self) -> List[str]:
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
@@ -136,7 +136,7 @@ class ModelSerializer:
 
         return model_folders
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_model_plot(self, model, path):
         try:
             plot_path = os.path.join(path, "model_layout.png")
@@ -156,7 +156,7 @@ class ModelSerializer:
                 "Could not generate model architecture plot (graphviz/pydot not correctly installed)"
             )
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def load_checkpoint(self, checkpoint: str) -> Tuple[Model, Dict, Dict, str]:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder

@@ -9,7 +9,7 @@ class TrainValidationSplit:
         np.random.seed(configuration.get("split_seed", 42))
         self.configuration = configuration
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def split_train_and_validation(self, images_path: list):
         # shuffle the paths list to perform randomic sampling
         np.random.shuffle(images_path)

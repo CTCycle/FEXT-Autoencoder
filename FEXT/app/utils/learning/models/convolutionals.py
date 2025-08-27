@@ -18,7 +18,7 @@ class ResidualConvolutivePooling(layers.Layer):
         self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]
 
     # implement forward pass through call method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, inputs, training=None):
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
@@ -33,14 +33,14 @@ class ResidualConvolutivePooling(layers.Layer):
         return output
 
     # serialize layer for saving
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         config = super(ResidualConvolutivePooling, self).get_config()
         config.update({"units": self.units, "num_layers": self.num_layers})
         return config
 
     # deserialization method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)
@@ -64,7 +64,7 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
         self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]
 
     # implement forward pass through call method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def call(self, inputs, training=None):
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
@@ -79,14 +79,14 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
         return output
 
     # serialize layer for saving
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_config(self):
         config = super(ResidualTransConvolutiveUpsampling, self).get_config()
         config.update({"units": self.units, "num_layers": self.num_layers})
         return config
 
     # deserialization method
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)
