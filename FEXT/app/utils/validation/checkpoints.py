@@ -19,9 +19,10 @@ from FEXT.app.logger import logger
 # [LOAD MODEL]
 ################################################################################
 class ModelEvaluationSummary:
-    def __init__(self, configuration: dict):
+    def __init__(self, model : Model, configuration: dict):
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
+        self.model = model
         self.configuration = configuration
 
     # ---------------------------------------------------------------------------
@@ -97,9 +98,9 @@ class ModelEvaluationSummary:
         return dataframe
 
     # --------------------------------------------------------------------------
-    def get_evaluation_report(self, model: Model, validation_dataset, **kwargs):
+    def get_evaluation_report(self, validation_dataset, **kwargs):
         callbacks_list = [LearningInterruptCallback(kwargs.get("worker", None))]
-        validation = model.evaluate(
+        validation = self.model.evaluate(
             validation_dataset, verbose=1, callbacks=callbacks_list
         )
         logger.info("Evaluation of pretrained model has been completed")
