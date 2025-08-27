@@ -11,7 +11,7 @@ class ModelTraining:
         set_random_seed(configuration.get("training_seed", 42))
         self.configuration = configuration
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def train_model(
         self, model: Model, train_data, validation_data, checkpoint_path, **kwargs
     ):
@@ -37,7 +37,7 @@ class ModelTraining:
 
         return model, history
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def resume_training(
         self,
         model: Model,
