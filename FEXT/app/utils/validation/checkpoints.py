@@ -19,14 +19,14 @@ from FEXT.app.logger import logger
 # [LOAD MODEL]
 ################################################################################
 class ModelEvaluationSummary:
-    def __init__(self, model : Model, configuration: dict):
+    def __init__(self, configuration: dict, model : Model | None = None):
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.model = model
         self.configuration = configuration
 
-    # ---------------------------------------------------------------------------
-    def scan_checkpoint_folder(self):
+    #--------------------------------------------------------------------------
+    def scan_checkpoint_folder(self) -> List[str]:
         model_paths = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
@@ -36,7 +36,7 @@ class ModelEvaluationSummary:
 
         return model_paths
 
-    # ---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     def get_checkpoints_summary(self, **kwargs) -> pd.DataFrame:
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []
@@ -97,7 +97,7 @@ class ModelEvaluationSummary:
 
         return dataframe
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_evaluation_report(self, validation_dataset, **kwargs):
         callbacks_list = [LearningInterruptCallback(kwargs.get("worker", None))]
         validation = self.model.evaluate(
@@ -122,13 +122,13 @@ class ImageReconstruction:
         self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint)
         os.makedirs(self.validation_path, exist_ok=True)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def save_image(self, fig: Figure, name):
         name = re.sub(r"[^0-9A-Za-z_]", "_", name)
         out_path = os.path.join(self.validation_path, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def get_images(self, data):
         loader = ImageDataLoader(self.configuration)
         images = [
@@ -139,12 +139,12 @@ class ImageReconstruction:
 
         return norm_images
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def visualize_3D_latent_space(self, model, dataset, num_images=10):
         # Extract latent representations
         pass
 
-    # --------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     def visualize_reconstructed_images(self, validation_data, **kwargs):
         val_images = self.get_images(validation_data)
         logger.info(
