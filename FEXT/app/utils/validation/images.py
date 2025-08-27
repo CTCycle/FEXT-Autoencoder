@@ -1,17 +1,16 @@
 import os
-from typing import Optional
 
 import cv2
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.figure import Figure
 from tqdm import tqdm
 
-from FEXT.app.utils.data.serializer import DataSerializer
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import EVALUATION_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.data.serializer import DataSerializer
 
 
 # [VALIDATION OF PRETRAINED MODELS]
@@ -30,7 +29,7 @@ class ImageAnalysis:
     #-------------------------------------------------------------------------
     def load_color_and_gray(
         self, path: str
-    ) -> tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+    ) -> tuple[np.ndarray | None, np.ndarray | None]:
         """Load BGR and grayscale; returns (bgr, gray) or (None, None) if failed."""
         img = cv2.imread(path, cv2.IMREAD_COLOR)
         if img is None:

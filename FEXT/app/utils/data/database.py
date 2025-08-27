@@ -2,13 +2,13 @@ import os
 
 import pandas as pd
 import sqlalchemy
-from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import Column, Float, Integer, String, UniqueConstraint, create_engine
 from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-from FEXT.app.utils.singleton import singleton
 from FEXT.app.constants import DATA_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.singleton import singleton
 
 Base = declarative_base()
 

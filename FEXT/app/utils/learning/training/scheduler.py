@@ -1,6 +1,6 @@
 import numpy as np
+from keras import ops, optimizers
 from keras.saving import register_keras_serializable
-from keras import optimizers, ops
 
 
 # [LEARNING RATE SCHEDULER]
