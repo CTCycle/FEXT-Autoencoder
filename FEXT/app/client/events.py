@@ -2,22 +2,21 @@ import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
 
-from FEXT.app.utils.data.serializer import DataSerializer, ModelSerializer
-from FEXT.app.utils.data.loader import ImageDataLoader
-from FEXT.app.utils.data.process import TrainValidationSplit
-from FEXT.app.utils.learning.device import DeviceConfig
-from FEXT.app.utils.learning.training.fitting import ModelTraining
-from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
-from FEXT.app.utils.learning.inference.encoding import ImageEncoding
-from FEXT.app.utils.validation.images import ImageAnalysis
-from FEXT.app.utils.validation.checkpoints import (
-    ModelEvaluationSummary,
-    ImageReconstruction,
-)
 from FEXT.app.client.workers import check_thread_status
-
 from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.logger import logger
+from FEXT.app.utils.data.loader import ImageDataLoader
+from FEXT.app.utils.data.process import TrainValidationSplit
+from FEXT.app.utils.data.serializer import DataSerializer, ModelSerializer
+from FEXT.app.utils.learning.device import DeviceConfig
+from FEXT.app.utils.learning.inference.encoding import ImageEncoding
+from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
+from FEXT.app.utils.learning.training.fitting import ModelTraining
+from FEXT.app.utils.validation.checkpoints import (
+    ImageReconstruction,
+    ModelEvaluationSummary,
+)
+from FEXT.app.utils.validation.images import ImageAnalysis
 
 
 ###############################################################################

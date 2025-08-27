@@ -1,13 +1,14 @@
 import sys
-from PySide6.QtWidgets import QApplication
 
 # [SETTING WARNINGS]
 import warnings
 
+from PySide6.QtWidgets import QApplication
+
 warnings.simplefilter(action="ignore", category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FEXT.app.client.window import apply_style, MainWindow
+from FEXT.app.client.window import MainWindow, apply_style
 from FEXT.app.constants import UI_PATH
 
 # [RUN MAIN]

@@ -1,5 +1,5 @@
+from keras import activations, layers, ops
 from keras.saving import register_keras_serializable
-from keras import layers, ops, activations
 
 
 # [BOTTLENECK DECOMPRESSION AND RESHAPING]
