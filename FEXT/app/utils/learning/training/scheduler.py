@@ -14,7 +14,7 @@ class LinearDecayLRScheduler(optimizers.schedules.LearningRateSchedule):
         self.decay_steps = decay_steps
         self.target_LR = target_LR
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def __call__(self, step):
         global_step = ops.cast(step, np.float32)
         constant_steps = ops.cast(self.constant_steps, np.float32)
@@ -38,8 +38,8 @@ class LinearDecayLRScheduler(optimizers.schedules.LearningRateSchedule):
 
         return learning_rate
 
-    #-------------------------------------------------------------------------
-    def get_config(self):
+    # -------------------------------------------------------------------------
+    def get_config(self) -> Dict[str, Any]:
         return {
             "initial_LR": self.initial_LR,
             "constant_steps": self.constant_steps,
