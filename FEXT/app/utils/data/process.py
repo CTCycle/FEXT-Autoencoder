@@ -4,12 +4,12 @@ import numpy as np
 # [DATA SPLITTING]
 ###############################################################################
 class TrainValidationSplit:
-    def __init__(self, configuration: dict):
+    def __init__(self, configuration: Dict[str, Any]):
         self.validation_size = configuration.get("validation_size", 42)
         np.random.seed(configuration.get("split_seed", 42))
         self.configuration = configuration
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def split_train_and_validation(self, images_path: list):
         # shuffle the paths list to perform randomic sampling
         np.random.shuffle(images_path)

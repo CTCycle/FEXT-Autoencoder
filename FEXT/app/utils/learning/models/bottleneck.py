@@ -21,8 +21,8 @@ class CompressionLayer(layers.Layer):
         ]
         self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
-    #-------------------------------------------------------------------------
-    def call(self, inputs, training=None):
+    # -------------------------------------------------------------------------
+    def call(self, inputs, training : bool | None = None):
         batch_size, height, width, channels = ops.shape(inputs)
         sequence_dim = height * width
         reshaped = ops.reshape(inputs, (batch_size, sequence_dim, channels))
@@ -35,8 +35,8 @@ class CompressionLayer(layers.Layer):
         return layer
 
     # serialize layer for saving
-    #-------------------------------------------------------------------------
-    def get_config(self):
+    # -------------------------------------------------------------------------
+    def get_config(self) -> Dict[str, Any]:
         config = super(CompressionLayer, self).get_config()
         config.update(
             {
@@ -49,7 +49,7 @@ class CompressionLayer(layers.Layer):
         return config
 
     # deserialization method
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)
@@ -72,8 +72,8 @@ class DecompressionLayer(layers.Layer):
             layers.BatchNormalization() for _ in range(num_layers)
         ]
 
-    #-------------------------------------------------------------------------
-    def call(self, inputs, training=None):
+    # -------------------------------------------------------------------------
+    def call(self, inputs, training : bool | None = None):
         batch_size, sequence_dims, channels = ops.shape(inputs)
         original_dims = ops.sqrt(sequence_dims)
         original_dims = ops.cast(original_dims, dtype="int32")
@@ -88,8 +88,8 @@ class DecompressionLayer(layers.Layer):
         return layer
 
     # serialize layer for saving
-    #-------------------------------------------------------------------------
-    def get_config(self):
+    # -------------------------------------------------------------------------
+    def get_config(self) -> Dict[str, Any]:
         config = super(DecompressionLayer, self).get_config()
         config.update(
             {"units": self.units, "num_layers": self.num_layers, "seed": self.seed}
@@ -97,7 +97,7 @@ class DecompressionLayer(layers.Layer):
         return config
 
     # deserialization method
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @classmethod
     def from_config(cls, config):
         return cls(**config)

@@ -12,15 +12,15 @@ from FEXT.app.logger import logger
 
 # [CALLBACK FOR UI PROGRESS BAR]
 ###############################################################################
-class ProgressBarCallback(keras.callbacks.Callback):
+class ProgressBarCallback(Callback):
     def __init__(self, progress_callback, total_epochs, from_epoch=0):
         super().__init__()
         self.progress_callback = progress_callback
         self.total_epochs = total_epochs
         self.from_epoch = from_epoch
 
-    #-------------------------------------------------------------------------
-    def on_epoch_end(self, epoch, logs: dict | None = None):
+    # -------------------------------------------------------------------------
+    def on_epoch_end(self, epoch, logs: Dict | None = None):
         processed_epochs = epoch - self.from_epoch + 1
         additional_epochs = max(1, self.total_epochs - self.from_epoch)
         percent = int(100 * processed_epochs / additional_epochs)
@@ -30,27 +30,27 @@ class ProgressBarCallback(keras.callbacks.Callback):
 
 # [CALLBACK FOR TRAIN INTERRUPTION]
 ###############################################################################
-class LearningInterruptCallback(keras.callbacks.Callback):
+class LearningInterruptCallback(Callback):
     def __init__(self, worker=None):
         super().__init__()
         self.worker = worker
 
-    #-------------------------------------------------------------------------
-    def on_batch_end(self, batch, logs: dict | None = None):
+    # -------------------------------------------------------------------------
+    def on_batch_end(self, batch, logs: Dict | None = None):
         if self.worker is not None and self.worker.is_interrupted():
             self.model.stop_training = True
             raise WorkerInterrupted()
 
-    #-------------------------------------------------------------------------
-    def on_validation_batch_end(self, batch, logs: dict | None = None):
+    # -------------------------------------------------------------------------
+    def on_validation_batch_end(self, batch, logs: Dict | None = None):
         if self.worker is not None and self.worker.is_interrupted():
             raise WorkerInterrupted()
 
 
 # [CALLBACK FOR REAL TIME TRAINING MONITORING]
 ###############################################################################
-class RealTimeHistory(keras.callbacks.Callback):
-    def __init__(self, plot_path, past_logs: dict | None = None, **kwargs):
+class RealTimeHistory(Callback):
+    def __init__(self, plot_path, past_logs: Dict | None = None, **kwargs):
         super(RealTimeHistory, self).__init__(**kwargs)
         self.plot_path = plot_path
         os.makedirs(self.plot_path, exist_ok=True)
@@ -64,8 +64,8 @@ class RealTimeHistory(keras.callbacks.Callback):
                 self.history["history"][metric] = list(values)
             self.history["epochs"] = past_logs.get("epochs", len(values))
 
-    #-------------------------------------------------------------------------
-    def on_epoch_end(self, epoch, logs: dict | None = None):
+    # -------------------------------------------------------------------------
+    def on_epoch_end(self, epoch, logs: Dict | None = None):
         logs = logs or {}
         for key, value in logs.items():
             if key not in self.history["history"]:
@@ -74,7 +74,7 @@ class RealTimeHistory(keras.callbacks.Callback):
         self.history["epochs"] = epoch + 1
         self.plot_training_history()
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def plot_training_history(self):
         fig_path = os.path.join(self.plot_path, "training_history.jpeg")
         plt.figure(figsize=(16, 14))
@@ -107,7 +107,7 @@ class RealTimeHistory(keras.callbacks.Callback):
 # [CALLBACKS HANDLER]
 ###############################################################################
 def initialize_callbacks_handler(
-    configuration: dict, checkpoint_path, session=None, total_epochs=100, **kwargs
+    configuration: Dict[str, Any], checkpoint_path, session=None, total_epochs=100, **kwargs
 ):
     from_epoch = 0
     additional_epochs = configuration.get("additional_epochs", 10)
@@ -160,5 +160,5 @@ def start_tensorboard_subprocess(log_dir):
     subprocess.Popen(
         tensorboard_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
-    time.sleep(5)
+    time.sleep(4)
     webbrowser.open("http://localhost:6006")
