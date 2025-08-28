@@ -1,4 +1,5 @@
 from typing import Any, Dict
+
 import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
@@ -261,7 +262,7 @@ class ModelEvents:
 
     # -------------------------------------------------------------------------
     def resume_training_pipeline(
-        self, selected_checkpoint : str, progress_callback=None, worker=None
+        self, selected_checkpoint: str, progress_callback=None, worker=None
     ):
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
@@ -315,7 +316,7 @@ class ModelEvents:
 
     # -------------------------------------------------------------------------
     def run_inference_pipeline(
-        self, selected_checkpoint : str, progress_callback=None, worker=None
+        self, selected_checkpoint: str, progress_callback=None, worker=None
     ):
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, _, checkpoint_path = self.modser.load_checkpoint(

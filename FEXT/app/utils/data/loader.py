@@ -6,7 +6,7 @@ import tensorflow as tf
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
 class ImageDataLoader:
-    def __init__(self, configuration: Dict[str, Any], shuffle : bool = True):
+    def __init__(self, configuration: Dict[str, Any], shuffle: bool = True):
         self.image_height = configuration.get("image_height", 256)
         self.image_width = configuration.get("image_width", 256)
         self.channels = 1 if configuration.get("use_grayscale", False) else 3
