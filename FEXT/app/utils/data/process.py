@@ -1,16 +1,17 @@
+from typing import Any, Dict, List, Tuple
 import numpy as np
 
 
 # [DATA SPLITTING]
 ###############################################################################
 class TrainValidationSplit:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: Dict[str, Any]) -> None:
         self.validation_size = configuration.get("validation_size", 42)
         np.random.seed(configuration.get("split_seed", 42))
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
-    def split_train_and_validation(self, images_path: list):
+    def split_train_and_validation(self, images_path: list) -> Tuple[List[Any], List[Any]]:
         # shuffle the paths list to perform randomic sampling
         np.random.shuffle(images_path)
         # get num of samples in train and validation dataset
