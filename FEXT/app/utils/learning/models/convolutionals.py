@@ -19,7 +19,7 @@ class ResidualConvolutivePooling(layers.Layer):
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
-    def call(self, inputs, training : bool | None = None):
+    def call(self, inputs, training: bool | None = None):
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
         for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):
@@ -65,7 +65,7 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
-    def call(self, inputs, training : bool | None = None):
+    def call(self, inputs, training: bool | None = None):
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
         for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):

@@ -14,7 +14,9 @@ from FEXT.app.utils.data.loader import ImageDataLoader
 # [INFERENCE]
 ###############################################################################
 class ImageEncoding:
-    def __init__(self, model: Model, configuration: Dict[str, Any], checkpoint_path: str):
+    def __init__(
+        self, model: Model, configuration: Dict[str, Any], checkpoint_path: str
+    ):
         set_random_seed(configuration.get("train_seed", 42))
         self.checkpoint = os.path.basename(checkpoint_path)
         self.configuration = configuration
