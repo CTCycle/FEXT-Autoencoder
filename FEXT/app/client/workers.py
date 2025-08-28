@@ -1,18 +1,17 @@
 import inspect
 import traceback
-from multiprocessing.synchronize import Event as EC
 from multiprocessing import Event, Process, Queue
+from multiprocessing.synchronize import Event as EC
 from typing import Any, Callable, Generic, Optional, TypeVar, Union
 
 from PySide6.QtCore import QObject, QRunnable, QTimer, Signal, Slot
 
-
 R = TypeVar("R")
+
 
 ###############################################################################
 class WorkerInterrupted(Exception):
     """Exception to indicate worker was intentionally interrupted."""
-
     pass
 
 
@@ -156,6 +155,7 @@ def process_target(
 ###############################################################################
 class ProcessWorker(QObject):
     _timer: Optional[QTimer]
+
     def __init__(self, fn: Callable[..., R], *args: Any, **kwargs: Any) -> None:
         super().__init__()
         self.fn = fn

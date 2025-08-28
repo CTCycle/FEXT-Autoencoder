@@ -107,7 +107,11 @@ class RealTimeHistory(Callback):
 # [CALLBACKS HANDLER]
 ###############################################################################
 def initialize_callbacks_handler(
-    configuration: Dict[str, Any], checkpoint_path, session=None, total_epochs=100, **kwargs
+    configuration: Dict[str, Any],
+    checkpoint_path,
+    session=None,
+    total_epochs=100,
+    **kwargs,
 ):
     from_epoch = 0
     additional_epochs = configuration.get("additional_epochs", 10)

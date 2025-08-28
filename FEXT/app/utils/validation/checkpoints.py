@@ -111,7 +111,9 @@ class ModelEvaluationSummary:
 # [IMAGE RECONSTRUCTION]
 ###############################################################################
 class ImageReconstruction:
-    def __init__(self, configuration: Dict[str, Any], model: Model, checkpoint_path: str):
+    def __init__(
+        self, configuration: Dict[str, Any], model: Model, checkpoint_path: str
+    ):
         self.num_images = configuration.get("num_evaluation_images", 6)
         self.img_resolution = 400
         self.file_type = "jpeg"

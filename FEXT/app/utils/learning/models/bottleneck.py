@@ -22,7 +22,7 @@ class CompressionLayer(layers.Layer):
         self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training : bool | None = None):
+    def call(self, inputs, training: bool | None = None):
         batch_size, height, width, channels = ops.shape(inputs)
         sequence_dim = height * width
         reshaped = ops.reshape(inputs, (batch_size, sequence_dim, channels))
@@ -73,7 +73,7 @@ class DecompressionLayer(layers.Layer):
         ]
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training : bool | None = None):
+    def call(self, inputs, training: bool | None = None):
         batch_size, sequence_dims, channels = ops.shape(inputs)
         original_dims = ops.sqrt(sequence_dims)
         original_dims = ops.cast(original_dims, dtype="int32")
