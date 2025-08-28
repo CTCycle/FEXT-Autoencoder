@@ -1,12 +1,12 @@
 import os
 
 from PySide6.QtWidgets import (
-    QMainWindow,
     QDialog,
     QDialogButtonBox,
     QLabel,
     QLineEdit,
     QListWidget,
+    QMainWindow,
     QVBoxLayout,
 )
 

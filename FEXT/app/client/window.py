@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, Callable, List, Tuple, cast
 
 from FEXT.app.variables import EnvironmentVariables
@@ -213,12 +214,14 @@ class MainWindow:
         self.load_checkpoints()
         self._set_graphics()
 
-    #--------------------------------------------------------------------------
-    def __getattr__(self, name: str) -> Any:  
+    # --------------------------------------------------------------------------
+    def __getattr__(self, name: str) -> Any:
         try:
             return self.widgets[name]
-        except (AttributeError, KeyError) as e:            
-            raise AttributeError(f"{type(self).__name__!s} has no attribute {name!r}") from e
+        except (AttributeError, KeyError) as e:
+            raise AttributeError(
+                f"{type(self).__name__!s} has no attribute {name!r}"
+            ) from e
 
     # [SHOW WINDOW]
     ###########################################################################
@@ -367,10 +370,10 @@ class MainWindow:
     def _start_thread_worker(
         self,
         worker: ThreadWorker,
-        on_finished : Callable,
-        on_error : Callable,
-        on_interrupted : Callable,
-        update_progress : bool = True,
+        on_finished: Callable,
+        on_error: Callable,
+        on_interrupted: Callable,
+        update_progress: bool = True,
     ) -> None:
         if update_progress and self.progress_bar:
             self.progress_bar.setValue(0) if self.progress_bar else None
@@ -385,10 +388,10 @@ class MainWindow:
     def _start_process_worker(
         self,
         worker: ProcessWorker,
-        on_finished : Callable,
-        on_error : Callable,
-        on_interrupted : Callable,
-        update_progress : bool = True,
+        on_finished: Callable,
+        on_error: Callable,
+        on_interrupted: Callable,
+        update_progress: bool = True,
     ):
         if update_progress and self.progress_bar:
             self.progress_bar.setValue(0) if self.progress_bar else None
@@ -532,7 +535,11 @@ class MainWindow:
         pixmap_item = self.graphics["pixmap_item"]
         scene = self.graphics["scene"]
         view_size = view.viewport().size()
-        scaled = qpixmap.scaled(view_size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        scaled = qpixmap.scaled(
+            view_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
         pixmap_item.setPixmap(scaled)
         scene.setSceneRect(scaled.rect())
 
