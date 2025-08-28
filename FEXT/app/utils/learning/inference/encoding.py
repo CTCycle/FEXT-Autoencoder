@@ -14,7 +14,7 @@ from FEXT.app.utils.data.loader import ImageDataLoader
 # [INFERENCE]
 ###############################################################################
 class ImageEncoding:
-    def __init__(self, model : Model, configuration : dict, checkpoint_path : str):
+    def __init__(self, model: Model, configuration: Dict[str, Any], checkpoint_path: str):
         set_random_seed(configuration.get("train_seed", 42))
         self.checkpoint = os.path.basename(checkpoint_path)
         self.configuration = configuration
@@ -23,7 +23,7 @@ class ImageEncoding:
         encoder_output = model.get_layer("compression_layer").output
         self.encoder_model = Model(inputs=model.input, outputs=encoder_output)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def encode_img_features(self, images_paths, **kwargs):
         dataloader = ImageDataLoader(self.configuration, shuffle=False)
         features = {}

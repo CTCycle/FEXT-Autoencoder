@@ -16,17 +16,17 @@ from FEXT.app.utils.data.serializer import DataSerializer
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
-    def __init__(self, configuration: dict):
+    def __init__(self, configuration: Dict[str, Any]):
         self.serializer = DataSerializer()
         self.img_resolution = 400
         self.configuration = configuration
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def save_image(self, fig: Figure, name: str):
         out_path = os.path.join(EVALUATION_PATH, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_color_and_gray(
         self, path: str
     ) -> tuple[np.ndarray | None, np.ndarray | None]:
@@ -37,7 +37,7 @@ class ImageAnalysis:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return img, gray
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_image_statistics(
         self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:
@@ -98,7 +98,7 @@ class ImageAnalysis:
 
         return stats_dataframe
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_pixel_intensity_distribution(
         self, images_path: list[str], **kwargs
     ) -> Figure:
@@ -141,7 +141,7 @@ class ImageAnalysis:
 
         return fig
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_exposure_metrics(
         self,
         images_path: list[str],
@@ -187,7 +187,7 @@ class ImageAnalysis:
 
         return data
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_entropy(
         self, images_path: list[str], bins: int = 256, **kwargs
     ) -> pd.DataFrame:
@@ -225,7 +225,7 @@ class ImageAnalysis:
 
         return data
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_sharpness_metrics(
         self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:
@@ -283,7 +283,7 @@ class ImageAnalysis:
         logger.info(f"Sharpness metrics computed: {len(data)} records")
         return data
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_color_metrics(self, images_path: list[str], **kwargs) -> pd.DataFrame:
         results: list[dict] = []
         for i, path in enumerate(
@@ -331,7 +331,7 @@ class ImageAnalysis:
         logger.info(f"Color metrics computed: {len(data)} records")
         return data
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_edge_metrics(self, images_path: list[str], **kwargs) -> pd.DataFrame:
         results: list[dict] = []
         for i, path in enumerate(
@@ -371,7 +371,7 @@ class ImageAnalysis:
         logger.info(f"Edge metrics computed: {len(data)} records")
         return data
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def calculate_texture_lbp_metrics(
         self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:

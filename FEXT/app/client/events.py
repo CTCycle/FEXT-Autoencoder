@@ -27,7 +27,7 @@ class GraphicsHandler:
         self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
         self.BGR_encoding = cv2.COLOR_BGR2RGB
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def convert_fig_to_qpixmap(self, fig):
         canvas = FigureCanvasAgg(fig)
         canvas.draw()
@@ -35,11 +35,11 @@ class GraphicsHandler:
         width, height = canvas.get_width_height()
         buf = canvas.buffer_rgba()
         # construct a QImage pointing at that memory (no PNG decoding)
-        qimg = QImage(buf, width, height, QImage.Format_RGBA8888)
+        qimg = QImage(buf, width, height, QImage.Format.Format_RGBA8888)
 
         return QPixmap.fromImage(qimg)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_image_as_pixmap(self, path):
         img = cv2.imread(path, self.image_encoding)
         if img is None:
@@ -48,15 +48,15 @@ class GraphicsHandler:
         # Convert to RGB or RGBA as needed
         if len(img.shape) == 2:  # Grayscale
             img = cv2.cvtColor(img, self.gray_scale_encoding)
-            qimg_format = QImage.Format_RGB888
+            qimg_format = QImage.Format.Format_RGB888
             channels = 3
         elif img.shape[2] == 4:  # BGRA
             img = cv2.cvtColor(img, self.BGRA_encoding)
-            qimg_format = QImage.Format_RGBA8888
+            qimg_format = QImage.Format.Format_RGBA8888
             channels = 4
         else:  # BGR
             img = cv2.cvtColor(img, self.BGR_encoding)
-            qimg_format = QImage.Format_RGB888
+            qimg_format = QImage.Format.Format_RGB888
             channels = 3
 
         h, w = img.shape[:2]
@@ -66,17 +66,17 @@ class GraphicsHandler:
 
 ###############################################################################
 class ValidationEvents:
-    def __init__(self, configuration: dict):
+    def __init__(self, configuration: Dict[str, Any]):
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.inference_batch_size = configuration.get("inference_batch_size", 32)
         self.configuration = configuration
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_img_path(self, path, sample_size=1.0):
         return self.serializer.get_img_path_from_directory(path, sample_size)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(
         self, metrics: list[str], progress_callback=None, worker=None
     ):
@@ -114,7 +114,7 @@ class ValidationEvents:
 
         return images
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def get_checkpoints_summary(self, progress_callback=None, worker=None):
         summarizer = ModelEvaluationSummary(self.configuration)
         checkpoints_summary = summarizer.get_checkpoints_summary(
@@ -124,9 +124,13 @@ class ValidationEvents:
             f"Checkpoints summary has been created for {checkpoints_summary.shape[0]} models"
         )
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def run_model_evaluation_pipeline(
-        self, metrics : list[str], selected_checkpoint : str, progress_callback=None, worker=None
+        self,
+        metrics: list[str],
+        selected_checkpoint: str,
+        progress_callback=None,
+        worker=None,
     ):
         if selected_checkpoint is None:
             logger.warning("No checkpoint selected for resuming training")
@@ -153,23 +157,23 @@ class ValidationEvents:
             IMG_PATH, sample_size
         )
         splitter = TrainValidationSplit(train_config)
-        _, validation_images = splitter.split_train_and_validation(images_paths)        
-        
+        _, validation_images = splitter.split_train_and_validation(images_paths)
+
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
         logger.info(
             "Building model data loaders with prefetching and parallel processing"
         )
         loader = ImageDataLoader(train_config, shuffle=False)
-        validation_dataset = loader.build_training_dataloader(validation_images) 
+        validation_dataset = loader.build_training_dataloader(validation_images)
 
-        summarizer = ModelEvaluationSummary(model, self.configuration) 
-        validator = ImageReconstruction(self.configuration, model, checkpoint_path)            
+        summarizer = ModelEvaluationSummary(model, self.configuration)
+        validator = ImageReconstruction(self.configuration, model, checkpoint_path)
 
         # Mapping metric name to method and arguments
         metric_map = {
             "evaluation_report": summarizer.get_evaluation_report,
-            "image_reconstruction": validator.visualize_reconstructed_images,           
+            "image_reconstruction": validator.visualize_reconstructed_images,
         }
 
         images = []
@@ -180,7 +184,9 @@ class ValidationEvents:
                 metric_name = metric.replace("_", " ").title()
                 logger.info(f"Current metric: {metric_name}")
                 result = metric_map[metric](
-                    validation_dataset, progress_callback=progress_callback, worker=worker
+                    validation_dataset,
+                    progress_callback=progress_callback,
+                    worker=worker,
                 )
                 images.append(result)
 
@@ -189,16 +195,16 @@ class ValidationEvents:
 
 ###############################################################################
 class ModelEvents:
-    def __init__(self, configuration: dict):
+    def __init__(self, configuration: Dict[str, Any]):
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.configuration = configuration
 
-    #-------------------------------------------------------------------------
-    def get_available_checkpoints(self)  -> list[str]:
+    # -------------------------------------------------------------------------
+    def get_available_checkpoints(self) -> list[str]:
         return self.modser.scan_checkpoints_folder()
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def run_training_pipeline(self, progress_callback=None, worker=None):
         logger.info("Preparing dataset of images based on splitting sizes")
         sample_size = self.configuration.get("train_sample_size", 1.0)
@@ -252,9 +258,9 @@ class ModelEvents:
             checkpoint_path, history, self.configuration
         )
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def resume_training_pipeline(
-        self, selected_checkpoint, progress_callback=None, worker=None
+        self, selected_checkpoint : str, progress_callback=None, worker=None
     ):
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
@@ -306,9 +312,9 @@ class ModelEvents:
             checkpoint_path, history, self.configuration
         )
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def run_inference_pipeline(
-        self, selected_checkpoint, progress_callback=None, worker=None
+        self, selected_checkpoint : str, progress_callback=None, worker=None
     ):
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, _, checkpoint_path = self.modser.load_checkpoint(
