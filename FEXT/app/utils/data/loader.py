@@ -6,7 +6,7 @@ import tensorflow as tf
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
 class ImageDataLoader:
-    def __init__(self, configuration: dict, shuffle=True):
+    def __init__(self, configuration: Dict[str, Any], shuffle : bool = True):
         self.image_height = configuration.get("image_height", 256)
         self.image_width = configuration.get("image_width", 256)
         self.channels = 1 if configuration.get("use_grayscale", False) else 3
@@ -23,7 +23,7 @@ class ImageDataLoader:
         self.shuffle = shuffle
 
     # load and preprocess a single image
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_image(self, path, as_array=False):
         if as_array:
             image = cv2.imread(path)
@@ -39,7 +39,7 @@ class ImageDataLoader:
         return image
 
     # load and preprocess a single image
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_image_for_training(self, path):
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
@@ -50,7 +50,7 @@ class ImageDataLoader:
         return rgb_image, rgb_image
 
     # load and preprocess a single image
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def load_image_for_inference(self, path):
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
@@ -58,14 +58,14 @@ class ImageDataLoader:
         return rgb_image
 
     # define method perform data augmentation
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def image_normalization(self, image):
         normalized_image = image / 255.0
 
         return normalized_image
 
     # define method perform data augmentation
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def image_augmentation(self, image):
         # perform random image augmentations such as flip, brightness, contrast
         augmentations = {
@@ -88,7 +88,7 @@ class ImageDataLoader:
         return image
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def build_training_dataloader(
         self, images, batch_size=None, buffer_size=tf.data.AUTOTUNE
     ):
@@ -108,7 +108,7 @@ class ImageDataLoader:
         return dataset
 
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def build_inference_dataloader(
         self, images, batch_size=None, buffer_size=tf.data.AUTOTUNE
     ):

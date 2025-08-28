@@ -1,9 +1,13 @@
 import inspect
 import traceback
+from multiprocessing.synchronize import Event as EC
 from multiprocessing import Event, Process, Queue
+from typing import Any, Callable, Generic, TypeVar, Union
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
+
+R = TypeVar("R")
 
 ###############################################################################
 class WorkerInterrupted(Exception):
@@ -21,8 +25,8 @@ class WorkerSignals(QObject):
 
 
 ###############################################################################
-class ThreadWorker(QRunnable):
-    def __init__(self, fn, *args, **kwargs):
+class ThreadWorker(Generic[R], QRunnable):
+    def __init__(self, fn: Callable[..., R], *args: Any, **kwargs: Any) -> None:
         super().__init__()
         self.fn = fn
         self.args = args
@@ -51,17 +55,17 @@ class ThreadWorker(QRunnable):
         if accepts_worker:
             self.kwargs["worker"] = self
 
-    #-------------------------------------------------------------------------
-    def stop(self):
+    # -------------------------------------------------------------------------
+    def stop(self) -> None:
         self._is_interrupted = True
 
-    #-------------------------------------------------------------------------
-    def is_interrupted(self):
+    # -------------------------------------------------------------------------
+    def is_interrupted(self) -> bool:
         return self._is_interrupted
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @Slot()
-    def run(self):
+    def run(self) -> None:
         try:
             # Remove progress_callback and worker if not accepted by the function
             if (
@@ -82,13 +86,20 @@ class ThreadWorker(QRunnable):
             tb = traceback.format_exc()
             self.signals.error.emit((e, tb))
 
-    #-------------------------------------------------------------------------
-    def cleanup(self):
+    # -------------------------------------------------------------------------
+    def cleanup(self) -> None:
         pass
 
 
 ###############################################################################‗
-def process_target(fn, args, kwargs, result_queue, progress_queue, interrupted_event):
+def process_target(
+    fn: Callable[[], None],
+    args: Any,
+    kwargs: Any,
+    result_queue: Queue[Any],
+    progress_queue: Queue[Any],
+    interrupted_event: EC,
+) -> None:
     """
     Executes a target function in a worker context, optionally injecting
     progress callbacks and interruption handling, and returns results via queues.
@@ -106,7 +117,7 @@ def process_target(fn, args, kwargs, result_queue, progress_queue, interrupted_e
         # Inspect the function signature to determine if it supports extra arguments
         sig = inspect.signature(fn)
         params = sig.parameters.values()
-        #--- Inject progress reporting if supported ---
+        # --- Inject progress reporting if supported ---
         # If the function accepts a "progress_callback" parameter or **kwargs,
         # pass a callback that puts messages into the progress_queue.
         if any(
@@ -115,7 +126,7 @@ def process_target(fn, args, kwargs, result_queue, progress_queue, interrupted_e
         ):
             kwargs = dict(kwargs)  # Make a copy
             kwargs["progress_callback"] = progress_queue.put
-        #--- Inject interruption checking if supported ---
+        # --- Inject interruption checking if supported ---
         # If the function accepts a "worker" parameter or **kwargs,
         # pass a dummy worker object that exposes is_interrupted().
         if any(
@@ -124,7 +135,7 @@ def process_target(fn, args, kwargs, result_queue, progress_queue, interrupted_e
         ):
 
             class PlaceholderWorker:
-                def is_interrupted(self2):
+                def is_interrupted(self) -> Any:
                     # Check if the interruption event has been set
                     return interrupted_event.is_set()
 
@@ -144,29 +155,28 @@ def process_target(fn, args, kwargs, result_queue, progress_queue, interrupted_e
 
 ###############################################################################
 class ProcessWorker(QObject):
-    def __init__(self, fn, *args, **kwargs):
+    def __init__(self, fn: Callable[..., R], *args: Any, **kwargs: Any) -> None:
         super().__init__()
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
         self.signals = WorkerSignals()
-
-        self._result_queue = Queue()
-        self._progress_queue = Queue()
+        self._result_queue: Queue[Any] = Queue()
+        self._progress_queue: Queue[Any] = Queue()
         self._interrupted = Event()
         self._proc = None
         self._timer = None
 
-    #-------------------------------------------------------------------------
-    def stop(self):
+    # -------------------------------------------------------------------------
+    def stop(self) -> None:
         self._interrupted.set()
 
-    #-------------------------------------------------------------------------
-    def is_interrupted(self):
+    # -------------------------------------------------------------------------
+    def is_interrupted(self) -> bool:
         return self._interrupted.is_set()
 
-    #-------------------------------------------------------------------------
-    def start(self):
+    # -------------------------------------------------------------------------
+    def start(self) -> None:
         self._proc = Process(
             target=process_target,
             args=(
@@ -180,8 +190,8 @@ class ProcessWorker(QObject):
         )
         self._proc.start()
 
-    #-------------------------------------------------------------------------
-    def _run_in_process(self):
+    # -------------------------------------------------------------------------
+    def _run_in_process(self) -> None:
         try:
             # Prepare kwargs for the child process
             fn = self.fn
@@ -205,7 +215,7 @@ class ProcessWorker(QObject):
             ):
 
                 class PlaceholderWorker:
-                    def is_interrupted(self2):  # "self2" to avoid confusion
+                    def is_interrupted(self2) -> bool:  # type: ignore
                         return self._interrupted.is_set()
 
                 kwargs["worker"] = PlaceholderWorker()
@@ -218,8 +228,8 @@ class ProcessWorker(QObject):
             tb = traceback.format_exc()
             self._result_queue.put(("error", (e, tb)))
 
-    #-------------------------------------------------------------------------
-    def poll(self):
+    # -------------------------------------------------------------------------
+    def poll(self) -> None:
         # Called periodically from main thread (window.py QTimer)
         # Progress first
         while not self._progress_queue.empty():
@@ -244,8 +254,8 @@ class ProcessWorker(QObject):
             if self._proc is not None:
                 self._proc.join()
 
-    #-------------------------------------------------------------------------
-    def cleanup(self):
+    # -------------------------------------------------------------------------
+    def cleanup(self) -> None:
         if self._timer is not None:
             self._timer.stop()
         if self._proc is not None and self._proc.is_alive():
@@ -254,14 +264,14 @@ class ProcessWorker(QObject):
 
 
 # [HELPERS FUNCTIONS]
-#-----------------------------------------------------------------------------
-def check_thread_status(worker: ThreadWorker):
+# -----------------------------------------------------------------------------
+def check_thread_status(worker: Union[ThreadWorker, ProcessWorker, None]) -> None:
     if worker is not None and worker.is_interrupted():
         raise WorkerInterrupted()
 
 
-#-----------------------------------------------------------------------------
-def update_progress_callback(progress, total, progress_callback=None):
+# -----------------------------------------------------------------------------
+def update_progress_callback(progress: int, total: int, progress_callback=None) -> None:
     if progress_callback is not None:
         percent = int(progress * 100 / total)
         progress_callback(percent)
