@@ -1,3 +1,4 @@
+from typing import Any, Dict
 import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
@@ -78,7 +79,7 @@ class ValidationEvents:
 
     # -------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(
-        self, metrics: list[str], progress_callback=None, worker=None
+        self, metrics: List[str], progress_callback=None, worker=None
     ):
         # get images path from the dataset folder and select a randomized fraction
         sample_size = self.configuration.get("sample_size", 1.0)
@@ -127,7 +128,7 @@ class ValidationEvents:
     # -------------------------------------------------------------------------
     def run_model_evaluation_pipeline(
         self,
-        metrics: list[str],
+        metrics: List[str],
         selected_checkpoint: str,
         progress_callback=None,
         worker=None,
@@ -167,7 +168,7 @@ class ValidationEvents:
         loader = ImageDataLoader(train_config, shuffle=False)
         validation_dataset = loader.build_training_dataloader(validation_images)
 
-        summarizer = ModelEvaluationSummary(model, self.configuration)
+        summarizer = ModelEvaluationSummary(self.configuration, model)
         validator = ImageReconstruction(self.configuration, model, checkpoint_path)
 
         # Mapping metric name to method and arguments
@@ -195,17 +196,17 @@ class ValidationEvents:
 
 ###############################################################################
 class ModelEvents:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: Dict[str, Any]) -> None:
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
-    def get_available_checkpoints(self) -> list[str]:
+    def get_available_checkpoints(self) -> List[str]:
         return self.modser.scan_checkpoints_folder()
 
     # -------------------------------------------------------------------------
-    def run_training_pipeline(self, progress_callback=None, worker=None):
+    def run_training_pipeline(self, progress_callback=None, worker=None) -> None:
         logger.info("Preparing dataset of images based on splitting sizes")
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
