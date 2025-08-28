@@ -121,7 +121,7 @@ class ModelSerializer:
         return configuration, history
 
     # -------------------------------------------------------------------------
-    def scan_checkpoints_folder(self) -> list[str]:
+    def scan_checkpoints_folder(self) -> List[str]:
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
