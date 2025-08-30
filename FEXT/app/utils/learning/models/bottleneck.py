@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from keras import activations, layers, ops
 from keras.saving import register_keras_serializable
 
@@ -6,7 +10,14 @@ from keras.saving import register_keras_serializable
 ###############################################################################
 @register_keras_serializable(package="CustomLayers", name="CompressionLayer")
 class CompressionLayer(layers.Layer):
-    def __init__(self, units, dropout_rate=0.2, num_layers=4, seed=42, **kwargs):
+    def __init__(
+        self,
+        units: int,
+        dropout_rate: float = 0.2,
+        num_layers: int = 4,
+        seed: int = 42,
+        **kwargs,
+    ) -> None:
         super(CompressionLayer, self).__init__(**kwargs)
         self.units = units
         self.dropout_rate = dropout_rate
@@ -22,7 +33,7 @@ class CompressionLayer(layers.Layer):
         self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None):
+    def call(self, inputs, training: bool | None = None) -> Any:
         batch_size, height, width, channels = ops.shape(inputs)
         sequence_dim = height * width
         reshaped = ops.reshape(inputs, (batch_size, sequence_dim, channels))
@@ -51,7 +62,7 @@ class CompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "CompressionLayer":
         return cls(**config)
 
 
@@ -59,7 +70,9 @@ class CompressionLayer(layers.Layer):
 ###############################################################################
 @register_keras_serializable(package="CustomLayers", name="DecompressionLayer")
 class DecompressionLayer(layers.Layer):
-    def __init__(self, units=256, num_layers=3, seed=42, **kwargs):
+    def __init__(
+        self, units: int = 256, num_layers: int = 3, seed: int = 42, **kwargs
+    ) -> None:
         super(DecompressionLayer, self).__init__(**kwargs)
         self.units = units
         self.num_layers = num_layers
@@ -73,7 +86,7 @@ class DecompressionLayer(layers.Layer):
         ]
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None):
+    def call(self, inputs, training: bool | None = None) -> Any:
         batch_size, sequence_dims, channels = ops.shape(inputs)
         original_dims = ops.sqrt(sequence_dims)
         original_dims = ops.cast(original_dims, dtype="int32")
@@ -99,5 +112,5 @@ class DecompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "DecompressionLayer":
         return cls(**config)
