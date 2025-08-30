@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Tuple, cast
+from typing import Any, Callable, List, cast
 
 from FEXT.app.variables import EnvironmentVariables
 
@@ -225,12 +225,14 @@ class MainWindow:
 
     # [SHOW WINDOW]
     ###########################################################################
-    def show(self):
+    def show(self) -> None:
         self.main_win.show()
 
     # [HELPERS]
     ###########################################################################
-    def connect_update_setting(self, widget, signal_name, config_key, getter=None):
+    def connect_update_setting(
+        self, widget: Any, signal_name: str, config_key: str, getter: Any | None = None
+    ) -> None:
         if getter is None:
             if isinstance(widget, (QCheckBox, QRadioButton)):
                 getter = widget.isChecked
@@ -243,12 +245,12 @@ class MainWindow:
         signal.connect(partial(self._update_single_setting, config_key, getter))
 
     # -------------------------------------------------------------------------
-    def _update_single_setting(self, config_key, getter, *args):
+    def _update_single_setting(self, config_key: str, getter: Any, *args) -> None:
         value = getter()
         self.config_manager.update_value(config_key, value)
 
     # -------------------------------------------------------------------------
-    def _auto_connect_settings(self):
+    def _auto_connect_settings(self) -> None:
         connections = [
             ("use_device_GPU", "toggled", "use_device_GPU"),
             # 1. data tab page
@@ -321,7 +323,7 @@ class MainWindow:
         self.progress_bar.setValue(0) if self.progress_bar else None
 
     # -------------------------------------------------------------------------
-    def get_current_pixmaps_key(self) -> Tuple[List[Any], str] | tuple[List, None]:
+    def get_current_pixmaps_key(self) -> tuple[list[Any], str] | tuple[List, None]:
         for radio, idx_key in self.pixmap_sources.items():
             if radio.isChecked():
                 return self.pixmaps[idx_key], idx_key
@@ -357,12 +359,12 @@ class MainWindow:
         }
 
     # -------------------------------------------------------------------------
-    def _connect_button(self, button_name: str, slot):
+    def _connect_button(self, button_name: str, slot: Any) -> None:
         button = self.main_win.findChild(QPushButton, button_name)
         button.clicked.connect(slot) if button else None
 
     # -------------------------------------------------------------------------
-    def _connect_combo_box(self, combo_name: str, slot):
+    def _connect_combo_box(self, combo_name: str, slot: Any) -> None:
         combo = self.main_win.findChild(QComboBox, combo_name)
         combo.currentTextChanged.connect(slot) if combo else None
 
@@ -392,7 +394,7 @@ class MainWindow:
         on_error: Callable,
         on_interrupted: Callable,
         update_progress: bool = True,
-    ):
+    ) -> None:
         if update_progress and self.progress_bar:
             self.progress_bar.setValue(0) if self.progress_bar else None
             worker.signals.progress.connect(self.progress_bar.setValue)
@@ -630,7 +632,7 @@ class MainWindow:
     # [TRAINING TAB]
     # -------------------------------------------------------------------------
     @Slot()
-    def train_from_scratch(self):
+    def train_from_scratch(self) -> None:
         if self.worker:
             message = (
                 "A task is currently running, wait for it to finish and then try again"
@@ -656,7 +658,7 @@ class MainWindow:
 
     # -------------------------------------------------------------------------
     @Slot()
-    def resume_training_from_checkpoint(self):
+    def resume_training_from_checkpoint(self) -> None:
         if self.worker:
             message = (
                 "A task is currently running, wait for it to finish and then try again"

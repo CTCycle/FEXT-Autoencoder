@@ -107,7 +107,7 @@ class RealTimeHistory(Callback):
 # [CALLBACKS HANDLER]
 ###############################################################################
 def initialize_callbacks_handler(
-    configuration: Dict[str, Any],
+    configuration: dict[str, Any],
     checkpoint_path,
     session=None,
     total_epochs=100,

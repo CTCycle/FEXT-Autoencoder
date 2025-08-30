@@ -1,6 +1,8 @@
+from __future__ import annotations
 import json
 import os
 from datetime import datetime
+from typing import Any, Union
 
 import pandas as pd
 from keras import Model
@@ -16,13 +18,15 @@ from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
 # [DATA SERIALIZATION]
 ###############################################################################
 class DataSerializer:
-    def __init__(self):
+    def __init__(self) -> None:
         self.img_shape = (128, 128, 3)
         self.num_channels = self.img_shape[-1]
         self.valid_extensions = {".jpg", ".jpeg", ".png", ".bmp"}
 
     # -------------------------------------------------------------------------
-    def get_img_path_from_directory(self, path: str, sample_size=1.0):
+    def get_img_path_from_directory(
+        self, path: str, sample_size: float = 1.0
+    ) -> list[str]:
         logger.debug(f"Valid extensions are: {self.valid_extensions}")
         images_path = []
         for root, _, files in os.walk(path):
@@ -35,42 +39,42 @@ class DataSerializer:
         return images_path
 
     # -------------------------------------------------------------------------
-    def save_images_statistics(self, data: pd.DataFrame):
+    def save_images_statistics(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_STATISTICS")
 
     # -------------------------------------------------------------------------
-    def save_images_exposure_metrics(self, data: pd.DataFrame):
+    def save_images_exposure_metrics(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_EXPOSURE")
 
     # -------------------------------------------------------------------------
-    def save_images_entropy_metrics(self, data: pd.DataFrame):
+    def save_images_entropy_metrics(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_ENTROPY")
 
     # -------------------------------------------------------------------------
-    def save_images_sharpness_metrics(self, data: pd.DataFrame):
+    def save_images_sharpness_metrics(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_SHARPNESS")
 
     # -------------------------------------------------------------------------
-    def save_images_edges_metrics(self, data: pd.DataFrame):
+    def save_images_edges_metrics(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_EDGES")
 
     # -------------------------------------------------------------------------
-    def save_images_colorimetry(self, data: pd.DataFrame):
+    def save_images_colorimetry(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_COLORIMETRY")
 
     # -------------------------------------------------------------------------
-    def save_images_texture_metric(self, data: pd.DataFrame):
+    def save_images_texture_metric(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "IMAGE_TEXTURE_LBP")
 
     # -------------------------------------------------------------------------
-    def save_checkpoints_summary(self, data: pd.DataFrame):
+    def save_checkpoints_summary(self, data: pd.DataFrame) -> None:
         database.upsert_into_database(data, "CHECKPOINTS_SUMMARY")
 
 
 # [MODEL SERIALIZATION]
 ###############################################################################
 class ModelSerializer:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     # function to create a folder where to save model checkpoints
@@ -95,7 +99,9 @@ class ModelSerializer:
         )
 
     # -------------------------------------------------------------------------
-    def save_training_configuration(self, path, history, configuration: Dict[str, Any]):
+    def save_training_configuration(
+        self, path, history, configuration: dict[str, Any]
+    ) -> None:
         config_path = os.path.join(path, "configuration", "configuration.json")
         history_path = os.path.join(path, "configuration", "session_history.json")
 
@@ -121,7 +127,7 @@ class ModelSerializer:
         return configuration, history
 
     # -------------------------------------------------------------------------
-    def scan_checkpoints_folder(self) -> List[str]:
+    def scan_checkpoints_folder(self) -> list[str]:
         model_folders = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
@@ -136,7 +142,7 @@ class ModelSerializer:
         return model_folders
 
     # -------------------------------------------------------------------------
-    def save_model_plot(self, model, path):
+    def save_model_plot(self, model: Model, path: str) -> None:
         try:
             plot_path = os.path.join(path, "model_layout.png")
             plot_model(
@@ -156,7 +162,9 @@ class ModelSerializer:
             )
 
     # -------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint: str) -> tuple[Model, dict, dict, str]:
+    def load_checkpoint(
+        self, checkpoint: str
+    ) -> tuple[Union[Model, Any], dict, dict, str]:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {"LinearDecayLRScheduler": LinearDecayLRScheduler}

@@ -34,7 +34,7 @@ class ResidualConvolutivePooling(layers.Layer):
 
     # serialize layer for saving
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         config = super(ResidualConvolutivePooling, self).get_config()
         config.update({"units": self.units, "num_layers": self.num_layers})
         return config
@@ -80,7 +80,7 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
 
     # serialize layer for saving
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         config = super(ResidualTransConvolutiveUpsampling, self).get_config()
         config.update({"units": self.units, "num_layers": self.num_layers})
         return config
