@@ -1,4 +1,6 @@
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -23,14 +25,14 @@ from FEXT.app.utils.validation.images import ImageAnalysis
 
 ###############################################################################
 class GraphicsHandler:
-    def __init__(self):
+    def __init__(self) -> None:
         self.image_encoding = cv2.IMREAD_UNCHANGED
         self.gray_scale_encoding = cv2.IMREAD_GRAYSCALE
         self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
         self.BGR_encoding = cv2.COLOR_BGR2RGB
 
     # -------------------------------------------------------------------------
-    def convert_fig_to_qpixmap(self, fig):
+    def convert_fig_to_qpixmap(self, fig) -> QPixmap:
         canvas = FigureCanvasAgg(fig)
         canvas.draw()
         # get the size in pixels and initialize raw RGBA buffer
@@ -42,7 +44,7 @@ class GraphicsHandler:
         return QPixmap.fromImage(qimg)
 
     # -------------------------------------------------------------------------
-    def load_image_as_pixmap(self, path):
+    def load_image_as_pixmap(self, path) -> None | QPixmap:
         img = cv2.imread(path, self.image_encoding)
         if img is None:
             return
@@ -68,20 +70,20 @@ class GraphicsHandler:
 
 ###############################################################################
 class ValidationEvents:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]) -> None:
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.inference_batch_size = configuration.get("inference_batch_size", 32)
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
-    def load_img_path(self, path, sample_size=1.0):
+    def load_img_path(self, path, sample_size=1.0) -> list[str]:
         return self.serializer.get_img_path_from_directory(path, sample_size)
 
     # -------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(
-        self, metrics: List[str], progress_callback=None, worker=None
-    ):
+        self, metrics: list[str], progress_callback=None, worker=None
+    ) -> list[Any]:
         # get images path from the dataset folder and select a randomized fraction
         sample_size = self.configuration.get("sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
@@ -117,7 +119,7 @@ class ValidationEvents:
         return images
 
     # -------------------------------------------------------------------------
-    def get_checkpoints_summary(self, progress_callback=None, worker=None):
+    def get_checkpoints_summary(self, progress_callback=None, worker=None) -> None:
         summarizer = ModelEvaluationSummary(self.configuration)
         checkpoints_summary = summarizer.get_checkpoints_summary(
             progress_callback=progress_callback, worker=worker
@@ -129,11 +131,11 @@ class ValidationEvents:
     # -------------------------------------------------------------------------
     def run_model_evaluation_pipeline(
         self,
-        metrics: List[str],
+        metrics: list[str],
         selected_checkpoint: str,
         progress_callback=None,
         worker=None,
-    ):
+    ) -> list[Any]:
         if selected_checkpoint is None:
             logger.warning("No checkpoint selected for resuming training")
             return
@@ -197,13 +199,13 @@ class ValidationEvents:
 
 ###############################################################################
 class ModelEvents:
-    def __init__(self, configuration: Dict[str, Any]) -> None:
+    def __init__(self, configuration: dict[str, Any]) -> None:
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
-    def get_available_checkpoints(self) -> List[str]:
+    def get_available_checkpoints(self) -> list[str]:
         return self.modser.scan_checkpoints_folder()
 
     # -------------------------------------------------------------------------
@@ -263,7 +265,7 @@ class ModelEvents:
     # -------------------------------------------------------------------------
     def resume_training_pipeline(
         self, selected_checkpoint: str, progress_callback=None, worker=None
-    ):
+    ) -> None:
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint
@@ -317,7 +319,7 @@ class ModelEvents:
     # -------------------------------------------------------------------------
     def run_inference_pipeline(
         self, selected_checkpoint: str, progress_callback=None, worker=None
-    ):
+    ) -> None:
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, _, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint

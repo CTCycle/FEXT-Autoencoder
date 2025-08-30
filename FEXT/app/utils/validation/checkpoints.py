@@ -19,14 +19,14 @@ from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
 # [LOAD MODEL]
 ################################################################################
 class ModelEvaluationSummary:
-    def __init__(self, configuration: Dict[str, Any], model: Model | None = None):
+    def __init__(self, configuration: dict[str, Any], model: Model | None = None):
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.model = model
         self.configuration = configuration
 
     # --------------------------------------------------------------------------
-    def scan_checkpoint_folder(self) -> List[str]:
+    def scan_checkpoint_folder(self) -> list[str]:
         model_paths = []
         for entry in os.scandir(CHECKPOINT_PATH):
             if entry.is_dir():
@@ -112,7 +112,7 @@ class ModelEvaluationSummary:
 ###############################################################################
 class ImageReconstruction:
     def __init__(
-        self, configuration: Dict[str, Any], model: Model, checkpoint_path: str
+        self, configuration: dict[str, Any], model: Model, checkpoint_path: str
     ):
         self.num_images = configuration.get("num_evaluation_images", 6)
         self.img_resolution = 400

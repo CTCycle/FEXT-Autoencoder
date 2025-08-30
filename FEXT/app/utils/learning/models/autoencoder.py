@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 from keras import Model, activations, layers, losses, metrics, optimizers
 from torch import compile as torch_compile
 
@@ -18,7 +20,7 @@ from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
 # to build and compile the model (print summary as optional)
 ###############################################################################
 class FeXTAutoEncoders:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]) -> None:
         self.image_height = configuration.get("image_height", 256)
         self.image_width = configuration.get("image_width", 256)
         self.channels = 1 if configuration.get("use_grayscale", False) else 3
@@ -37,7 +39,7 @@ class FeXTAutoEncoders:
         }
 
     # -------------------------------------------------------------------------
-    def compile_model(self, model: Model, model_summary: bool = True):
+    def compile_model(self, model: Model, model_summary: bool = True) -> Model:
         initial_LR = self.configuration.get("initial_RL", 0.001)
         LR_schedule = initial_LR
         if self.configuration.get("use_scheduler", False):
@@ -48,25 +50,24 @@ class FeXTAutoEncoders:
                 initial_LR, constant_LR_steps, decay_steps, target_LR
             )
 
-        opt = optimizers.Adam(learning_rate=LR_schedule)
+        opt = optimizers.Adam(learning_rate=LR_schedule)  # type: ignore
         loss = losses.MeanAbsoluteError()
         metric = [metrics.CosineSimilarity()]
-        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
-        # print model summary on console and run torch.compile
-        # with triton compiler and selected backend
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)  # type: ignore
+        # print model summary on console and run torch.compile with triton compiler and selected backend
         model.summary(expand_nested=True) if model_summary else None
         if self.jit_compile:
-            model = torch_compile(model, backend=self.jit_backend, mode="default")
+            model = torch_compile(model, backend=self.jit_backend, mode="default")  # type: ignore
 
         return model
 
     # build model given the architecture
     # -------------------------------------------------------------------------
-    def get_selected_model(self, model_summary=True) -> Model:
-        model = self.models[self.selected_model]()
-        model = self.compile_model(model, model_summary=model_summary)
-
-        return model
+    def get_selected_model(self, model_summary=True) -> Model | None:
+        if self.selected_model:
+            model = self.models[self.selected_model]()
+            model = self.compile_model(model, model_summary=model_summary)
+            return model
 
     # build model given the architecture
     # -------------------------------------------------------------------------
