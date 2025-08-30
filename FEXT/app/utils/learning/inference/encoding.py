@@ -1,4 +1,6 @@
+from __future__ import annotations
 import os
+from typing import Any
 
 import numpy as np
 from keras import Model
@@ -15,8 +17,8 @@ from FEXT.app.utils.data.loader import ImageDataLoader
 ###############################################################################
 class ImageEncoding:
     def __init__(
-        self, model: Model, configuration: Dict[str, Any], checkpoint_path: str
-    ):
+        self, model: Model, configuration: dict[str, Any], checkpoint_path: str
+    ) -> None:
         set_random_seed(configuration.get("train_seed", 42))
         self.checkpoint = os.path.basename(checkpoint_path)
         self.configuration = configuration
@@ -26,7 +28,7 @@ class ImageEncoding:
         self.encoder_model = Model(inputs=model.input, outputs=encoder_output)
 
     # -------------------------------------------------------------------------
-    def encode_img_features(self, images_paths, **kwargs):
+    def encode_img_features(self, images_paths: list[str], **kwargs) -> dict[Any, Any]:
         dataloader = ImageDataLoader(self.configuration, shuffle=False)
         features = {}
         for i, pt in enumerate(
@@ -36,7 +38,7 @@ class ImageEncoding:
             try:
                 image = dataloader.load_image(pt, as_array=True)
                 image = np.expand_dims(image, axis=0)
-                extracted_features = self.encoder_model.predict(image, verbose=0)
+                extracted_features = self.encoder_model.predict(image, verbose=0)  # type: ignore
                 features[pt] = extracted_features
             except Exception as e:
                 features[pt] = f"Error during encoding: {str(e)}"

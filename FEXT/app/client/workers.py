@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import inspect
 import traceback
 from multiprocessing import Event, Process, Queue
@@ -12,6 +14,7 @@ R = TypeVar("R")
 ###############################################################################
 class WorkerInterrupted(Exception):
     """Exception to indicate worker was intentionally interrupted."""
+
     pass
 
 

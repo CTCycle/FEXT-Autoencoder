@@ -1,12 +1,17 @@
+from __future__ import annotations
+
+from typing import Any, Union
+
 import cv2
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.data.ops.dataset_ops import DatasetV2
 
 
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
 class ImageDataLoader:
-    def __init__(self, configuration: Dict[str, Any], shuffle: bool = True):
+    def __init__(self, configuration: dict[str, Any], shuffle: bool = True) -> None:
         self.image_height = configuration.get("image_height", 256)
         self.image_width = configuration.get("image_width", 256)
         self.channels = 1 if configuration.get("use_grayscale", False) else 3
@@ -24,7 +29,9 @@ class ImageDataLoader:
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
-    def load_image(self, path, as_array=False):
+    def load_image(
+        self, path: str, as_array: bool = False
+    ) -> Union[np.ndarray, tf.Tensor]:
         if as_array:
             image = cv2.imread(path)
             image = cv2.cvtColor(image, self.color_encoding)
@@ -40,7 +47,9 @@ class ImageDataLoader:
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
-    def load_image_for_training(self, path):
+    def load_image_for_training(
+        self, path
+    ) -> tuple[Union[np.ndarray, tf.Tensor], Union[np.ndarray, tf.Tensor]]:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
         rgb_image = (
@@ -51,7 +60,7 @@ class ImageDataLoader:
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
-    def load_image_for_inference(self, path):
+    def load_image_for_inference(self, path) -> Union[np.ndarray, tf.Tensor]:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
 
@@ -59,14 +68,18 @@ class ImageDataLoader:
 
     # define method perform data augmentation
     # -------------------------------------------------------------------------
-    def image_normalization(self, image):
-        normalized_image = image / 255.0
+    def image_normalization(
+        self, image: Union[np.ndarray, tf.Tensor]
+    ) -> Union[np.ndarray, tf.Tensor]:
+        normalized_image = image / 255.0  # type: ignore
 
         return normalized_image
 
     # define method perform data augmentation
     # -------------------------------------------------------------------------
-    def image_augmentation(self, image):
+    def image_augmentation(
+        self, image: Union[np.ndarray, tf.Tensor]
+    ) -> Union[np.ndarray, tf.Tensor]:
         # perform random image augmentations such as flip, brightness, contrast
         augmentations = {
             "flip_left_right": (lambda img: tf.image.random_flip_left_right(img), 0.5),
@@ -90,8 +103,8 @@ class ImageDataLoader:
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     # -------------------------------------------------------------------------
     def build_training_dataloader(
-        self, images, batch_size=None, buffer_size=tf.data.AUTOTUNE
-    ):
+        self, images, batch_size: int | None = None, buffer_size: int = tf.data.AUTOTUNE
+    ) -> DatasetV2:
         batch_size = self.batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)
         dataset = dataset.map(
@@ -110,8 +123,8 @@ class ImageDataLoader:
     # effectively build the tf.dataset and apply preprocessing, batching and prefetching
     # -------------------------------------------------------------------------
     def build_inference_dataloader(
-        self, images, batch_size=None, buffer_size=tf.data.AUTOTUNE
-    ):
+        self, images, batch_size: int | None = None, buffer_size: int = tf.data.AUTOTUNE
+    ) -> DatasetV2:
         batch_size = self.inference_batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)
         dataset = dataset.map(

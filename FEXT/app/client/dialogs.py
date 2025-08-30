@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from PySide6.QtWidgets import (
@@ -53,7 +55,7 @@ class LoadConfigDialog(QDialog):
         self.dialog_layout.addWidget(self.config_list)
 
         # Populate the list with available .json files
-        configs: List[str] = [f for f in os.listdir(CONFIG_PATH) if f.endswith(".json")]
+        configs: list[str] = [f for f in os.listdir(CONFIG_PATH) if f.endswith(".json")]
         self.config_list.addItems(configs)
 
         self.buttons = QDialogButtonBox(
