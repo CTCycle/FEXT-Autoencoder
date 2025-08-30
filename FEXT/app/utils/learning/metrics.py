@@ -108,7 +108,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         return loss
 
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         base_config = super(StructuralSimilarityIndexMeasure, self).get_config()
         return {
             **base_config,
@@ -141,7 +141,7 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         return loss
 
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         base_config = super(PenalizedMeanAbsoluteError, self).get_config()
         return {**base_config, "name": self.name}
 

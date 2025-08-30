@@ -16,7 +16,7 @@ from FEXT.app.utils.data.serializer import DataSerializer
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]):
         self.serializer = DataSerializer()
         self.img_resolution = 400
         self.configuration = configuration
@@ -39,7 +39,7 @@ class ImageAnalysis:
 
     # -------------------------------------------------------------------------
     def calculate_image_statistics(
-        self, images_path: List[str], **kwargs
+        self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:
         results = []
         for i, path in enumerate(
@@ -100,7 +100,7 @@ class ImageAnalysis:
 
     # -------------------------------------------------------------------------
     def calculate_pixel_intensity_distribution(
-        self, images_path: List[str], **kwargs
+        self, images_path: list[str], **kwargs
     ) -> Figure:
         image_histograms = np.zeros(256, dtype=np.int64)
         for i, path in enumerate(
@@ -144,12 +144,12 @@ class ImageAnalysis:
     # -------------------------------------------------------------------------
     def calculate_exposure_metrics(
         self,
-        images_path: List[str],
+        images_path: list[str],
         low_thresh: int = 10,
         high_thresh: int = 245,
         **kwargs,
     ) -> pd.DataFrame:
-        results: List[dict] = []
+        results: list[dict] = []
         for i, path in enumerate(
             tqdm(
                 images_path, desc="Exposure metrics", total=len(images_path), ncols=100
@@ -189,9 +189,9 @@ class ImageAnalysis:
 
     # -------------------------------------------------------------------------
     def calculate_entropy(
-        self, images_path: List[str], bins: int = 256, **kwargs
+        self, images_path: list[str], bins: int = 256, **kwargs
     ) -> pd.DataFrame:
-        results: List[dict] = []
+        results: list[dict] = []
         log2_bins = np.log2(bins)
 
         for i, path in enumerate(
@@ -227,9 +227,9 @@ class ImageAnalysis:
 
     # -------------------------------------------------------------------------
     def calculate_sharpness_metrics(
-        self, images_path: List[str], **kwargs
+        self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:
-        results: List[dict] = []
+        results: list[dict] = []
         for i, path in enumerate(
             tqdm(
                 images_path, desc="Sharpness metrics", total=len(images_path), ncols=100
@@ -284,8 +284,8 @@ class ImageAnalysis:
         return data
 
     # -------------------------------------------------------------------------
-    def calculate_color_metrics(self, images_path: List[str], **kwargs) -> pd.DataFrame:
-        results: List[dict] = []
+    def calculate_color_metrics(self, images_path: list[str], **kwargs) -> pd.DataFrame:
+        results: list[dict] = []
         for i, path in enumerate(
             tqdm(images_path, desc="Color metrics", total=len(images_path), ncols=100)
         ):
@@ -332,8 +332,8 @@ class ImageAnalysis:
         return data
 
     # -------------------------------------------------------------------------
-    def calculate_edge_metrics(self, images_path: List[str], **kwargs) -> pd.DataFrame:
-        results: List[dict] = []
+    def calculate_edge_metrics(self, images_path: list[str], **kwargs) -> pd.DataFrame:
+        results: list[dict] = []
         for i, path in enumerate(
             tqdm(images_path, desc="Edge metrics", total=len(images_path), ncols=100)
         ):
@@ -373,7 +373,7 @@ class ImageAnalysis:
 
     # -------------------------------------------------------------------------
     def calculate_texture_lbp_metrics(
-        self, images_path: List[str], **kwargs
+        self, images_path: list[str], **kwargs
     ) -> pd.DataFrame:
         def compute_lbp_8u1(gray_u8: np.ndarray) -> np.ndarray:
             # Use vectorized 8-neighbour comparisons (ignore 1-pixel border)
@@ -396,7 +396,7 @@ class ImageAnalysis:
                 lbp |= (neigh >= center).astype(np.uint16) * w
             return lbp  # shape (H-2, W-2), values 0..255
 
-        results: List[dict] = []
+        results: list[dict] = []
         for i, path in enumerate(
             tqdm(
                 images_path,

@@ -7,7 +7,7 @@ from FEXT.app.utils.learning.callbacks import initialize_callbacks_handler
 # [TOOLS FOR TRAINING MACHINE LEARNING MODELS]
 ###############################################################################
 class ModelTraining:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]):
         set_random_seed(configuration.get("training_seed", 42))
         self.configuration = configuration
 

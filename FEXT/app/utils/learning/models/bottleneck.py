@@ -36,7 +36,7 @@ class CompressionLayer(layers.Layer):
 
     # serialize layer for saving
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         config = super(CompressionLayer, self).get_config()
         config.update(
             {
@@ -89,7 +89,7 @@ class DecompressionLayer(layers.Layer):
 
     # serialize layer for saving
     # -------------------------------------------------------------------------
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self) -> dict[str, Any]:
         config = super(DecompressionLayer, self).get_config()
         config.update(
             {"units": self.units, "num_layers": self.num_layers, "seed": self.seed}

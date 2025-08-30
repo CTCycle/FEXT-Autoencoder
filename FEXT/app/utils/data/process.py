@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Tuple
+from __future__ import annotations
+from typing import Any
 
 import numpy as np
 
@@ -6,7 +7,7 @@ import numpy as np
 # [DATA SPLITTING]
 ###############################################################################
 class TrainValidationSplit:
-    def __init__(self, configuration: Dict[str, Any]) -> None:
+    def __init__(self, configuration: dict[str, Any]) -> None:
         self.validation_size = configuration.get("validation_size", 42)
         np.random.seed(configuration.get("split_seed", 42))
         self.configuration = configuration
@@ -14,7 +15,7 @@ class TrainValidationSplit:
     # -------------------------------------------------------------------------
     def split_train_and_validation(
         self, images_path: list
-    ) -> Tuple[List[Any], List[Any]]:
+    ) -> tuple[list[Any], list[Any]]:
         # shuffle the paths list to perform randomic sampling
         np.random.shuffle(images_path)
         # get num of samples in train and validation dataset

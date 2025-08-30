@@ -7,7 +7,7 @@ from FEXT.app.logger import logger
 # [DEVICE SETTINGS]
 ###############################################################################
 class DeviceConfig:
-    def __init__(self, configuration: Dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]):
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
