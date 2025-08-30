@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+from typing import Any
 
 import cv2
 import matplotlib.pyplot as plt
@@ -16,13 +19,13 @@ from FEXT.app.utils.data.serializer import DataSerializer
 # [VALIDATION OF PRETRAINED MODELS]
 ###############################################################################
 class ImageAnalysis:
-    def __init__(self, configuration: dict[str, Any]):
+    def __init__(self, configuration: dict[str, Any]) -> None:
         self.serializer = DataSerializer()
         self.img_resolution = 400
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
-    def save_image(self, fig: Figure, name: str):
+    def save_image(self, fig: Figure, name: str) -> None:
         out_path = os.path.join(EVALUATION_PATH, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 

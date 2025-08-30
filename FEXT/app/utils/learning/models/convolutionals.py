@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from keras import activations, layers
 from keras.saving import register_keras_serializable
 
@@ -6,7 +10,7 @@ from keras.saving import register_keras_serializable
 ###############################################################################
 @register_keras_serializable(package="CustomLayers", name="ResidualConvolutivePooling")
 class ResidualConvolutivePooling(layers.Layer):
-    def __init__(self, units, num_layers, **kwargs):
+    def __init__(self, units: int, num_layers: int = 4, **kwargs) -> None:
         super(ResidualConvolutivePooling, self).__init__(**kwargs)
         self.units = units
         self.num_layers = num_layers
@@ -19,7 +23,7 @@ class ResidualConvolutivePooling(layers.Layer):
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None):
+    def call(self, inputs, training: bool | None = None) -> Any:
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
         for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):
@@ -42,7 +46,7 @@ class ResidualConvolutivePooling(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "ResidualConvolutivePooling":
         return cls(**config)
 
 
@@ -52,7 +56,7 @@ class ResidualConvolutivePooling(layers.Layer):
     package="CustomLayers", name="ResidualTransConvolutiveUpsampling"
 )
 class ResidualTransConvolutiveUpsampling(layers.Layer):
-    def __init__(self, units, num_layers, **kwargs):
+    def __init__(self, units: int, num_layers: int = 4, **kwargs) -> None:
         super(ResidualTransConvolutiveUpsampling, self).__init__(**kwargs)
         self.units = units
         self.num_layers = num_layers
@@ -65,7 +69,7 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None):
+    def call(self, inputs, training: bool | None = None) -> Any:
         inputs = self.conv_layers[0](inputs)
         layer = self.bn_layers[0](inputs, training=training)
         for conv, bn in zip(self.conv_layers[1:], self.bn_layers[1:]):
@@ -88,5 +92,5 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "ResidualTransConvolutiveUpsampling":
         return cls(**config)
