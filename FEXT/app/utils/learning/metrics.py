@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from keras import losses, ops
 
 
@@ -6,14 +10,14 @@ from keras import losses, ops
 class StructuralSimilarityIndexMeasure(losses.Loss):
     def __init__(
         self,
-        max_val=1.0,
-        filter_size=11,
-        filter_sigma=1.5,
-        k1=0.01,
-        k2=0.03,
+        max_val: float = 1.0,
+        filter_size: int = 11,
+        filter_sigma: float = 1.5,
+        k1: float = 0.01,
+        k2: float = 0.03,
         name="StructuralSimilarityIndexMeasure",
         **kwargs,
-    ):
+    ) -> None:
         super(StructuralSimilarityIndexMeasure, self).__init__(name=name, **kwargs)
         self.max_val = max_val
         self.filter_size = filter_size
@@ -29,7 +33,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         self.window = self._create_gaussian_window(filter_size, filter_sigma)
 
     # -------------------------------------------------------------------------
-    def _create_gaussian_window(self, size, sigma):
+    def _create_gaussian_window(self, size: int, sigma: float | int) -> Any:
         coords = ops.arange(size) - size // 2
         g = ops.exp(-(coords**2) / (2 * sigma**2))
         g = g / ops.sum(g)
@@ -41,7 +45,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         return window
 
     # -------------------------------------------------------------------------
-    def _apply_conv2d(self, x, window):
+    def _apply_conv2d(self, x, window) -> Any:
         # x: [batch_size, channels, height, width]
         # window: [1, 1, filter_size, filter_size]
 
@@ -55,9 +59,8 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         out = ops.conv(
             x,
             window.repeat(ops.shape(x)[1], axis=0),
-            strides=(1, 1),
-            padding=padding,
-            groups=ops.shape(x)[1],
+            strides=1,
+            padding="valid",
         )
 
         if ops.shape(out)[1] == ops.shape(x)[1]:
@@ -66,7 +69,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         return out
 
     # -------------------------------------------------------------------------
-    def call(self, y_true, y_pred):
+    def call(self, y_true: Any, y_pred: Any) -> Any:
         # Ensure inputs are float32
         y_true = ops.cast(y_true, "float32")
         y_pred = ops.cast(y_pred, "float32")
@@ -120,20 +123,22 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         }
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "StructuralSimilarityIndexMeasure":
         return cls(**config)
 
 
 # [LOSS FUNCTION]
 ###############################################################################
 class PenalizedMeanAbsoluteError(losses.Loss):
-    def __init__(self, name="PenalizedMeanAbsoluteError", size=(128, 128), **kwargs):
+    def __init__(
+        self, name="PenalizedMeanAbsoluteError", size=(128, 128), **kwargs
+    ) -> None:
         super(PenalizedMeanAbsoluteError, self).__init__(name=name, **kwargs)
-        self.loss = losses.MeanAbsoluteError(reduction=None)
+        self.loss = losses.MeanAbsoluteError(reduction=None)  # type: ignore
         self.size = size
 
     # -------------------------------------------------------------------------
-    def call(self, y_true, y_pred):
+    def call(self, y_true: Any, y_pred: Any) -> Any:
         loss = self.loss(y_true, y_pred)
         penalty_factor = ops.power((self.size[0] * self.size[1] / 255), 1 / 3)
         loss = loss + penalty_factor
@@ -146,5 +151,5 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         return {**base_config, "name": self.name}
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config) -> "PenalizedMeanAbsoluteError":
         return cls(**config)

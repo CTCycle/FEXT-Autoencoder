@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from typing import Any
+
 import numpy as np
-from keras import ops, optimizers
+from keras import ops
 from keras.optimizers.schedules import LearningRateSchedule
 from keras.saving import register_keras_serializable
 
@@ -19,7 +22,7 @@ class LinearDecayLRScheduler(LearningRateSchedule):
         self.target_LR = target_LR
 
     # -------------------------------------------------------------------------
-    def __call__(self, step: Any):
+    def __call__(self, step: Any) -> Any:
         global_step = ops.cast(step, np.float32)
         constant_steps = ops.cast(self.constant_steps, np.float32)
         decay_steps = ops.cast(self.decay_steps, np.float32)
@@ -29,16 +32,16 @@ class LinearDecayLRScheduler(LearningRateSchedule):
         # Compute the decayed learning rate (linear interpolation).
         # progress is 0.0 when global_step equals constant_steps,
         # and 1.0 when global_step equals constant_steps + decay_steps.
-        progress = (global_step - constant_steps) / decay_steps
+        progress = (global_step - constant_steps) / decay_steps  # type: ignore
 
         # Compute linearly decayed lr: it decreases from initial_LR to target_LR.
-        decayed_LR = initial_LR - (initial_LR - target_LR) * progress
+        decayed_LR = initial_LR - (initial_LR - target_LR) * progress  # type: ignore
         # Ensure the decayed lr does not drop below target_LR.
         decayed_LR = ops.maximum(decayed_LR, target_LR)
 
         # Before constant_steps, use the initial constant lr.
         # After constant_steps, use the decayed lr.
-        learning_rate = ops.where(global_step < constant_steps, initial_LR, decayed_LR)
+        learning_rate = ops.where(global_step < constant_steps, initial_LR, decayed_LR)  # type: ignore
 
         return learning_rate
 
