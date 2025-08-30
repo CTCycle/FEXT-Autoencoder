@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import os
 import random
 import re
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from keras import Model
 from matplotlib.figure import Figure
+from tensorflow.python.types.data import DatasetV2
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH
@@ -19,7 +23,9 @@ from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
 # [LOAD MODEL]
 ################################################################################
 class ModelEvaluationSummary:
-    def __init__(self, configuration: dict[str, Any], model: Model | None = None):
+    def __init__(
+        self, configuration: dict[str, Any], model: Model | None = None
+    ) -> None:
         self.serializer = DataSerializer()
         self.modser = ModelSerializer()
         self.model = model
@@ -98,14 +104,17 @@ class ModelEvaluationSummary:
         return dataframe
 
     # -------------------------------------------------------------------------
-    def get_evaluation_report(self, validation_dataset, **kwargs):
+    def get_evaluation_report(self, validation_dataset: DatasetV2, **kwargs) -> None:
         callbacks_list = [LearningInterruptCallback(kwargs.get("worker", None))]
-        validation = self.model.evaluate(
-            validation_dataset, verbose=1, callbacks=callbacks_list
-        )
-        logger.info("Evaluation of pretrained model has been completed")
-        logger.info(f"RMSE loss {validation[0]:.3f}")
-        logger.info(f"Cosine similarity {validation[1]:.3f}")
+        if self.model:
+            validation = self.model.evaluate(
+                validation_dataset,
+                verbose=1,
+                callbacks=callbacks_list,  # type: ignore
+            )
+            logger.info("Evaluation of pretrained model has been completed")
+            logger.info(f"RMSE loss {validation[0]:.3f}")
+            logger.info(f"Cosine similarity {validation[1]:.3f}")
 
 
 # [IMAGE RECONSTRUCTION]
@@ -113,7 +122,7 @@ class ModelEvaluationSummary:
 class ImageReconstruction:
     def __init__(
         self, configuration: dict[str, Any], model: Model, checkpoint_path: str
-    ):
+    ) -> None:
         self.num_images = configuration.get("num_evaluation_images", 6)
         self.img_resolution = 400
         self.file_type = "jpeg"
@@ -125,13 +134,13 @@ class ImageReconstruction:
         os.makedirs(self.validation_path, exist_ok=True)
 
     # -------------------------------------------------------------------------
-    def save_image(self, fig: Figure, name):
+    def save_image(self, fig: Figure, name: str) -> None:
         name = re.sub(r"[^0-9A-Za-z_]", "_", name)
         out_path = os.path.join(self.validation_path, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
     # -------------------------------------------------------------------------
-    def get_images(self, data):
+    def get_images(self, data: list[str]) -> list[Any]:
         loader = ImageDataLoader(self.configuration)
         images = [
             loader.load_image(path, as_array=True)
@@ -142,12 +151,9 @@ class ImageReconstruction:
         return norm_images
 
     # -------------------------------------------------------------------------
-    def visualize_3D_latent_space(self, model, dataset, num_images=10):
-        # Extract latent representations
-        pass
-
-    # -------------------------------------------------------------------------
-    def visualize_reconstructed_images(self, validation_data, **kwargs):
+    def visualize_reconstructed_images(
+        self, validation_data: list[str], **kwargs
+    ) -> Figure:
         val_images = self.get_images(validation_data)
         logger.info(
             f"Comparing {self.num_images} reconstructed images from validation dataset"
@@ -156,7 +162,9 @@ class ImageReconstruction:
         for i, img in enumerate(val_images):
             expanded_img = np.expand_dims(img, axis=0)
             reconstructed_image = self.model.predict(
-                expanded_img, verbose=0, batch_size=1
+                expanded_img,
+                verbose=0,
+                batch_size=1,  # type: ignore
             )[0]
 
             real = np.clip(img * 255.0, 0, 255).astype(np.uint8)
