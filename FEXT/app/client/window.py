@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, cast
+from collections.abc import Callable
+from typing import Any, cast
 
 from FEXT.app.variables import EnvironmentVariables
 
@@ -81,7 +82,7 @@ class MainWindow:
         # set thread pool for the workers
         self.threadpool = QThreadPool.globalInstance()
         self.threadpool.setExpiryTimeout(2000)
-        self.worker = None
+        self.worker: ThreadWorker | ProcessWorker | None = None
 
         # initialize database
         database.initialize_database()
@@ -214,7 +215,7 @@ class MainWindow:
         self.load_checkpoints()
         self._set_graphics()
 
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def __getattr__(self, name: str) -> Any:
         try:
             return self.widgets[name]
@@ -323,7 +324,7 @@ class MainWindow:
         self.progress_bar.setValue(0) if self.progress_bar else None
 
     # -------------------------------------------------------------------------
-    def get_current_pixmaps_key(self) -> tuple[list[Any], str] | tuple[List, None]:
+    def get_current_pixmaps_key(self) -> tuple[list[Any], str] | tuple[list, None]:
         for radio, idx_key in self.pixmap_sources.items():
             if radio.isChecked():
                 return self.pixmaps[idx_key], idx_key

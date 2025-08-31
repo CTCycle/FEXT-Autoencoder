@@ -32,16 +32,16 @@ class LinearDecayLRScheduler(LearningRateSchedule):
         # Compute the decayed learning rate (linear interpolation).
         # progress is 0.0 when global_step equals constant_steps,
         # and 1.0 when global_step equals constant_steps + decay_steps.
-        progress = (global_step - constant_steps) / decay_steps  # type: ignore
+        progress = (global_step - constant_steps) / decay_steps
 
         # Compute linearly decayed lr: it decreases from initial_LR to target_LR.
-        decayed_LR = initial_LR - (initial_LR - target_LR) * progress  # type: ignore
+        decayed_LR = initial_LR - (initial_LR - target_LR) * progress
         # Ensure the decayed lr does not drop below target_LR.
         decayed_LR = ops.maximum(decayed_LR, target_LR)
 
         # Before constant_steps, use the initial constant lr.
         # After constant_steps, use the decayed lr.
-        learning_rate = ops.where(global_step < constant_steps, initial_LR, decayed_LR)  # type: ignore
+        learning_rate = ops.where(global_step < constant_steps, initial_LR, decayed_LR)
 
         return learning_rate
 

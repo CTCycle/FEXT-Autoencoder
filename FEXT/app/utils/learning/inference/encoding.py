@@ -39,7 +39,7 @@ class ImageEncoding:
             try:
                 image = dataloader.load_image(pt, as_array=True)
                 image = np.expand_dims(image, axis=0)
-                extracted_features = self.encoder_model.predict(image, verbose=0)  # type: ignore
+                extracted_features = self.encoder_model.predict(image, verbose=0)
                 features[pt] = extracted_features
             except Exception as e:
                 features[pt] = f"Error during encoding: {str(e)}"
