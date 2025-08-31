@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -29,9 +29,7 @@ class ImageDataLoader:
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
-    def load_image(
-        self, path: str, as_array: bool = False
-    ) -> Union[np.ndarray, tf.Tensor]:
+    def load_image(self, path: str, as_array: bool = False) -> np.ndarray | tf.Tensor:
         if as_array:
             image = cv2.imread(path)
             image = cv2.cvtColor(image, self.color_encoding)
@@ -49,7 +47,7 @@ class ImageDataLoader:
     # -------------------------------------------------------------------------
     def load_image_for_training(
         self, path
-    ) -> tuple[Union[np.ndarray, tf.Tensor], Union[np.ndarray, tf.Tensor]]:
+    ) -> tuple[np.ndarray | tf.Tensor, np.ndarray | tf.Tensor]:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
         rgb_image = (
@@ -60,7 +58,7 @@ class ImageDataLoader:
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
-    def load_image_for_inference(self, path) -> Union[np.ndarray, tf.Tensor]:
+    def load_image_for_inference(self, path) -> np.ndarray | tf.Tensor:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
 
@@ -69,17 +67,17 @@ class ImageDataLoader:
     # define method perform data augmentation
     # -------------------------------------------------------------------------
     def image_normalization(
-        self, image: Union[np.ndarray, tf.Tensor]
-    ) -> Union[np.ndarray, tf.Tensor]:
-        normalized_image = image / 255.0  # type: ignore
+        self, image: np.ndarray | tf.Tensor
+    ) -> np.ndarray | tf.Tensor:
+        normalized_image = image / 255.0
 
         return normalized_image
 
     # define method perform data augmentation
     # -------------------------------------------------------------------------
     def image_augmentation(
-        self, image: Union[np.ndarray, tf.Tensor]
-    ) -> Union[np.ndarray, tf.Tensor]:
+        self, image: np.ndarray | tf.Tensor
+    ) -> np.ndarray | tf.Tensor:
         # perform random image augmentations such as flip, brightness, contrast
         augmentations = {
             "flip_left_right": (lambda img: tf.image.random_flip_left_right(img), 0.5),
