@@ -134,7 +134,7 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         self, name="PenalizedMeanAbsoluteError", size=(128, 128), **kwargs
     ) -> None:
         super(PenalizedMeanAbsoluteError, self).__init__(name=name, **kwargs)
-        self.loss = losses.MeanAbsoluteError(reduction=None)  # type: ignore
+        self.loss = losses.MeanAbsoluteError(reduction=None)
         self.size = size
 
     # -------------------------------------------------------------------------
