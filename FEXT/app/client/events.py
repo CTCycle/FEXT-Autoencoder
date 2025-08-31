@@ -44,7 +44,7 @@ class GraphicsHandler:
         return QPixmap.fromImage(qimg)
 
     # -------------------------------------------------------------------------
-    def load_image_as_pixmap(self, path : str) -> None | QPixmap:
+    def load_image_as_pixmap(self, path: str) -> None | QPixmap:
         img = cv2.imread(path, self.image_encoding)
         if img is None:
             return

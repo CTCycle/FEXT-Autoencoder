@@ -110,7 +110,7 @@ class ModelEvaluationSummary:
             validation = self.model.evaluate(
                 validation_dataset,
                 verbose=1,
-                callbacks=callbacks_list,  # type: ignore
+                callbacks=callbacks_list,
             )
             logger.info("Evaluation of pretrained model has been completed")
             logger.info(f"RMSE loss {validation[0]:.3f}")
@@ -154,17 +154,19 @@ class ImageReconstruction:
     def visualize_reconstructed_images(
         self, validation_data: list[str], **kwargs
     ) -> Figure:
-        val_images = self.get_images(validation_data)
+        val_images = self.get_images(data=validation_data)
         logger.info(
             f"Comparing {self.num_images} reconstructed images from validation dataset"
         )
-        fig, axs = plt.subplots(self.num_images, 2, figsize=(4, self.num_images * 2))
+        fig, axs = plt.subplots(
+            nrows=self.num_images, ncols=2, figsize=(4, self.num_images * 2)
+        )
         for i, img in enumerate(val_images):
             expanded_img = np.expand_dims(img, axis=0)
             reconstructed_image = self.model.predict(
                 expanded_img,
                 verbose=0,
-                batch_size=1,  # type: ignore
+                batch_size=1,
             )[0]
 
             real = np.clip(img * 255.0, 0, 255).astype(np.uint8)
