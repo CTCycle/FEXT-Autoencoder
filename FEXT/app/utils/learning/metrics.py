@@ -53,8 +53,6 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         if ops.shape(x)[1] != ops.shape(window)[0]:
             x = ops.transpose(x, [0, 3, 1, 2])  # Convert from NHWC to NCHW if necessary
 
-        padding = self.filter_size // 2
-
         # Perform per-channel convolution by using groups
         out = ops.conv(
             x,
@@ -134,7 +132,7 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         self, name="PenalizedMeanAbsoluteError", size=(128, 128), **kwargs
     ) -> None:
         super(PenalizedMeanAbsoluteError, self).__init__(name=name, **kwargs)
-        self.loss = losses.MeanAbsoluteError(reduction=None)
+        self.loss = losses.MeanAbsoluteError(reduction="none")
         self.size = size
 
     # -------------------------------------------------------------------------
