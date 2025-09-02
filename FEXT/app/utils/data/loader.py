@@ -5,7 +5,7 @@ from typing import Any
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.data.ops.dataset_ops import DatasetV2
+
 
 
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
@@ -46,7 +46,7 @@ class ImageDataLoader:
     # load and preprocess a single image
     # -------------------------------------------------------------------------
     def load_image_for_training(
-        self, path
+        self, path : str
     ) -> tuple[np.ndarray | tf.Tensor, np.ndarray | tf.Tensor]:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
@@ -102,7 +102,7 @@ class ImageDataLoader:
     # -------------------------------------------------------------------------
     def build_training_dataloader(
         self, images, batch_size: int | None = None, buffer_size: int = tf.data.AUTOTUNE
-    ) -> DatasetV2:
+    ) -> tf.data.Dataset:
         batch_size = self.batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)
         dataset = dataset.map(
@@ -122,7 +122,7 @@ class ImageDataLoader:
     # -------------------------------------------------------------------------
     def build_inference_dataloader(
         self, images, batch_size: int | None = None, buffer_size: int = tf.data.AUTOTUNE
-    ) -> DatasetV2:
+    ) -> tf.data.Dataset:
         batch_size = self.inference_batch_size if batch_size is None else batch_size
         dataset = tf.data.Dataset.from_tensor_slices(images)
         dataset = dataset.map(
