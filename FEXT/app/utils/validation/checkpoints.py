@@ -47,7 +47,7 @@ class ModelEvaluationSummary:
         model_paths = self.scan_checkpoint_folder()
         model_parameters = []
         for i, model_path in enumerate(model_paths):
-            model = self.modser.load_checkpoint(model_path)
+            _ = self.modser.load_checkpoint(model_path)
             configuration, history = self.modser.load_training_configuration(model_path)
             model_name = os.path.basename(model_path)
             precision = 16 if configuration.get("use_mixed_precision", np.nan) else 32
@@ -109,7 +109,7 @@ class ModelEvaluationSummary:
         if self.model:
             validation = self.model.evaluate(
                 validation_dataset,
-                verbose=1,
+                verbose=1, # type: ignore
                 callbacks=callbacks_list,
             )
             logger.info("Evaluation of pretrained model has been completed")
@@ -165,7 +165,7 @@ class ImageReconstruction:
             expanded_img = np.expand_dims(img, axis=0)
             reconstructed_image = self.model.predict(
                 expanded_img,
-                verbose=0,
+                verbose=0, # type: ignore
                 batch_size=1,
             )[0]
 

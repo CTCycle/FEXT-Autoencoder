@@ -52,14 +52,14 @@ class FeXTAutoEncoders:
                 initial_LR, constant_LR_steps, decay_steps, target_LR
             )
 
-        opt = optimizers.Adam(learning_rate=LR_schedule)
+        opt = optimizers.Adam(learning_rate=LR_schedule) # type: ignore
         loss = losses.MeanAbsoluteError()
         metric = [metrics.CosineSimilarity()]
-        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False)
+        model.compile(loss=loss, optimizer=opt, metrics=metric, jit_compile=False) # type: ignore
         # print model summary on console and run torch.compile with triton compiler and selected backend
         model.summary(expand_nested=True) if model_summary else None
         if self.jit_compile:
-            model = torch_compile(model, backend=self.jit_backend, mode="default")
+            model = torch_compile(model, backend=self.jit_backend, mode="default") # type: ignore
 
         return model
 
