@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from keras import Model
 from matplotlib.figure import Figure
-from tensorflow.python.types.data import DatasetV2
+import tensorflow as tf
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH
@@ -104,12 +104,14 @@ class ModelEvaluationSummary:
         return dataframe
 
     # -------------------------------------------------------------------------
-    def get_evaluation_report(self, validation_dataset: DatasetV2, **kwargs) -> None:
+    def get_evaluation_report(
+        self, validation_dataset: tf.data.Dataset, **kwargs
+    ) -> None:
         callbacks_list = [LearningInterruptCallback(kwargs.get("worker", None))]
         if self.model:
             validation = self.model.evaluate(
                 validation_dataset,
-                verbose=1, # type: ignore
+                verbose=1,  # type: ignore
                 callbacks=callbacks_list,
             )
             logger.info("Evaluation of pretrained model has been completed")
@@ -165,7 +167,7 @@ class ImageReconstruction:
             expanded_img = np.expand_dims(img, axis=0)
             reconstructed_image = self.model.predict(
                 expanded_img,
-                verbose=0, # type: ignore
+                verbose=0,  # type: ignore
                 batch_size=1,
             )[0]
 

@@ -92,7 +92,7 @@ class ModelSerializer:
         return checkpoint_path
 
     # -------------------------------------------------------------------------
-    def save_pretrained_model(self, model: Model, path) -> None:
+    def save_pretrained_model(self, model: Model, path: str) -> None:
         model_files_path = os.path.join(path, "saved_model.keras")
         model.save(model_files_path)
         logger.info(
@@ -101,7 +101,7 @@ class ModelSerializer:
 
     # -------------------------------------------------------------------------
     def save_training_configuration(
-        self, path, history, configuration: dict[str, Any]
+        self, path: str, history: dict, configuration: dict[str, Any]
     ) -> None:
         config_path = os.path.join(path, "configuration", "configuration.json")
         history_path = os.path.join(path, "configuration", "session_history.json")

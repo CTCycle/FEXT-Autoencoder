@@ -6,7 +6,7 @@ import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
 
-from FEXT.app.client.workers import check_thread_status
+from FEXT.app.client.workers import ProcessWorker, ThreadWorker, check_thread_status
 from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.logger import logger
 from FEXT.app.utils.data.loader import ImageDataLoader
@@ -82,7 +82,7 @@ class ValidationEvents:
 
     # -------------------------------------------------------------------------
     def run_dataset_evaluation_pipeline(
-        self, metrics: list[str], progress_callback : Any | None = None, worker=None
+        self, metrics: list[str], progress_callback: Any | None = None, worker=None
     ) -> list[Any]:
         # get images path from the dataset folder and select a randomized fraction
         sample_size = self.configuration.get("sample_size", 1.0)
@@ -119,7 +119,11 @@ class ValidationEvents:
         return images
 
     # -------------------------------------------------------------------------
-    def get_checkpoints_summary(self, progress_callback : Any | None = None, worker=None) -> None:
+    def get_checkpoints_summary(
+        self,
+        progress_callback: Any | None = None,
+        worker: ThreadWorker | ProcessWorker | None = None,
+    ) -> None:
         summarizer = ModelEvaluationSummary(self.configuration)
         checkpoints_summary = summarizer.get_checkpoints_summary(
             progress_callback=progress_callback, worker=worker
@@ -133,7 +137,7 @@ class ValidationEvents:
         self,
         metrics: list[str],
         selected_checkpoint: str,
-        progress_callback : Any | None = None,
+        progress_callback: Any | None = None,
         worker=None,
     ) -> list[Any]:
         if selected_checkpoint is None:
@@ -209,7 +213,11 @@ class ModelEvents:
         return self.modser.scan_checkpoints_folder()
 
     # -------------------------------------------------------------------------
-    def run_training_pipeline(self, progress_callback : Any | None = None, worker=None) -> None:
+    def run_training_pipeline(
+        self,
+        progress_callback: Any | None = None,
+        worker: ThreadWorker | ProcessWorker | None = None,
+    ) -> None:
         logger.info("Preparing dataset of images based on splitting sizes")
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
@@ -264,7 +272,10 @@ class ModelEvents:
 
     # -------------------------------------------------------------------------
     def resume_training_pipeline(
-        self, selected_checkpoint: str, progress_callback : Any | None = None, worker=None
+        self,
+        selected_checkpoint: str,
+        progress_callback: Any | None = None,
+        worker=None,
     ) -> None:
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
@@ -318,7 +329,10 @@ class ModelEvents:
 
     # -------------------------------------------------------------------------
     def run_inference_pipeline(
-        self, selected_checkpoint: str, progress_callback : Any | None = None, worker=None
+        self,
+        selected_checkpoint: str,
+        progress_callback: Any | None = None,
+        worker=None,
     ) -> None:
         logger.info(f"Loading {selected_checkpoint} checkpoint")
         model, train_config, _, checkpoint_path = self.modser.load_checkpoint(

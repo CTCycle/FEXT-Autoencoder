@@ -11,14 +11,16 @@ import matplotlib.pyplot as plt
 from keras import Model
 from keras.callbacks import Callback
 
-from FEXT.app.client.workers import WorkerInterrupted
+from FEXT.app.client.workers import ThreadWorker, ProcessWorker, WorkerInterrupted
 from FEXT.app.logger import logger
 
 
 # [CALLBACK FOR UI PROGRESS BAR]
 ###############################################################################
 class ProgressBarCallback(Callback):
-    def __init__(self, progress_callback, total_epochs, from_epoch=0) -> None:
+    def __init__(
+        self, progress_callback, total_epochs: int, from_epoch: int = 0
+    ) -> None:
         super().__init__()
         self.progress_callback = progress_callback
         self.total_epochs = total_epochs
@@ -36,7 +38,7 @@ class ProgressBarCallback(Callback):
 # [CALLBACK FOR TRAIN INTERRUPTION]
 ###############################################################################
 class LearningInterruptCallback(Callback):
-    def __init__(self, worker=None) -> None:
+    def __init__(self, worker: ThreadWorker | ProcessWorker | None = None) -> None:
         super().__init__()
         self.worker = worker
         self.model: Model
@@ -48,7 +50,7 @@ class LearningInterruptCallback(Callback):
             raise WorkerInterrupted()
 
     # -------------------------------------------------------------------------
-    def on_validation_batch_end(self, batch, logs: dict | None = None):
+    def on_validation_batch_end(self, batch, logs: dict | None = None) -> None:
         if self.worker is not None and self.worker.is_interrupted():
             raise WorkerInterrupted()
 

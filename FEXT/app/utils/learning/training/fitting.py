@@ -4,6 +4,7 @@ from typing import Any
 
 from keras import Model
 from keras.utils import set_random_seed
+import tensorflow as tf
 
 from FEXT.app.utils.learning.callbacks import initialize_callbacks_handler
 
@@ -17,7 +18,12 @@ class ModelTraining:
 
     # -------------------------------------------------------------------------
     def train_model(
-        self, model: Model, train_data, validation_data, checkpoint_path, **kwargs
+        self,
+        model: Model,
+        train_data: tf.data.Dataset,
+        validation_data: tf.data.Dataset,
+        checkpoint_path: str,
+        **kwargs,
     ) -> tuple[Model, dict[str, Any]]:
         total_epochs = self.configuration.get("epochs", 100)
         # add all callbacks to the callback list
@@ -45,11 +51,11 @@ class ModelTraining:
     def resume_training(
         self,
         model: Model,
-        train_data,
-        validation_data,
-        checkpoint_path,
-        session={},
-        additional_epochs=10,
+        train_data: tf.data.Dataset,
+        validation_data: tf.data.Dataset,
+        checkpoint_path: str,
+        session: dict = {},
+        additional_epochs: int = 10,
         **kwargs,
     ) -> tuple[Model, dict[str, Any]]:
         from_epoch = 0 if not session else session["epochs"]
