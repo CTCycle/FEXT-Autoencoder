@@ -7,7 +7,6 @@ import numpy as np
 import tensorflow as tf
 
 
-
 # wrapper function to run the data pipeline from raw inputs to tensor dataset
 ###############################################################################
 class ImageDataLoader:
@@ -46,7 +45,7 @@ class ImageDataLoader:
     # load and preprocess a single image
     # -------------------------------------------------------------------------
     def load_image_for_training(
-        self, path : str
+        self, path: str
     ) -> tuple[np.ndarray | tf.Tensor, np.ndarray | tf.Tensor]:
         rgb_image = self.load_image(path)
         rgb_image = self.image_normalization(rgb_image)
