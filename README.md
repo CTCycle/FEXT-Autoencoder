@@ -31,7 +31,6 @@ The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset
 The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, minimizing user interaction and ensuring all components are ready for local use.  
 
 
-
 ### 4.1 Just-In-Time (JIT) Compiler
 This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. 
 
@@ -46,8 +45,6 @@ The main interface streamlines navigation across the application's core services
 - **Calculation of average pixel distribution**
 - **Average pixel distribution of train versus validation**   
 
-![data_tab](FEXT/app/assets/figures/data_tab.png)
-
 **Model:** here you can train, evaluate and encode images with FEXT Autoencoder. You can either train from scratch or resume training for pretrained checkpoints. This tab provides also model inference and model evaluation functionalities. 
 
 You can select a model checkpoint and use it to encode images into compact, abstract representations that capture their most relevant features. These low-dimensional embeddings are saved as .npy files in the *resources/inference* directory. For model evaluation, several metrics are computed, including:
@@ -55,17 +52,11 @@ You can select a model checkpoint and use it to encode images into compact, abst
 - **Average mean squared error and mean average error of reconstruction** 
 - **Visual comparison of random reconstructed images** 
 
-![model_tab](FEXT/app/assets/figures/model_tab.gif)
-
-
 **Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
 - **Training images**: visualize training images located in *resources/database/dataset*  
 - **Inference images**: visualize inference images located in *resources/database/inference*  
 - **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
 - **Model evalution plots**: visualize plots generated from model evaluation pipeline  
-
-![viewer_tab](FEXT/app/assets/figures/viewer_tab.png)
-
 
 **Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
 
