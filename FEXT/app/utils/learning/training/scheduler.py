@@ -13,7 +13,12 @@ from keras.saving import register_keras_serializable
 @register_keras_serializable(package="LinearDecayLRScheduler")
 class LinearDecayLRScheduler(LearningRateSchedule):
     def __init__(
-        self, initial_LR, constant_steps, decay_steps, target_LR, **kwargs
+        self,
+        initial_LR: float,
+        constant_steps: int,
+        decay_steps: int,
+        target_LR: float,
+        **kwargs,
     ) -> None:
         super(LinearDecayLRScheduler, self).__init__(**kwargs)
         self.initial_LR = initial_LR
