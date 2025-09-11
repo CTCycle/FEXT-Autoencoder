@@ -121,7 +121,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         }
 
     @classmethod
-    def from_config(cls, config) -> "StructuralSimilarityIndexMeasure":
+    def from_config(cls: Any, config: Any) -> "StructuralSimilarityIndexMeasure":
         return cls(**config)
 
 
@@ -149,5 +149,5 @@ class PenalizedMeanAbsoluteError(losses.Loss):
         return {**base_config, "name": self.name}
 
     @classmethod
-    def from_config(cls, config) -> "PenalizedMeanAbsoluteError":
+    def from_config(cls: Any, config: Any) -> "PenalizedMeanAbsoluteError":
         return cls(**config)
