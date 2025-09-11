@@ -62,7 +62,9 @@ class CompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls: Any, config: Any) -> "CompressionLayer":
+    def from_config(
+        cls: type[CompressionLayer], config: Any
+    ) -> CompressionLayer:
         return cls(**config)
 
 
@@ -112,5 +114,7 @@ class DecompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls: Any, config: Any) -> "DecompressionLayer":
+    def from_config(
+        cls: type[DecompressionLayer], config: Any
+    ) -> DecompressionLayer:
         return cls(**config)
