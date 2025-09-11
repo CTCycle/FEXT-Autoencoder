@@ -46,7 +46,9 @@ class ResidualConvolutivePooling(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls: Any, config: Any) -> "ResidualConvolutivePooling":
+    def from_config(
+        cls: type[ResidualConvolutivePooling], config: Any
+    ) -> ResidualConvolutivePooling:
         return cls(**config)
 
 
@@ -92,5 +94,7 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls: Any, config: Any) -> "ResidualTransConvolutiveUpsampling":
+    def from_config(
+        cls: type[ResidualTransConvolutiveUpsampling], config: Any
+    ) -> ResidualTransConvolutiveUpsampling:
         return cls(**config)
