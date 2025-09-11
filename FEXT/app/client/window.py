@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any, cast
 
+from matplotlib.figure import Figure
+
 from FEXT.app.variables import EnvironmentVariables
 
 EV = EnvironmentVariables()
@@ -805,7 +807,7 @@ class MainWindow:
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################
-    def on_dataset_evaluation_finished(self, plots) -> None:
+    def on_dataset_evaluation_finished(self, plots : list[Figure]) -> None:
         self._send_message("Figures have been generated")
         self.worker = self.worker.cleanup() if self.worker else None
 
@@ -815,7 +817,7 @@ class MainWindow:
         self.worker = self.worker.cleanup() if self.worker else None
 
     # -------------------------------------------------------------------------
-    def on_model_evaluation_finished(self, plots) -> None:
+    def on_model_evaluation_finished(self, plots : list[Figure]) -> None:
         self._send_message(f"Model {self.selected_checkpoint} has been evaluated")
         self.worker = self.worker.cleanup() if self.worker else None
 
