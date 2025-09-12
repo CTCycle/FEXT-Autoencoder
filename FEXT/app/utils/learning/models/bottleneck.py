@@ -33,7 +33,7 @@ class CompressionLayer(layers.Layer):
         self.dropout = layers.Dropout(dropout_rate, seed=self.seed)
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None) -> Any:
+    def call(self, inputs: Any, training: bool | None = None) -> Any:
         batch_size, height, width, channels = ops.shape(inputs)
         sequence_dim = height * width
         reshaped = ops.reshape(inputs, (batch_size, sequence_dim, channels))
@@ -62,7 +62,9 @@ class CompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config) -> "CompressionLayer":
+    def from_config(
+        cls: type[CompressionLayer], config: Any
+    ) -> CompressionLayer:
         return cls(**config)
 
 
@@ -86,7 +88,7 @@ class DecompressionLayer(layers.Layer):
         ]
 
     # -------------------------------------------------------------------------
-    def call(self, inputs, training: bool | None = None) -> Any:
+    def call(self, inputs: Any, training: bool | None = None) -> Any:
         batch_size, sequence_dims, channels = ops.shape(inputs)
         original_dims = ops.sqrt(sequence_dims)
         original_dims = ops.cast(original_dims, dtype="int32")
@@ -112,5 +114,7 @@ class DecompressionLayer(layers.Layer):
     # deserialization method
     # -------------------------------------------------------------------------
     @classmethod
-    def from_config(cls, config) -> "DecompressionLayer":
+    def from_config(
+        cls: type[DecompressionLayer], config: Any
+    ) -> DecompressionLayer:
         return cls(**config)
