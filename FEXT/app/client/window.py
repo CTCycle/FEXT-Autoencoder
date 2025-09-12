@@ -164,6 +164,9 @@ class MainWindow:
                 (QPushButton, "checkpointSummary", "checkpoints_summary"),
                 (QCheckBox, "evalReport", "get_evaluation_report"),
                 (QCheckBox, "imgReconstruction", "image_reconstruction"),
+                (QCheckBox, "visualizeEmbs", "embeddings_visualization"),
+                # Placeholder for future checkbox in UI
+                # (No UI element yet; wired in pipeline below)
                 (QSpinBox, "inferenceBatchSize", "inference_batch_size"),
                 (QSpinBox, "numImages", "num_evaluation_images"),
                 (QPushButton, "encodeImages", "encode_images"),
@@ -198,6 +201,7 @@ class MainWindow:
                 ("refresh_checkpoints", "clicked", self.load_checkpoints),
                 ("image_reconstruction", "toggled", self._update_metrics),
                 ("get_evaluation_report", "toggled", self._update_metrics),
+                ("embeddings_visualization", "toggled", self._update_metrics),
                 ("model_evaluation", "clicked", self.run_model_evaluation_pipeline),
                 ("checkpoints_summary", "clicked", self.get_checkpoints_summary),
                 ("encode_images", "clicked", self.encode_img_with_checkpoint),
@@ -314,6 +318,7 @@ class MainWindow:
         self.model_metrics = [
             ("evaluation_report", self.get_evaluation_report),
             ("image_reconstruction", self.image_reconstruction),
+            ("embeddings_visualization", self.embeddings_visualization),
         ]
 
         for attr, signal_name, config_key in connections:
@@ -416,19 +421,19 @@ class MainWindow:
         worker.start()
 
     # -------------------------------------------------------------------------
-    def _send_message(self, message : str) -> None:
+    def _send_message(self, message: str) -> None:
         self.main_win.statusBar().showMessage(message)
 
     # [SETUP]
     ###########################################################################
-    def _setup_configuration(self, widget_defs : Any) -> None:
+    def _setup_configuration(self, widget_defs: Any) -> None:
         for cls, name, attr in widget_defs:
             w = self.main_win.findChild(cls, name)
             setattr(self, attr, w)
             self.widgets[attr] = w
 
     # -------------------------------------------------------------------------
-    def _connect_signals(self, connections : Any) -> None:
+    def _connect_signals(self, connections: Any) -> None:
         for attr, signal, slot in connections:
             widget = self.widgets[attr]
             getattr(widget, signal).connect(slot)
@@ -807,7 +812,7 @@ class MainWindow:
     ###########################################################################
     # [POSITIVE OUTCOME HANDLERS]
     ###########################################################################
-    def on_dataset_evaluation_finished(self, plots : list[Figure]) -> None:
+    def on_dataset_evaluation_finished(self, plots: list[Figure]) -> None:
         self._send_message("Figures have been generated")
         self.worker = self.worker.cleanup() if self.worker else None
 
@@ -817,7 +822,7 @@ class MainWindow:
         self.worker = self.worker.cleanup() if self.worker else None
 
     # -------------------------------------------------------------------------
-    def on_model_evaluation_finished(self, plots : list[Figure]) -> None:
+    def on_model_evaluation_finished(self, plots: list[Figure]) -> None:
         self._send_message(f"Model {self.selected_checkpoint} has been evaluated")
         self.worker = self.worker.cleanup() if self.worker else None
 
