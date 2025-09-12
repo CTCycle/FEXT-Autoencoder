@@ -3,13 +3,14 @@ from __future__ import annotations
 import os
 import random
 import re
-from typing import Any
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from keras import Model
 from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D as MplAxes3D
 import tensorflow as tf
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
@@ -219,7 +220,7 @@ class EmbeddingsVisualization:
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
     # -------------------------------------------------------------------------
-    def visualize_embeddings_pca_3d(
+    def visualize_encoder_embeddings(
         self, validation_dataset: tf.data.Dataset, **kwargs
     ) -> Figure:
         # Extract embeddings from encoder across the validation dataset
@@ -250,12 +251,12 @@ class EmbeddingsVisualization:
         X_mean = X.mean(axis=0, keepdims=True)
         X_centered = X - X_mean
         # PCA via SVD for 3 components
-        U, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
+        _, _, Vt = np.linalg.svd(X_centered, full_matrices=False)
         comps = Vt[:3]
         X_pca = X_centered @ comps.T
 
         fig = plt.figure(figsize=(6, 5))
-        ax = fig.add_subplot(111, projection="3d")
+        ax = cast(MplAxes3D, fig.add_subplot(111, projection="3d"))
         ax.scatter(X_pca[:, 0], X_pca[:, 1], X_pca[:, 2], s=8, alpha=0.7)
         ax.set_title("Embeddings PCA (3D)")
         ax.set_xlabel("PC1")
