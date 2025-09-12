@@ -184,7 +184,7 @@ class ValidationEvents:
         metric_map = {
             "evaluation_report": summarizer.get_evaluation_report,
             "image_reconstruction": validator.visualize_reconstructed_images,
-            "visualize_embeddings_metrics": embedder.visualize_embeddings_pca_3d,
+            "visualize_embeddings_metrics": embedder.visualize_encoder_embeddings,
         }
 
         images = []
