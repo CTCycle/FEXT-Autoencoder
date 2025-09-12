@@ -163,7 +163,9 @@ class ModelSerializer:
             )
 
     # -------------------------------------------------------------------------
-    def load_checkpoint(self, checkpoint: str) -> tuple[Model | Any, dict[str, Any], dict[str, Any], str]:
+    def load_checkpoint(
+        self, checkpoint: str
+    ) -> tuple[Model | Any, dict[str, Any], dict[str, Any], str]:
         # effectively load the model using keras builtin method
         # load configuration data from .json file in checkpoint folder
         custom_objects = {"LinearDecayLRScheduler": LinearDecayLRScheduler}

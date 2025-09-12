@@ -19,6 +19,7 @@ from FEXT.app.utils.learning.training.fitting import ModelTraining
 from FEXT.app.utils.validation.checkpoints import (
     ImageReconstruction,
     ModelEvaluationSummary,
+    EmbeddingsVisualization,
 )
 from FEXT.app.utils.validation.images import ImageAnalysis
 
@@ -177,11 +178,13 @@ class ValidationEvents:
 
         summarizer = ModelEvaluationSummary(self.configuration, model)
         validator = ImageReconstruction(self.configuration, model, checkpoint_path)
+        embedder = EmbeddingsVisualization(self.configuration, model, checkpoint_path)
 
         # Mapping metric name to method and arguments
         metric_map = {
             "evaluation_report": summarizer.get_evaluation_report,
             "image_reconstruction": validator.visualize_reconstructed_images,
+            "visualize_embeddings_metrics": embedder.visualize_embeddings_pca_3d,
         }
 
         images = []
