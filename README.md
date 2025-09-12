@@ -58,9 +58,8 @@ You can select a model checkpoint and use it to encode images into compact, abst
 - **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
 - **Model evalution plots**: visualize plots generated from model evaluation pipeline  
 
-**Setup and Maintenance:** you can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
-
-- **Run installation:** run the application installer for Windows
+## 5.1 Setup and Maintenance
+You can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
 
 - **Update project:** check for updates from Github
 - **Remove logs:** remove all logs file from *resources/logs*
