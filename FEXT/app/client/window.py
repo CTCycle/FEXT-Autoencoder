@@ -371,11 +371,9 @@ class MainWindow:
         self.pixmap_sources = {
             self.inference_img_view: "inference_images",
             self.train_img_view: "train_images",
+            self.train_metrics_view: "train_metrics",
         }
-        train_view = getattr(self, "train_metrics_view", None)
-        if train_view:
-            self.pixmap_sources[train_view] = "train_metrics"
-
+       
     # -------------------------------------------------------------------------
     @Slot(object)
     def _on_worker_progress(self, payload: Any) -> None:
@@ -468,7 +466,6 @@ class MainWindow:
         if update_progress and self.progress_bar:
             self.progress_bar.setValue(0)
         worker.signals.progress.connect(self._on_worker_progress)
-
         worker.signals.finished.connect(on_finished)
         worker.signals.error.connect(on_error)
         worker.signals.interrupted.connect(on_interrupted)
@@ -486,11 +483,9 @@ class MainWindow:
         if update_progress and self.progress_bar:
             self.progress_bar.setValue(0)
         worker.signals.progress.connect(self._on_worker_progress)
-
         worker.signals.finished.connect(on_finished)
         worker.signals.error.connect(on_error)
         worker.signals.interrupted.connect(on_interrupted)
-
         # Polling for results from the process queue
         self.process_worker_timer = QTimer()
         self.process_worker_timer.setInterval(100)  # Check every 100ms
