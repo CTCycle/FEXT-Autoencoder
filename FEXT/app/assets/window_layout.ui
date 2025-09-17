@@ -943,13 +943,13 @@
              </widget>
             </item>
             <item row="2" column="2">
-             <widget class="QGroupBox" name="groupBox_11">
+             <widget class="QGroupBox" name="ModelEvalGroup">
               <property name="title">
                <string>Model evaluation</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_21">
+              <layout class="QVBoxLayout" name="verticalLayout_13">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_32">
+                <layout class="QHBoxLayout" name="NumIMGLayout">
                  <item>
                   <widget class="QLabel" name="label_15">
                    <property name="text">
@@ -983,6 +983,13 @@
                 <widget class="QCheckBox" name="imgReconstruction">
                  <property name="text">
                   <string>Image reconstruction</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="visualizeEmbs">
+                 <property name="text">
+                  <string>Embeddings visualization</string>
                  </property>
                 </widget>
                </item>
