@@ -136,8 +136,6 @@ class RealTimeHistory(Callback):
         plt.close(fig)
 
 
-
-
 # [CALLBACKS HANDLER]
 ###############################################################################
 def initialize_callbacks_handler(
