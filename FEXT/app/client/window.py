@@ -177,6 +177,7 @@ class MainWindow:
                 (QPushButton, "clearImg", "clear_images"),
                 (QRadioButton, "viewInferenceImages", "inference_img_view"),
                 (QRadioButton, "viewTrainImages", "train_img_view"),
+                (QRadioButton, "viewTrainMetrics", "train_metrics_view"),
             ]
         )
 
@@ -208,6 +209,7 @@ class MainWindow:
                 # 4. viewer tab page
                 ("inference_img_view", "toggled", self._update_graphics_view),
                 ("train_img_view", "toggled", self._update_graphics_view),
+                ("train_metrics_view", "toggled", self._update_graphics_view),
                 ("load_source_images", "clicked", self.load_images),
                 ("previous_image", "clicked", self.show_previous_figure),
                 ("next_image", "clicked", self.show_next_figure),
@@ -331,10 +333,13 @@ class MainWindow:
         self.progress_bar.setValue(0) if self.progress_bar else None
 
     # -------------------------------------------------------------------------
-    def get_current_pixmaps_key(self) -> tuple[list[Any], str] | tuple[list, None]:
+    def get_current_pixmaps_key(self) -> tuple[list[Any], str | None]:
         for radio, idx_key in self.pixmap_sources.items():
-            if radio.isChecked():
-                return self.pixmaps[idx_key], idx_key
+            if radio and radio.isChecked():
+                pixmaps = self.pixmaps.setdefault(idx_key, [])
+                self.pixmap_stream_index.setdefault(idx_key, {})
+                self.current_fig.setdefault(idx_key, 0)
+                return pixmaps, idx_key
         return [], None
 
     # -------------------------------------------------------------------------
@@ -354,17 +359,92 @@ class MainWindow:
                 view.setRenderHint(hint, True)
 
         self.graphics = {"view": view, "scene": scene, "pixmap_item": pixmap_item}
-        self.pixmaps = {k: [] for k in ("train_images", "inference_images")}
+        view_keys = ("train_images", "inference_images", "train_metrics")
+        self.pixmaps = {k: [] for k in view_keys}
+        self.current_fig = {k: 0 for k in view_keys}
+        self.pixmap_stream_index = {k: {} for k in view_keys}
         self.img_paths = {
             "train_images": IMG_PATH,
             "inference_images": INFERENCE_INPUT_PATH,
         }
-        self.current_fig = {k: 0 for k in self.pixmaps}
 
         self.pixmap_sources = {
             self.inference_img_view: "inference_images",
             self.train_img_view: "train_images",
         }
+        train_view = getattr(self, "train_metrics_view", None)
+        if train_view:
+            self.pixmap_sources[train_view] = "train_metrics"
+
+    # -------------------------------------------------------------------------
+    @Slot(object)
+    def _on_worker_progress(self, payload: Any) -> None:
+        try:
+            if isinstance(payload, (int, float)):
+                if self.progress_bar:
+                    self.progress_bar.setValue(int(payload))
+                return
+
+            if not isinstance(payload, dict) or payload.get("kind") != "render":
+                return
+
+            data = payload.get("data")
+            if not data:
+                return
+
+            source = payload.get("source", "train_metrics")
+            pixmap: QPixmap | None = None
+
+            if isinstance(data, (bytes, bytearray)):
+                pixmap = QPixmap()
+                if not pixmap.loadFromData(bytes(data)):
+                    return
+            elif isinstance(data, QPixmap):
+                pixmap = data
+            elif isinstance(data, str):
+                try:
+                    pixmap = self.graphic_handler.load_image_as_pixmap(data)
+                except Exception:
+                    return
+            else:
+                return
+
+            pixmap_list = self.pixmaps.setdefault(source, [])
+            index_map = self.pixmap_stream_index.setdefault(source, {})
+            self.current_fig.setdefault(source, 0)
+
+            stream = payload.get("stream")
+            if stream:
+                idx = index_map.get(stream)
+                if idx is not None and idx < len(pixmap_list):
+                    pixmap_list[idx] = pixmap
+                else:
+                    idx = len(pixmap_list)
+                    pixmap_list.append(pixmap)
+                    index_map[stream] = idx
+                    if len(pixmap_list) == 1:
+                        self.current_fig[source] = idx
+                if self.current_fig.get(source, 0) == idx:
+                    self._update_graphics_view()
+                return
+
+            pixmap_list.append(pixmap)
+            self.current_fig[source] = len(pixmap_list) - 1
+            self._update_graphics_view()
+        except Exception:
+            logger.debug("Unable to handle progress payload", exc_info=True)
+
+    # -------------------------------------------------------------------------
+    def _reset_train_metrics_stream(self) -> None:
+        for key in ("train_metrics"): 
+            if key not in self.pixmaps:
+                continue
+            self.pixmaps[key].clear()
+            self.current_fig[key] = 0
+            self.pixmap_stream_index[key] = {}
+            current_radio = getattr(self, f"{key}_view", None)
+            if current_radio and current_radio.isChecked():
+                self._update_graphics_view()
 
     # -------------------------------------------------------------------------
     def _connect_button(self, button_name: str, slot: Any) -> None:
@@ -386,8 +466,8 @@ class MainWindow:
         update_progress: bool = True,
     ) -> None:
         if update_progress and self.progress_bar:
-            self.progress_bar.setValue(0) if self.progress_bar else None
-            worker.signals.progress.connect(self.progress_bar.setValue)
+            self.progress_bar.setValue(0)
+        worker.signals.progress.connect(self._on_worker_progress)
 
         worker.signals.finished.connect(on_finished)
         worker.signals.error.connect(on_error)
@@ -404,8 +484,8 @@ class MainWindow:
         update_progress: bool = True,
     ) -> None:
         if update_progress and self.progress_bar:
-            self.progress_bar.setValue(0) if self.progress_bar else None
-            worker.signals.progress.connect(self.progress_bar.setValue)
+            self.progress_bar.setValue(0)
+        worker.signals.progress.connect(self._on_worker_progress)
 
         worker.signals.finished.connect(on_finished)
         worker.signals.error.connect(on_error)
@@ -581,6 +661,8 @@ class MainWindow:
             return
         self.pixmaps[idx_key].clear() if idx_key else None
         self.current_fig[idx_key] = 0
+        if idx_key in self.pixmap_stream_index:
+            self.pixmap_stream_index[idx_key] = {}
         self._update_graphics_view()
         self.graphics["pixmap_item"].setPixmap(QPixmap())
         self.graphics["scene"].setSceneRect(0, 0, 0, 0)
@@ -650,6 +732,7 @@ class MainWindow:
 
         self.configuration = self.config_manager.get_configuration()
         self.model_handler = ModelEvents(self.configuration)
+        self._reset_train_metrics_stream()
 
         # send message to status bar
         self._send_message("Training FEXT Autoencoder using a new model instance...")
@@ -679,6 +762,7 @@ class MainWindow:
 
         self.configuration = self.config_manager.get_configuration()
         self.model_handler = ModelEvents(self.configuration)
+        self._reset_train_metrics_stream()
 
         # send message to status bar
         self._send_message(
