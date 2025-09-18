@@ -3,13 +3,14 @@ from __future__ import annotations
 import os
 import random
 import re
-from typing import Any
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from keras import Model
 from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D as MplAxes3D
 import tensorflow as tf
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
@@ -188,6 +189,82 @@ class ImageReconstruction:
 
         plt.tight_layout()
         self.save_image(fig, "images_recostruction.jpeg")
+        plt.close()
+
+        return fig
+
+
+# [EMBEDDINGS VISUALIZATION]
+###############################################################################
+class EmbeddingsVisualization:
+    def __init__(
+        self, configuration: dict[str, Any], model: Model, checkpoint_path: str
+    ) -> None:
+        # build encoder sub-model from the compression layer
+        encoder_output = model.get_layer("compression_layer").output
+        self.encoder_model = Model(inputs=model.input, outputs=encoder_output)
+        self.configuration = configuration
+
+        # extract checkpoint name and create subfolder in resources/validation
+        self.checkpoint = os.path.basename(checkpoint_path)
+        self.validation_path = os.path.join(EVALUATION_PATH, self.checkpoint)
+        os.makedirs(self.validation_path, exist_ok=True)
+
+        self.img_resolution = 300
+        self.file_type = "jpeg"
+
+    # -------------------------------------------------------------------------
+    def save_image(self, fig: Figure, name: str) -> None:
+        name = re.sub(r"[^0-9A-Za-z_]", "_", name)
+        out_path = os.path.join(self.validation_path, name)
+        fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
+
+    # -------------------------------------------------------------------------
+    def visualize_encoder_embeddings(
+        self, validation_dataset: tf.data.Dataset, **kwargs
+    ) -> Figure:
+        # Extract embeddings from encoder across the validation dataset
+        embeddings: list[np.ndarray] = []
+        num_batches = 0
+        for batch in validation_dataset:
+            # dataset yields (input, target)
+            if isinstance(batch, tuple) and len(batch) == 2:
+                inputs = batch[0]
+            else:
+                inputs = batch
+
+            batch_emb = self.encoder_model.predict(inputs, verbose=0)  # type: ignore
+            # flatten spatial dims if present
+            batch_emb = np.reshape(batch_emb, (batch_emb.shape[0], -1))
+            embeddings.append(batch_emb)
+            num_batches += 1
+
+            check_thread_status(kwargs.get("worker", None))
+
+        if not embeddings:
+            fig = plt.figure(figsize=(5, 4))
+            plt.title("No embeddings extracted")
+            return fig
+
+        X = np.concatenate(embeddings, axis=0)
+        # Center the data
+        X_mean = X.mean(axis=0, keepdims=True)
+        X_centered = X - X_mean
+        # PCA via SVD for 3 components
+        _, _, Vt = np.linalg.svd(X_centered, full_matrices=False)
+        comps = Vt[:3]
+        X_pca = X_centered @ comps.T
+
+        fig = plt.figure(figsize=(6, 5))
+        ax = cast(MplAxes3D, fig.add_subplot(111, projection="3d"))
+        ax.scatter(X_pca[:, 0], X_pca[:, 1], X_pca[:, 2], s=8, alpha=0.7)
+        ax.set_title("Embeddings PCA (3D)")
+        ax.set_xlabel("PC1")
+        ax.set_ylabel("PC2")
+        ax.set_zlabel("PC3")
+        plt.tight_layout()
+
+        self.save_image(fig, "embeddings_pca_3d.jpeg")
         plt.close()
 
         return fig
