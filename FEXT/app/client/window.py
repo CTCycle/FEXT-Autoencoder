@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QFileDialog,
     QDoubleSpinBox,
     QGraphicsPixmapItem,
     QGraphicsScene,
@@ -587,8 +588,17 @@ class MainWindow:
     # -------------------------------------------------------------------------
     @Slot()
     def export_all_data(self) -> None:
-        database.export_all_tables_as_csv()
-        message = "All data from database has been exported"
+        directory = QFileDialog.getExistingDirectory(
+            self.main_win, "Select export directory"
+        )
+        if not directory:
+            message = "Export cancelled"
+            logger.info(message)
+            self._send_message(message)
+            return
+
+        database.export_all_tables_as_csv(directory)
+        message = f"All data from database has been exported to {directory}"
         logger.info(message)
         self._send_message(message)
 
