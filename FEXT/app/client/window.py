@@ -39,7 +39,7 @@ from FEXT.app.client.workers import ProcessWorker, ThreadWorker
 from FEXT.app.configuration import Configuration
 from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.logger import logger
-from FEXT.app.utils.data.database import database
+from FEXT.app.utils.repository.database import database
 
 
 ###############################################################################

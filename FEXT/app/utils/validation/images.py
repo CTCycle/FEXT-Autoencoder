@@ -13,7 +13,7 @@ from tqdm import tqdm
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import EVALUATION_PATH
 from FEXT.app.logger import logger
-from FEXT.app.utils.data.serializer import DataSerializer
+from FEXT.app.utils.repository.serializer import DataSerializer
 
 
 # [VALIDATION OF PRETRAINED MODELS]

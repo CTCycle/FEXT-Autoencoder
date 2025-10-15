@@ -16,8 +16,8 @@ import tensorflow as tf
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH
 from FEXT.app.logger import logger
-from FEXT.app.utils.data.loader import ImageDataLoader
-from FEXT.app.utils.data.serializer import DataSerializer, ModelSerializer
+from FEXT.app.utils.repository.loader import ImageDataLoader
+from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
 
 
