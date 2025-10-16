@@ -30,10 +30,10 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         self.C2 = (k2 * max_val) ** 2
 
         # Create the Gaussian window for StructuralSimilarityIndexMeasure computation
-        self.window = self._create_gaussian_window(filter_size, filter_sigma)
+        self.window = self.create_gaussian_window(filter_size, filter_sigma)
 
     # -------------------------------------------------------------------------
-    def _create_gaussian_window(self, size: int, sigma: float | int) -> Any:
+    def create_gaussian_window(self, size: int, sigma: float | int) -> Any:
         coords = ops.arange(size) - size // 2
         g = ops.exp(-(coords**2) / (2 * sigma**2))
         g = g / ops.sum(g)
@@ -45,7 +45,7 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         return window
 
     # -------------------------------------------------------------------------
-    def _apply_conv2d(self, x, window) -> Any:
+    def apply_conv2d(self, x, window) -> Any:
         # x: [batch_size, channels, height, width]
         # window: [1, 1, filter_size, filter_size]
 
@@ -77,8 +77,8 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         y_pred = ops.transpose(y_pred, [0, 3, 1, 2])
 
         # Compute means
-        mu_y_true = self._apply_conv2d(y_true, self.window)
-        mu_y_pred = self._apply_conv2d(y_pred, self.window)
+        mu_y_true = self.apply_conv2d(y_true, self.window)
+        mu_y_pred = self.apply_conv2d(y_pred, self.window)
 
         # Compute squares of means
         mu_y_true_sq = mu_y_true**2
@@ -86,10 +86,10 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         mu_y_true_mu_y_pred = mu_y_true * mu_y_pred
 
         # Compute variances and covariance
-        sigma_y_true_sq = self._apply_conv2d(y_true**2, self.window) - mu_y_true_sq
-        sigma_y_pred_sq = self._apply_conv2d(y_pred**2, self.window) - mu_y_pred_sq
+        sigma_y_true_sq = self.apply_conv2d(y_true**2, self.window) - mu_y_true_sq
+        sigma_y_pred_sq = self.apply_conv2d(y_pred**2, self.window) - mu_y_pred_sq
         sigma_y_true_y_pred = (
-            self._apply_conv2d(y_true * y_pred, self.window) - mu_y_true_mu_y_pred
+            self.apply_conv2d(y_true * y_pred, self.window) - mu_y_true_mu_y_pred
         )
 
         # Compute StructuralSimilarityIndexMeasure map
