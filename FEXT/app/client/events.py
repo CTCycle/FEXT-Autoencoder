@@ -253,9 +253,7 @@ class ModelEvents:
         logger.info(f"Building {model_name} model")
         autoencoder = FeXTAutoEncoders(self.configuration)
         model = autoencoder.get_selected_model(model_summary=True)
-        # generate training log report and graphviz plot for the model layout
-        self.modser.save_model_plot(model, checkpoint_path)
-
+        
         # perform training and save model at the end
         logger.info("Starting FeXT AutoEncoder training")
         trainer = ModelTraining(self.configuration)
