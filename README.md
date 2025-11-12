@@ -29,10 +29,10 @@ Every training run creates versioned checkpoints, captures the training configur
 The reference model was trained and evaluated on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset). The pipeline is dataset-agnostic: drop any JPEG or PNG set into `FEXT/resources/database/images` and FeXT will resize, normalize, and split it according to the selected configuration. The validation service computes descriptive statistics (mean, standard deviation, noise ratios), pixel distributions, and train/validation drift checks so you can spot outliers before training.
 
 ## 4. Installation
-The project targets Windows 10/11 and requires roughly 10 GB of free disk space for the embedded Python runtime, dependencies, checkpoints, and datasets. A CUDA-capable NVIDIA GPU is recommended but not mandatory. Ensure you have the latest GPU drivers installed when enabling TorchInductor + Triton acceleration.
+The project targets Windows 10/11 and requires roughly 2 GB of free disk space for the embedded Python runtime, dependencies, checkpoints, and datasets. A CUDA-capable NVIDIA GPU is recommended but not mandatory. Ensure you have the latest GPU drivers installed when enabling TorchInductor + Triton acceleration.
 
 1. **Download the project**: clone the repository or extract the release archive into a writable location (avoid paths that require admin privileges).
-2. **Configure environment variables**: copy `FEXT/resources/templates/.env` into `FEXT/app/.env` and adjust values (e.g., backend selection).
+2. **Configure environment variables**: copy `FEXT/resources/templates/.env` into `FEXT/setup/.env` and adjust values (e.g., backend selection).
 3. **Run `start_on_windows.bat`**: the bootstrapper installs a portable Python 3.12 build, downloads Astral’s `uv`, syncs dependencies from `pyproject.toml`, prunes caches, then launches the UI through `uv run`. The script is idempotent—rerun it any time to repair the environment or re-open the app.
 
 Running the script the first time can take several minutes depending on bandwidth. Subsequent runs reuse the cached Python runtime and only re-sync packages when `pyproject.toml` changes.
@@ -47,14 +47,13 @@ If you prefer managing Python yourself (for debugging or CI):
 2. From the repository root run `uv sync` to create a virtual environment with the versions pinned in `pyproject.toml`.
 3. Copy `.env` as described earlier and ensure the `KERAS_BACKEND` is set to `torch`.
 4. Launch the UI with `uv run python FEXT/app/app.py`.
-5. Developers can edit configurations under `FEXT/resources/configurations` to define dataset paths, batch sizes, augmentation policies, and JIT preferences. The UI exposes these settings through dedicated dialogs so you can save/load presets without editing JSON manually.
 
 ## 5. How to use
-Launch the application by double-clicking `start_on_windows.bat` (or via `uv run python FEXT/app/app.py` after a manual install). On startup the UI loads the last-used configuration, scans the resources folder, and initializes worker pools so long-running jobs (training, inference, validation) do not block the interface.
+Launch the application by double-clicking `start_on_windows.bat` (or via `uv run python FEXT/app/app.py`). On startup the UI loads the last-used configuration, scans the resources folder, and initializes worker pools so long-running jobs (training, inference, validation) do not block the interface.
 
-1. **Prepare data**: verify that `resources/database/images` (training) and `resources/database/inference` (inference) contain the expected files. Large datasets can be sub-sampled through the configuration dialog (`train_sample_size`).
+1. **Prepare data**: verify that `resources/database/images` (training) and `resources/database/inference` (inference) contain the expected files. 
 2. **Adjust configuration**: use the toolbar to load/save configuration templates or modify each parameter manually from the UI.
-3. **Run a pipeline**: pick an action under the Data, Model, or Viewer tabs. Progress bars, log panes, and popup notifications keep you informed. Background workers can be interrupted at any time without crashing the UI.
+3. **Run a pipeline**: pick an action under the Data, Model, or Viewer tabs. Progress bars, log panes, and popup notifications keep you informed. Background workers can be interrupted at any time.
 
 **Data tab:** dataset analysis and validation.
 
@@ -65,9 +64,9 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 **Model tab:** training, evaluation, and encoding.
 
 - Train any FeXT variant from scratch with on-the-fly data loaders (`tf.data` with caching, prefetching, and parallel decoding).
-- Resume training from any checkpoint; the corresponding configuration is reloaded automatically and you can extend training for `n` additional epochs.
+- Resume training from any checkpoint; the corresponding configuration is reloaded automatically and you can extend training for some additional epochs.
 - Evaluate checkpoints with reconstruction metrics (MSE, MAE) and qualitative visualizations (random reconstructions, embedding plots) saved under `resources/checkpoints/<run>/evaluation`.
-- Run inference to encode arbitrary folders of images; latent vectors are exported as `.npy` files under `resources/database/inference` together with a manifest so they can be reused in downstream tasks.
+- Run inference to encode arbitrary folders of images; latent vectors are exported as `.npy` files under `resources/database/inference`.
 
 **Viewer tab:** visualization hub.
 
@@ -82,18 +81,16 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - **Remove logs**: clears `resources/logs` to save disk space or to reset diagnostics before a new run.
 - **Open tools**: quick shortcuts to DB Browser for SQLite or other external utilities defined in the script.
 
-Run this script periodically to stay current or whenever you want to reset artifacts without touching datasets/checkpoints.
-
 ### 5.2 Resources
 The `FEXT/resources` tree keeps all mutable assets, making backups and migrations straightforward:
 
 - **checkpoints** — versioned folders containing saved models, training history, evaluation reports, reconstructed samples, and the JSON configuration that produced them. These folders are what you load when resuming training or running inference.
-- **configurations** — reusable JSON presets surfaced by the UI dialogs. Store both stock and custom configurations here to share setups with teammates.
+- **configurations** — reusable JSON presets saved through the UI dialogs.
 - **database** — includes sub-folders for `images` (training data), `inference` (raw inputs and exported `.npy` embeddings), `metadata` (SQLite records), and `validation` (plots + stats reports).
 - **logs** — rotating application logs for troubleshooting. Attach these when reporting issues.
 - **templates** — contains `.env` and other templates that need to be copied into write-protected directories (`FEXT/app`).
 
-Environmental variables reside in `FEXT/app/.env` (never committed). Copy the template from `resources/templates/.env` and adjust as needed:
+Environmental variables reside in `FEXT/setup/.env`. Copy the template from `resources/templates/.env` and adjust as needed:
 
 | Variable              | Description                                                               |
 |-----------------------|---------------------------------------------------------------------------|
