@@ -5,10 +5,7 @@ from typing import Any, cast
 
 from matplotlib.figure import Figure
 
-from FEXT.app.variables import EnvironmentVariables
-
-EV = EnvironmentVariables()
-
+from FEXT.app.utils.variables import env_variables
 from functools import partial
 
 from PySide6.QtCore import QFile, QIODevice, Qt, QThreadPool, QTimer, Slot
@@ -36,9 +33,9 @@ from qt_material import apply_stylesheet
 from FEXT.app.client.dialogs import LoadConfigDialog, SaveConfigDialog
 from FEXT.app.client.events import GraphicsHandler, ModelEvents, ValidationEvents
 from FEXT.app.client.workers import ProcessWorker, ThreadWorker
-from FEXT.app.configuration import Configuration
-from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.app.logger import logger
+from FEXT.app.utils.configuration import Configuration
+from FEXT.app.utils.constants import IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.app.utils.logger import logger
 from FEXT.app.utils.repository.database import database
 
 

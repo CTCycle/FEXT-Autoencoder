@@ -9,8 +9,8 @@ from sqlalchemy import Column, Float, Integer, String, UniqueConstraint, create_
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from FEXT.app.constants import DATA_PATH
-from FEXT.app.logger import logger
+from FEXT.app.utils.constants import DATA_PATH
+from FEXT.app.utils.logger import logger
 from FEXT.app.utils.singleton import singleton
 
 Base = declarative_base()

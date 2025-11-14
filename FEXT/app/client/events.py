@@ -7,8 +7,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
 
 from FEXT.app.client.workers import ProcessWorker, ThreadWorker, check_thread_status
-from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.app.logger import logger
+from FEXT.app.utils.constants import IMG_PATH, INFERENCE_INPUT_PATH
+from FEXT.app.utils.logger import logger
 from FEXT.app.utils.services.loader import ImageDataLoader
 from FEXT.app.utils.services.process import TrainValidationSplit
 from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer

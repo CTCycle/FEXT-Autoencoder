@@ -14,7 +14,7 @@ from keras import Model
 from keras.callbacks import Callback
 
 from FEXT.app.client.workers import ThreadWorker, ProcessWorker, WorkerInterrupted
-from FEXT.app.logger import logger
+from FEXT.app.utils.logger import logger
 
 
 # [CALLBACK FOR UI PROGRESS BAR]

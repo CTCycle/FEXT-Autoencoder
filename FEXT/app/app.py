@@ -9,7 +9,7 @@ warnings.simplefilter(action="ignore", category=Warning)
 
 # [IMPORT CUSTOM MODULES]
 from FEXT.app.client.window import MainWindow, apply_style
-from FEXT.app.constants import UI_PATH
+from FEXT.app.utils.constants import UI_PATH
 
 # [RUN MAIN]
 ###############################################################################

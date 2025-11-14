@@ -14,8 +14,8 @@ from mpl_toolkits.mplot3d import Axes3D as MplAxes3D
 import tensorflow as tf
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
-from FEXT.app.constants import CHECKPOINT_PATH, EVALUATION_PATH
-from FEXT.app.logger import logger
+from FEXT.app.utils.constants import CHECKPOINT_PATH, EVALUATION_PATH
+from FEXT.app.utils.logger import logger
 from FEXT.app.utils.services.loader import ImageDataLoader
 from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
