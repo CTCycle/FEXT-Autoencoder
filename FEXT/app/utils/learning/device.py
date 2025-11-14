@@ -5,7 +5,7 @@ from typing import Any
 import torch
 from keras.mixed_precision import set_global_policy
 
-from FEXT.app.logger import logger
+from FEXT.app.utils.logger import logger
 
 
 # [DEVICE SETTINGS]
