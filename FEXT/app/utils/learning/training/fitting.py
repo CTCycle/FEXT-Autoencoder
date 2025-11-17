@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import tensorflow as tf
 from keras import Model
 from keras.utils import set_random_seed
-import tensorflow as tf
 
 from FEXT.app.utils.learning.callbacks import initialize_callbacks_handler
 

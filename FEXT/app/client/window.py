@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from functools import partial
 from typing import Any, cast
 
 from matplotlib.figure import Figure
-
-from FEXT.app.utils.variables import env_variables
-from functools import partial
-
 from PySide6.QtCore import QFile, QIODevice, Qt, QThreadPool, QTimer, Slot
 from PySide6.QtGui import QAction, QPainter, QPixmap
 from PySide6.QtUiTools import QUiLoader
@@ -16,8 +13,8 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
-    QFileDialog,
     QDoubleSpinBox,
+    QFileDialog,
     QGraphicsPixmapItem,
     QGraphicsScene,
     QGraphicsView,
@@ -371,7 +368,7 @@ class MainWindow:
             self.train_img_view: "train_images",
             self.train_metrics_view: "train_metrics",
         }
-       
+
     # -------------------------------------------------------------------------
     @Slot(object)
     def on_worker_progress(self, payload: Any) -> None:
@@ -432,7 +429,7 @@ class MainWindow:
 
     # -------------------------------------------------------------------------
     def reset_train_metrics_stream(self) -> None:
-        for key in ("train_metrics"): 
+        for key in "train_metrics":
             if key not in self.pixmaps:
                 continue
             self.pixmaps[key].clear()
@@ -767,9 +764,7 @@ class MainWindow:
         self.reset_train_metrics_stream()
 
         # send message to status bar
-        self.send_message(
-            f"Resume training from checkpoint {self.selected_checkpoint}"
-        )
+        self.send_message(f"Resume training from checkpoint {self.selected_checkpoint}")
         # functions that are passed to the worker will be executed in a separate thread
         self.worker = ProcessWorker(
             self.model_handler.resume_training_pipeline, self.selected_checkpoint
