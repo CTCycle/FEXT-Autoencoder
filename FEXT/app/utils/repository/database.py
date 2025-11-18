@@ -9,8 +9,8 @@ from sqlalchemy import Column, Float, Integer, String, UniqueConstraint, create_
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from FEXT.app.constants import DATA_PATH
-from FEXT.app.logger import logger
+from FEXT.app.utils.constants import DATA_PATH
+from FEXT.app.utils.logger import logger
 from FEXT.app.utils.singleton import singleton
 
 Base = declarative_base()
@@ -136,7 +136,8 @@ class FEXTDatabase:
 
     # -------------------------------------------------------------------------
     def initialize_database(self) -> None:
-        Base.metadata.create_all(self.engine)
+        if not os.path.exists(self.db_path):
+            Base.metadata.create_all(self.engine)
 
     # -------------------------------------------------------------------------
     def get_table_class(self, table_name: str) -> Any:

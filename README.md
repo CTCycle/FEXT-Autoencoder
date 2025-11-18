@@ -1,88 +1,102 @@
 # FeXT AutoEncoder: Extraction of Images Features
 
 ## 1. Introduction
-FeXT AutoEncoder is a project centered around the implementation, training and evaluation of a Convolutional AutoEncoder (CAE) model specifically designed for efficient image feature extraction. The architecture of this model draws inspiration from the renowned VGG16 model, a deep learning framework widely utilized in various computer vision tasks such as image reconstruction, anomaly detection, and feature extraction (https://keras.io/api/applications/vgg/). Hence, the FEXT model implements a stack of convolutional layers, where pooling operations are performed to decrease the spatial dimensions multiple times. Both the encoder and the decoder collaboratively work to extract the most representative features from input images, projecting the original information into a lower-dimensional latent space that could be used for a wide range of downstream tasks.
+FeXT AutoEncoder is a desktop-first pipeline for inspecting image datasets, training convolutional autoencoders, exporting latent representations, and inspecting results without leaving a single UI. The application combines a PySide6 + Qt Material interface with a PyTorch/Triton-powered backend to deliver GPU-accelerated training, resumable sessions, and rich logging. Inspired by the VGG16 family (https://keras.io/api/applications/vgg/), FeXT focuses on compact representations that can be reused for anomaly detection, similarity search, or any downstream feature-driven task.
+
+Key capabilities include automated dataset validation, configurable training and inference flows, background workers that keep the UI responsive, and built-in viewers for both intermediate plots and reconstructed images. Everything runs locally, so datasets never leave your machine.
 
 ![VGG16 encoder](FEXT/app/assets/figures/VGG16_encoder.png)
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
-The FeXT AutoEncoder is a deep convolutional autoencoder designed to learn compact yet expressive latent representations of images.
+The FeXT AutoEncoder is a deep convolutional autoencoder that compresses images into expressive latent vectors and reconstructs them with minimal loss. Core architectural traits:
 
-The encoder progressively compresses input images into a low-dimensional latent space. It uses stacked convolutional layers with small kernels and stride-1 convolutions, followed by max pooling, to reduce spatial dimensions while expanding feature depth. This allows the model to capture increasingly abstract patterns in the data.
-Each block leverages residual connections with layer normalization, ensuring more stable training and mitigating vanishing gradients in deeper networks.
+- Residual convolutional blocks with layer normalization provide stable training while keeping kernels small and efficient.
+- Downsampling through stride-1 convolutions and max pooling mirrors VGG16 and ensures that spatial resolution shrinks while the channel dimension grows, letting the encoder focus on higher-order abstractions.
+- A Compression Layer forms the bottleneck. Dropout may be enabled here to improve generalization when working with noisy datasets or small sample sizes.
+- The decoder mirrors the encoder with transposed convolutions and nearest-neighbor upsampling, plus residual links that preserve fine detail.
+- All data pipelines rely on `tf.data` datasets with prefetching, which keeps the GPUs/CPUs busy while the UI orchestrates long-running tasks through worker threads or processes.
 
-At the center of the architecture, a Compression Layer serves as the bottleneck, condensing information into a dense latent representation. This layer may optionally apply dropout regularization to improve generalization.
+FeXT ships with three model families so you can balance fidelity and throughput:
 
-Eventually, the decoder mirrors the encoder, reconstructing the original image from the latent space. Instead of pooling, it uses transposed convolutions and nearest-pixel upsampling with residual connections. This setup enables the model to faithfully restore fine details, pixel distributions, and overall image structure.
+- **FextAE Redux** — minimal channels, fast experimentation, ideal for laptops.
+- **FextAE Medium** — the recommended preset for most datasets; includes richer residual stacks and deeper compression.
+- **FextAE Large** — maximizes capacity with wider convolutions and deeper decoder stages; best suited for high-resolution input and powerful GPUs.
 
-FeXT provides three scalable model configurations to balance efficiency and accuracy. Each variant follows the same encoder–bottleneck–decoder pattern, differing mainly in the number of convolutional layers and channel sizes.
-
-- **FextAE Redux** – A lightweight version for faster training and reduced computational cost.
-
-- **FextAE Medium** – A balanced architecture suitable for most use cases.
-
-- **FextAE Large** – A deeper network with more layers and higher channel capacity for tasks requiring maximum fidelity.
+Every training run creates versioned checkpoints, captures the training configuration, and stores reconstructed examples plus metrics so you can resume later, compare models, or export embeddings at any point.
 
 ## 3. Training dataset
-The FeXT AutoEncoder model has been trained and tested on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset), a comprehensive collection of images commonly used in many computer vision tasks. However, this model can be trained on virtually any image dataset, as the inputs will be automatically resized and normalized.
+The reference model was trained and evaluated on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset). The pipeline is dataset-agnostic: drop any JPEG or PNG set into `FEXT/resources/database/images` and FeXT will resize, normalize, and split it according to the selected configuration. The validation service computes descriptive statistics (mean, standard deviation, noise ratios), pixel distributions, and train/validation drift checks so you can spot outliers before training.
 
 ## 4. Installation
-The installation process for Windows is fully automated. Simply run the script *start_on_windows.bat* to begin. During its initial execution, the script installs portable Python, necessary dependencies, minimizing user interaction and ensuring all components are ready for local use.  
+The project targets Windows 10/11 and requires roughly 2 GB of free disk space for the embedded Python runtime, dependencies, checkpoints, and datasets. A CUDA-capable NVIDIA GPU is recommended but not mandatory. Ensure you have the latest GPU drivers installed when enabling TorchInductor + Triton acceleration.
 
+1. **Download the project**: clone the repository or extract the release archive into a writable location (avoid paths that require admin privileges).
+2. **Configure environment variables**: copy `FEXT/resources/templates/.env` into `FEXT/setup/.env` and adjust values (e.g., backend selection).
+3. **Run `start_on_windows.bat`**: the bootstrapper installs a portable Python 3.12 build, downloads Astral’s `uv`, syncs dependencies from `pyproject.toml`, prunes caches, then launches the UI through `uv run`. The script is idempotent—rerun it any time to repair the environment or re-open the app.
+
+Running the script the first time can take several minutes depending on bandwidth. Subsequent runs reuse the cached Python runtime and only re-sync packages when `pyproject.toml` changes.
 
 ### 4.1 Just-In-Time (JIT) Compiler
-This project leverages Just-In-Time model compilation through `torch.compile`, enhancing model performance by tracing the computation graph and applying advanced optimizations like kernel fusion and graph lowering. This approach significantly reduces computation time during both training and inference. The default backend, TorchInductor, is designed to maximize performance on both CPUs and GPUs. Additionally, the installation includes Triton, which generates highly optimized GPU kernels for even faster computation on NVIDIA hardware. 
+`torch.compile` is enabled throughout the training and inference pipelines. TorchInductor optimizes the computation graph, performs kernel fusion, and lowers operations to Triton-generated kernels on NVIDIA GPUs or to optimized CPU kernels otherwise. Triton is bundled automatically so no separate CUDA toolkit installation is required.
+
+### 4.2 Manual or developer installation
+If you prefer managing Python yourself (for debugging or CI):
+
+1. Install Python 3.12.x and `uv` (https://github.com/astral-sh/uv).
+2. From the repository root run `uv sync` to create a virtual environment with the versions pinned in `pyproject.toml`.
+3. Copy `.env` as described earlier and ensure the `KERAS_BACKEND` is set to `torch`.
+4. Launch the UI with `uv run python FEXT/app/app.py`.
 
 ## 5. How to use
-On Windows, run *start_on_windows.bat* to launch the application. Please note that some antivirus software, such as Avast, may flag or quarantine python.exe when called by the .bat file. If you encounter unusual behavior, consider adding an exception in your antivirus settings.
+Launch the application by double-clicking `start_on_windows.bat` (or via `uv run python FEXT/app/app.py`). On startup the UI loads the last-used configuration, scans the resources folder, and initializes worker pools so long-running jobs (training, inference, validation) do not block the interface.
 
-The main interface streamlines navigation across the application's core services, including dataset evaluation, model training and evaluation, and inference. Users can easily visualize generated plots and browse both training and inference images. Models training supports customizable configurations and also allows resuming previous sessions using pretrained models.
+1. **Prepare data**: verify that `resources/database/images` (training) and `resources/database/inference` (inference) contain the expected files. 
+2. **Adjust configuration**: use the toolbar to load/save configuration templates or modify each parameter manually from the UI.
+3. **Run a pipeline**: pick an action under the Data, Model, or Viewer tabs. Progress bars, log panes, and popup notifications keep you informed. Background workers can be interrupted at any time.
 
-**Data:** the image dataset is analyzed and validated using different metrics. The following analysis are then performed on the image dataset:
+**Data tab:** dataset analysis and validation.
 
-- **Calculation of images statistics**: pixels mean values, standard deviation, values range, noise ratio
-- **Calculation of average pixel distribution**
-- **Average pixel distribution of train versus validation**   
+- Calculate pixel statistics (mean, std, min/max) and noise ratios at dataset or subset level.
+- Compare train vs. validation distributions, verify class balance, and export the generated plots to `resources/database/validation`.
+- Build SQLite-based summaries so you can filter runs later or inspect metadata with DB Browser for SQLite.
 
-**Model:** here you can train, evaluate and encode images with FEXT Autoencoder. You can either train from scratch or resume training for pretrained checkpoints. This tab provides also model inference and model evaluation functionalities. 
+**Model tab:** training, evaluation, and encoding.
 
-You can select a model checkpoint and use it to encode images into compact, abstract representations that capture their most relevant features. These low-dimensional embeddings are saved as .npy files in the *resources/inference* directory. For model evaluation, several metrics are computed, including:
+- Train any FeXT variant from scratch with on-the-fly data loaders (`tf.data` with caching, prefetching, and parallel decoding).
+- Resume training from any checkpoint; the corresponding configuration is reloaded automatically and you can extend training for some additional epochs.
+- Evaluate checkpoints with reconstruction metrics (MSE, MAE) and qualitative visualizations (random reconstructions, embedding plots) saved under `resources/checkpoints/<run>/evaluation`.
+- Run inference to encode arbitrary folders of images; latent vectors are exported as `.npy` files under `resources/database/inference`.
 
-- **Average mean squared error and mean average error of reconstruction** 
-- **Visual comparison of random reconstructed images** 
+**Viewer tab:** visualization hub.
 
-**Viewer:** this tab is dedicated to image and plots visualisation, the user may select one fo the following options
-- **Training images**: visualize training images located in *resources/database/dataset*  
-- **Inference images**: visualize inference images located in *resources/database/inference*  
-- **Dataset evaluation plots**: visualize plots generated from dataset evaluation pipeline  
-- **Model evalution plots**: visualize plots generated from model evaluation pipeline  
+- Browse raw training images, inference inputs, reconstructed samples, and any plots generated during dataset or model evaluation.
+- Leverages Qt graphics views for panning/zooming plus Matplotlib figure embedding for plot inspection.
+- Useful for quick sanity checks without leaving the application.
 
 ## 5.1 Setup and Maintenance
-You can run *setup_and_maintenance.bat* to start the external tools for maintenance with the following options:
+`setup_and_maintenance.bat` launches a lightweight maintenance console with these options:
 
-- **Update project:** check for updates from Github
-- **Remove logs:** remove all logs file from *resources/logs*
-
+- **Update project**: performs a `git pull` (or fetches release artifacts) so the local checkout stays in sync.
+- **Remove logs**: clears `resources/logs` to save disk space or to reset diagnostics before a new run.
+- **Open tools**: quick shortcuts to DB Browser for SQLite or other external utilities defined in the script.
 
 ### 5.2 Resources
-This folder organizes data and results across various stages of the project, such as data validation, model training, and evaluation. By default, all data is stored within an SQLite database. To visualize and interact with SQLite database files, we recommend downloading and installing the DB Browser for SQLite, available at: https://sqlitebrowser.org/dl/. The directory structure includes the following folders:
+The `FEXT/resources` tree keeps all mutable assets, making backups and migrations straightforward:
 
-- **checkpoints:** pretrained model checkpoints are stored here, and can be loaded either for resuming training or use them for inference.
+- **checkpoints** — versioned folders containing saved models, training history, evaluation reports, reconstructed samples, and the JSON configuration that produced them. These folders are what you load when resuming training or running inference.
+- **configurations** — reusable JSON presets saved through the UI dialogs.
+- **database** — includes sub-folders for `images` (training data), `inference` (raw inputs and exported `.npy` embeddings), `metadata` (SQLite records), and `validation` (plots + stats reports).
+- **logs** — rotating application logs for troubleshooting. Attach these when reporting issues.
+- **templates** — contains `.env` and other templates that need to be copied into write-protected directories (`FEXT/app`).
 
-- **database:** Processed data and validation results will be stored centrally within the embedded SQLite database *FEXT_database.db*. All associated metadata will be promptly stored in *database/metadata*. For image training data, ensure all image files are placed in *database/images*, adhering to specified formats (.jpeg or .png). Validation outputs will be saved separately within *database/validation*. Data used for inference with a pretrained checkpoint are located in *database/inference*, where lower-dimension projections of these images are saved as .npy files.
+Environmental variables reside in `FEXT/setup/.env`. Copy the template from `resources/templates/.env` and adjust as needed:
 
-- **logs:** log files are saved here
-
-- **templates:** reference template files can be found here
- 
-**Environmental variables** are stored in the *app* folder (within the project folder). For security reasons, this file is typically not uploaded to GitHub. Instead, you must create this file manually by copying the template from *resources/templates/.env* and placing it in the *app* directory.
-
-| Variable              | Description                                      |
-|-----------------------|--------------------------------------------------|
-| KERAS_BACKEND         | Sets the backend for Keras, default is PyTorch   |
-| TF_CPP_MIN_LOG_LEVEL  | TensorFlow logging verbosity                     |
-| MPLBACKEND            | Matplotlib backend, keep default as Agg          |
+| Variable              | Description                                                               |
+|-----------------------|---------------------------------------------------------------------------|
+| KERAS_BACKEND         | Backend for Keras 3; keep `torch` unless you explicitly need TensorFlow.  |
+| TF_CPP_MIN_LOG_LEVEL  | Controls TensorFlow logging verbosity (set to `2` to suppress INFO logs). |
+| MPLBACKEND            | Matplotlib backend; `Agg` keeps plotting headless for worker threads.     |
 
 ## 6. License
 This project is licensed under the terms of the MIT license. See the LICENSE file for details.

@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any
 
-from FEXT.app.constants import CONFIG_PATH
+from FEXT.app.utils.constants import CONFIG_PATH
 
 
 ###############################################################################

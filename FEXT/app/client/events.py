@@ -7,19 +7,19 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PySide6.QtGui import QImage, QPixmap
 
 from FEXT.app.client.workers import ProcessWorker, ThreadWorker, check_thread_status
-from FEXT.app.constants import IMG_PATH, INFERENCE_INPUT_PATH
-from FEXT.app.logger import logger
-from FEXT.app.utils.services.loader import ImageDataLoader
-from FEXT.app.utils.services.process import TrainValidationSplit
-from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer
+from FEXT.app.utils.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.utils.learning.device import DeviceConfig
 from FEXT.app.utils.learning.inference.encoding import ImageEncoding
 from FEXT.app.utils.learning.models.autoencoder import FeXTAutoEncoders
 from FEXT.app.utils.learning.training.fitting import ModelTraining
+from FEXT.app.utils.logger import logger
+from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer
+from FEXT.app.utils.services.loader import ImageDataLoader
+from FEXT.app.utils.services.process import TrainValidationSplit
 from FEXT.app.utils.validation.checkpoints import (
+    EmbeddingsVisualization,
     ImageReconstruction,
     ModelEvaluationSummary,
-    EmbeddingsVisualization,
 )
 from FEXT.app.utils.validation.images import ImageAnalysis
 
@@ -253,7 +253,7 @@ class ModelEvents:
         logger.info(f"Building {model_name} model")
         autoencoder = FeXTAutoEncoders(self.configuration)
         model = autoencoder.get_selected_model(model_summary=True)
-        
+
         # perform training and save model at the end
         logger.info("Starting FeXT AutoEncoder training")
         trainer = ModelTraining(self.configuration)
