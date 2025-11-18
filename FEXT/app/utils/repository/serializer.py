@@ -10,10 +10,10 @@ from keras import Model
 from keras.models import load_model
 from keras.utils import plot_model
 
-from FEXT.app.constants import CHECKPOINT_PATH
-from FEXT.app.logger import logger
-from FEXT.app.utils.repository.database import database
+from FEXT.app.utils.constants import CHECKPOINT_PATH
 from FEXT.app.utils.learning.training.scheduler import LinearDecayLRScheduler
+from FEXT.app.utils.logger import logger
+from FEXT.app.utils.repository.database import database
 
 
 # [DATA SERIALIZATION]

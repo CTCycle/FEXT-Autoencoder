@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from typing import Any
 
-from FEXT.app.constants import LOGS_PATH
+from FEXT.app.utils.constants import LOGS_PATH
 
 # Generate timestamp for the log filename
 ###############################################################################
