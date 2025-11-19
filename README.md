@@ -5,7 +5,7 @@ FeXT AutoEncoder is a desktop-first pipeline for inspecting image datasets, trai
 
 Key capabilities include automated dataset validation, configurable training and inference flows, background workers that keep the UI responsive, and built-in viewers for both intermediate plots and reconstructed images. Everything runs locally, so datasets never leave your machine.
 
-![VGG16 encoder](FEXT/app/figures/VGG16_encoder.png)
+![VGG16 encoder](FEXT/app/assets/VGG16_encoder.png)
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
