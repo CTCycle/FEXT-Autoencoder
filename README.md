@@ -5,7 +5,7 @@ FeXT AutoEncoder is a desktop-first pipeline for inspecting image datasets, trai
 
 Key capabilities include automated dataset validation, configurable training and inference flows, background workers that keep the UI responsive, and built-in viewers for both intermediate plots and reconstructed images. Everything runs locally, so datasets never leave your machine.
 
-![VGG16 encoder](FEXT/app/assets/figures/VGG16_encoder.png)
+![VGG16 encoder](FEXT/assets/VGG16_encoder.png)
 Architecture of the VGG16 encoder
 
 ## 2. FeXT AutoEncoder model
@@ -61,6 +61,8 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - Compare train vs. validation distributions, verify class balance, and export the generated plots to `resources/database/validation`.
 - Build SQLite-based summaries so you can filter runs later or inspect metadata with DB Browser for SQLite.
 
+![dataset tab](FEXT/assets/dataset_tab.png)
+
 **Model tab:** training, evaluation, and encoding.
 
 - Train any FeXT variant from scratch with on-the-fly data loaders (`tf.data` with caching, prefetching, and parallel decoding).
@@ -68,11 +70,15 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - Evaluate checkpoints with reconstruction metrics (MSE, MAE) and qualitative visualizations (random reconstructions, embedding plots) saved under `resources/checkpoints/<run>/evaluation`.
 - Run inference to encode arbitrary folders of images; latent vectors are exported as `.npy` files under `resources/database/inference`.
 
+![model tab](FEXT/assets/model_tab.png)
+
 **Viewer tab:** visualization hub.
 
 - Browse raw training images, inference inputs, reconstructed samples, and any plots generated during dataset or model evaluation.
 - Leverages Qt graphics views for panning/zooming plus Matplotlib figure embedding for plot inspection.
 - Useful for quick sanity checks without leaving the application.
+
+![viewer tab](FEXT/assets/viewer_tab.png)
 
 ## 5.1 Setup and Maintenance
 `setup_and_maintenance.bat` launches a lightweight maintenance console with these options:
