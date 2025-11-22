@@ -127,7 +127,7 @@ class CheckpointSummary(Base):
 @singleton
 class FEXTDatabase:
     def __init__(self) -> None:
-        self.db_path = os.path.join(DATA_PATH, "database.db")
+        self.db_path = os.path.join(DATA_PATH, "sqlite.db")
         self.engine = create_engine(
             f"sqlite:///{self.db_path}", echo=False, future=True
         )
