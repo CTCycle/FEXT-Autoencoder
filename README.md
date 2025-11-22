@@ -61,7 +61,7 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - Compare train vs. validation distributions, verify class balance, and export the generated plots to `resources/database/validation`.
 - Build SQLite-based summaries so you can filter runs later or inspect metadata with DB Browser for SQLite.
 
-![dataset tab](FEXT/assets/dataset_tab.png)
+![data tab](FEXT/assets/data_tab.png)
 
 **Model tab:** training, evaluation, and encoding.
 
@@ -75,7 +75,6 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 **Viewer tab:** visualization hub.
 
 - Browse raw training images, inference inputs, reconstructed samples, and any plots generated during dataset or model evaluation.
-- Leverages Qt graphics views for panning/zooming plus Matplotlib figure embedding for plot inspection.
 - Useful for quick sanity checks without leaving the application.
 
 ![viewer tab](FEXT/assets/viewer_tab.png)
