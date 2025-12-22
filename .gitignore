@@ -1,3 +1,4 @@
+docs/**
 FEXT/resources/database/dataset/*
 FEXT/resources/database/validation/*
 FEXT/resources/database/inference/images/*
@@ -12,8 +13,8 @@ __pycache__
 *.db
 *.log
 *.npy
-*.json
-*.egg-info
+
+
 *.lock
 *.venv
 !.gitkeep
