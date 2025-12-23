@@ -46,9 +46,6 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
 
     # -------------------------------------------------------------------------
     def apply_conv2d(self, x, window) -> Any:
-        # x: [batch_size, channels, height, width]
-        # window: [1, 1, filter_size, filter_size]
-
         # Ensure the input has shape [batch_size, channels, height, width]
         if ops.shape(x)[1] != ops.shape(window)[0]:
             x = ops.transpose(x, [0, 3, 1, 2])  # Convert from NHWC to NCHW if necessary
@@ -93,19 +90,19 @@ class StructuralSimilarityIndexMeasure(losses.Loss):
         )
 
         # Compute StructuralSimilarityIndexMeasure map
-        StructuralSimilarityIndexMeasure_numerator = (
+        ssim_numerator = (
             2 * mu_y_true_mu_y_pred + self.C1
         ) * (2 * sigma_y_true_y_pred + self.C2)
-        StructuralSimilarityIndexMeasure_denominator = (
+        ssim_denominator = (
             mu_y_true_sq + mu_y_pred_sq + self.C1
         ) * (sigma_y_true_sq + sigma_y_pred_sq + self.C2)
-        StructuralSimilarityIndexMeasure_map = (
-            StructuralSimilarityIndexMeasure_numerator
-            / StructuralSimilarityIndexMeasure_denominator
+        ssim_map = (
+            ssim_numerator
+            / ssim_denominator
         )
 
         # Compute the mean StructuralSimilarityIndexMeasure over the batch
-        loss = 1 - ops.mean(StructuralSimilarityIndexMeasure_map)
+        loss = 1 - ops.mean(ssim_map)
         return loss
 
     # -------------------------------------------------------------------------

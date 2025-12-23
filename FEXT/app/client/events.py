@@ -23,14 +23,20 @@ from FEXT.app.utils.validation.checkpoints import (
 )
 from FEXT.app.utils.validation.images import ImageAnalysis
 
+DEVICE_SETUP_MESSAGE = "Setting device for training operations"
+DATASET_SPLIT_MESSAGE = "Preparing dataset of images based on splitting sizes"
+DATALOADER_BUILD_MESSAGE = (
+    "Building model data loaders with prefetching and parallel processing"
+)
+
 
 ###############################################################################
 class GraphicsHandler:
     def __init__(self) -> None:
         self.image_encoding = cv2.IMREAD_UNCHANGED
         self.gray_scale_encoding = cv2.IMREAD_GRAYSCALE
-        self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
-        self.BGR_encoding = cv2.COLOR_BGR2RGB
+        self.bgra_encoding = cv2.COLOR_BGRA2RGBA
+        self.bgr_encoding = cv2.COLOR_BGR2RGB
 
     # -------------------------------------------------------------------------
     def convert_fig_to_qpixmap(self, fig) -> QPixmap:
@@ -56,11 +62,11 @@ class GraphicsHandler:
             qimg_format = QImage.Format.Format_RGB888
             channels = 3
         elif img.shape[2] == 4:  # BGRA
-            img = cv2.cvtColor(img, self.BGRA_encoding)
+            img = cv2.cvtColor(img, self.bgra_encoding)
             qimg_format = QImage.Format.Format_RGBA8888
             channels = 4
         else:  # BGR
-            img = cv2.cvtColor(img, self.BGR_encoding)
+            img = cv2.cvtColor(img, self.bgr_encoding)
             qimg_format = QImage.Format.Format_RGB888
             channels = 3
 
@@ -146,21 +152,17 @@ class ValidationEvents:
             return
 
         logger.info(f"Loading {selected_checkpoint} checkpoint")
-        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+        model, train_config, _, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint
         )
         model.summary(expand_nested=True)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
-        device.set_device()
+        device.set_device()      
 
-        # isolate the encoder from the autoencoder model
-        encoder = ImageEncoding(model, train_config, checkpoint_path)
-        encoder_model = encoder.encoder_model
-
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = train_config.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -170,9 +172,7 @@ class ValidationEvents:
 
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         loader = ImageDataLoader(train_config, shuffle=False)
         validation_dataset = loader.build_training_dataloader(validation_images)
 
@@ -221,7 +221,7 @@ class ModelEvents:
         progress_callback: Any | None = None,
         worker: ThreadWorker | ProcessWorker | None = None,
     ) -> None:
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -230,9 +230,7 @@ class ModelEvents:
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
         # create the tf.datasets using the previously initialized generators
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(self.configuration)
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
@@ -241,7 +239,7 @@ class ModelEvents:
         check_thread_status(worker)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
         device.set_device()
 
@@ -285,11 +283,11 @@ class ModelEvents:
         model.summary(expand_nested=True)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
         device.set_device()
 
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = train_config.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -298,9 +296,7 @@ class ModelEvents:
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
         # create the tf.datasets using the previously initialized generators
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(train_config)
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)

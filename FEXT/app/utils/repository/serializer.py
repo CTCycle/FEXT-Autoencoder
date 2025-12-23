@@ -157,7 +157,7 @@ class ModelSerializer:
                 dpi=400,
             )
             logger.debug(f"Model architecture plot generated as {plot_path}")
-        except (OSError, FileNotFoundError, ImportError):
+        except (OSError, ImportError):
             logger.warning(
                 "Could not generate model architecture plot (graphviz/pydot not correctly installed)"
             )

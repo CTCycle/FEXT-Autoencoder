@@ -10,7 +10,7 @@ import numpy as np
 class TrainValidationSplit:
     def __init__(self, configuration: dict[str, Any]) -> None:
         self.validation_size = configuration.get("validation_size", 42)
-        np.random.seed(configuration.get("split_seed", 42))
+        self.rng = np.random.default_rng(configuration.get("split_seed", 42))
         self.configuration = configuration
 
     # -------------------------------------------------------------------------
@@ -18,12 +18,12 @@ class TrainValidationSplit:
         self, images_path: list
     ) -> tuple[list[Any], list[Any]]:
         # shuffle the paths list to perform randomic sampling
-        np.random.shuffle(images_path)
+        self.rng.shuffle(images_path)
         # get num of samples in train and validation dataset
         self.train_size = int(len(images_path) * (1.0 - self.validation_size))
         self.val_size = int(len(images_path) * self.validation_size)
 
-        shuffled_indices = np.random.permutation(len(images_path))
+        shuffled_indices = self.rng.permutation(len(images_path))
         train_indices = shuffled_indices[: self.train_size]
         validation_indices = shuffled_indices[self.train_size :]
         train_data = [images_path[i] for i in train_indices]
