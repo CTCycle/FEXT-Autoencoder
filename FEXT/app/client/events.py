@@ -29,8 +29,8 @@ class GraphicsHandler:
     def __init__(self) -> None:
         self.image_encoding = cv2.IMREAD_UNCHANGED
         self.gray_scale_encoding = cv2.IMREAD_GRAYSCALE
-        self.BGRA_encoding = cv2.COLOR_BGRA2RGBA
-        self.BGR_encoding = cv2.COLOR_BGR2RGB
+        self.bgra_encoding = cv2.COLOR_BGRA2RGBA
+        self.bgr_encoding = cv2.COLOR_BGR2RGB
 
     # -------------------------------------------------------------------------
     def convert_fig_to_qpixmap(self, fig) -> QPixmap:
@@ -56,11 +56,11 @@ class GraphicsHandler:
             qimg_format = QImage.Format.Format_RGB888
             channels = 3
         elif img.shape[2] == 4:  # BGRA
-            img = cv2.cvtColor(img, self.BGRA_encoding)
+            img = cv2.cvtColor(img, self.bgra_encoding)
             qimg_format = QImage.Format.Format_RGBA8888
             channels = 4
         else:  # BGR
-            img = cv2.cvtColor(img, self.BGR_encoding)
+            img = cv2.cvtColor(img, self.bgr_encoding)
             qimg_format = QImage.Format.Format_RGB888
             channels = 3
 
@@ -146,7 +146,7 @@ class ValidationEvents:
             return
 
         logger.info(f"Loading {selected_checkpoint} checkpoint")
-        model, train_config, session, checkpoint_path = self.modser.load_checkpoint(
+        model, train_config, _, checkpoint_path = self.modser.load_checkpoint(
             selected_checkpoint
         )
         model.summary(expand_nested=True)
