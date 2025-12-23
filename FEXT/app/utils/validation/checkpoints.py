@@ -138,7 +138,7 @@ class ImageReconstruction:
 
     # -------------------------------------------------------------------------
     def save_image(self, fig: Figure, name: str) -> None:
-        name = re.sub(r"[^0-9A-Za-z_]", "_", name)
+        name = re.sub(r"\W", "_", name)
         out_path = os.path.join(self.validation_path, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
@@ -215,7 +215,7 @@ class EmbeddingsVisualization:
 
     # -------------------------------------------------------------------------
     def save_image(self, fig: Figure, name: str) -> None:
-        name = re.sub(r"[^0-9A-Za-z_]", "_", name)
+        name = re.sub(r"\W", "_", name)
         out_path = os.path.join(self.validation_path, name)
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
@@ -225,7 +225,6 @@ class EmbeddingsVisualization:
     ) -> Figure:
         # Extract embeddings from encoder across the validation dataset
         embeddings: list[np.ndarray] = []
-        num_batches = 0
         for batch in validation_dataset:
             # dataset yields (input, target)
             if isinstance(batch, tuple) and len(batch) == 2:
@@ -237,7 +236,6 @@ class EmbeddingsVisualization:
             # flatten spatial dims if present
             batch_emb = np.reshape(batch_emb, (batch_emb.shape[0], -1))
             embeddings.append(batch_emb)
-            num_batches += 1
 
             check_thread_status(kwargs.get("worker", None))
 
@@ -246,18 +244,18 @@ class EmbeddingsVisualization:
             plt.title("No embeddings extracted")
             return fig
 
-        X = np.concatenate(embeddings, axis=0)
+        x = np.concatenate(embeddings, axis=0)
         # Center the data
-        X_mean = X.mean(axis=0, keepdims=True)
-        X_centered = X - X_mean
+        x_mean = x.mean(axis=0, keepdims=True)
+        x_centered = x - x_mean
         # PCA via SVD for 3 components
-        _, _, Vt = np.linalg.svd(X_centered, full_matrices=False)
-        comps = Vt[:3]
-        X_pca = X_centered @ comps.T
+        _, _, vt = np.linalg.svd(x_centered, full_matrices=False)
+        comps = vt[:3]
+        x_pca = x_centered @ comps.T
 
         fig = plt.figure(figsize=(6, 5))
         ax = cast(MplAxes3D, fig.add_subplot(111, projection="3d"))
-        ax.scatter(X_pca[:, 0], X_pca[:, 1], X_pca[:, 2], s=8, alpha=0.7)
+        ax.scatter(x_pca[:, 0], x_pca[:, 1], x_pca[:, 2], s=8, alpha=0.7)
         ax.set_title("Embeddings PCA (3D)")
         ax.set_xlabel("PC1")
         ax.set_ylabel("PC2")
