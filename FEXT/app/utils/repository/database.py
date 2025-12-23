@@ -131,7 +131,7 @@ class FEXTDatabase:
         self.engine = create_engine(
             f"sqlite:///{self.db_path}", echo=False, future=True
         )
-        self.Session = sessionmaker(bind=self.engine, future=True)
+        self.session_factory = sessionmaker(bind=self.engine, future=True)
         self.insert_batch_size = 1000
 
     # -------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class FEXTDatabase:
     # -------------------------------------------------------------------------
     def upsert_dataframe(self, df: pd.DataFrame, table_cls) -> None:
         table = table_cls.__table__
-        session = self.Session()
+        session = self.session_factory()
         try:
             unique_cols = []
             for uc in table.constraints:
@@ -205,37 +205,54 @@ class FEXTDatabase:
             for table in Base.metadata.sorted_tables:
                 table_name = table.name
                 csv_path = os.path.join(export_dir, f"{table_name}.csv")
-
-                # Build a safe SELECT for arbitrary table names (quote with "")
                 query = sqlalchemy.text(f'SELECT * FROM "{table_name}"')
 
                 if chunksize:
-                    first = True
-                    for chunk in pd.read_sql(query, conn, chunksize=chunksize):
-                        chunk.to_csv(
-                            csv_path,
-                            index=False,
-                            header=first,
-                            mode="w" if first else "a",
-                            encoding="utf-8",
-                            sep=",",
-                        )
-                        first = False
-                    # If no chunks were returned, still write the header row
-                    if first:
-                        pd.DataFrame(columns=[c.name for c in table.columns]).to_csv(
-                            csv_path, index=False, encoding="utf-8", sep=","
-                        )
+                    self._export_table_in_chunks(
+                        conn, table, query, csv_path, chunksize
+                    )
                 else:
-                    df = pd.read_sql(query, conn)
-                    if df.empty:
-                        pd.DataFrame(columns=[c.name for c in table.columns]).to_csv(
-                            csv_path, index=False, encoding="utf-8", sep=","
-                        )
-                    else:
-                        df.to_csv(csv_path, index=False, encoding="utf-8", sep=",")
+                    self._export_table_full(conn, table, query, csv_path)
 
         logger.info(f"All tables exported to CSV at {os.path.abspath(export_dir)}")
+
+    # -------------------------------------------------------------------------
+    def _export_table_in_chunks(
+        self,
+        conn,
+        table,
+        query,
+        csv_path: str,
+        chunksize: int,
+    ) -> None:
+        first = True
+        for chunk in pd.read_sql(query, conn, chunksize=chunksize):
+            chunk.to_csv(
+                csv_path,
+                index=False,
+                header=first,
+                mode="w" if first else "a",
+                encoding="utf-8",
+                sep=",",
+            )
+            first = False
+        if first:
+            self._write_empty_table_csv(table, csv_path)
+
+    # -------------------------------------------------------------------------
+    def _export_table_full(self, conn, table, query, csv_path: str) -> None:
+        df = pd.read_sql(query, conn)
+        if df.empty:
+            self._write_empty_table_csv(table, csv_path)
+        else:
+            df.to_csv(csv_path, index=False, encoding="utf-8", sep=",")
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def _write_empty_table_csv(table, csv_path: str) -> None:
+        pd.DataFrame(columns=[c.name for c in table.columns]).to_csv(
+            csv_path, index=False, encoding="utf-8", sep=","
+        )
 
     # -------------------------------------------------------------------------
     def delete_all_data(self) -> None:
