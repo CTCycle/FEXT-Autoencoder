@@ -25,6 +25,8 @@ class ImageDataLoader:
         )
         self.configuration = configuration
         self.shuffle = shuffle
+        rng_seed = configuration.get("rng_seed", 42)
+        self.rng = np.random.default_rng(rng_seed)
 
     # load and preprocess a single image
     # -------------------------------------------------------------------------
@@ -91,8 +93,8 @@ class ImageDataLoader:
             ),
         }
 
-        for _, (func, prob) in augmentations.items():
-            if np.random.rand() <= prob:
+        for func, prob in augmentations.values():
+            if self.rng.random() <= prob:
                 image = func(image)
 
         return image
