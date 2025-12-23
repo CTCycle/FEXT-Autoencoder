@@ -154,11 +154,7 @@ class ValidationEvents:
         # set device for training operations
         logger.info("Setting device for training operations")
         device = DeviceConfig(self.configuration)
-        device.set_device()
-
-        # isolate the encoder from the autoencoder model
-        encoder = ImageEncoding(model, train_config, checkpoint_path)
-        encoder_model = encoder.encoder_model
+        device.set_device()      
 
         logger.info("Preparing dataset of images based on splitting sizes")
         sample_size = train_config.get("train_sample_size", 1.0)
