@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-import random
+import secrets
 import re
 from typing import Any, cast
 
@@ -147,7 +147,7 @@ class ImageReconstruction:
         loader = ImageDataLoader(self.configuration)
         images = [
             loader.load_image(path, as_array=True)
-            for path in random.sample(data, self.num_images)
+            for path in secrets.SystemRandom().sample(data, self.num_images)
         ]
         norm_images = [loader.image_normalization(img) for img in images]
 
