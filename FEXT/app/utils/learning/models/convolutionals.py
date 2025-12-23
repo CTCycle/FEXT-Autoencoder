@@ -17,9 +17,9 @@ class ResidualConvolutivePooling(layers.Layer):
         self.pooling = layers.MaxPooling2D(pool_size=(2, 2), padding="same")
         self.conv_layers = [
             layers.Conv2D(units, kernel_size=(2, 2), padding="same")
-            for x in range(num_layers)
+            for _ in range(num_layers)
         ]
-        self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]
+        self.bn_layers = [layers.BatchNormalization() for _ in range(num_layers)]
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
@@ -65,9 +65,9 @@ class ResidualTransConvolutiveUpsampling(layers.Layer):
         self.upsampling = layers.UpSampling2D(size=(2, 2))
         self.conv_layers = [
             layers.Conv2DTranspose(units, kernel_size=(3, 3), padding="same")
-            for x in range(num_layers)
+            for _ in range(num_layers)
         ]
-        self.bn_layers = [layers.BatchNormalization() for x in range(num_layers)]
+        self.bn_layers = [layers.BatchNormalization() for _ in range(num_layers)]
 
     # implement forward pass through call method
     # -------------------------------------------------------------------------
