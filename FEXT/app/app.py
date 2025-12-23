@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QApplication
 warnings.simplefilter(action="ignore", category=Warning)
 
 # [IMPORT CUSTOM MODULES]
-from FAIRS.app.utils.variables import env_variables
+from FEXT.app.utils.variables import env_variables
 from FEXT.app.client.window import MainWindow, apply_style
 from FEXT.app.utils.constants import UI_PATH
 
