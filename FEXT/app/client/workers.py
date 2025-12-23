@@ -218,10 +218,11 @@ class ProcessWorker(QObject):
                 p.name == "worker" or p.kind == inspect.Parameter.VAR_KEYWORD
                 for p in params
             ):
+                outer_self = self
 
                 class PlaceholderWorker:
-                    def is_interrupted(self2) -> bool:  # type: ignore
-                        return self.interrupted.is_set()
+                    def is_interrupted(self) -> bool:  # type: ignore
+                        return outer_self.interrupted.is_set()
 
                 kwargs["worker"] = PlaceholderWorker()
 
