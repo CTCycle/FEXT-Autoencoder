@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from matplotlib.figure import Figure
 from PySide6.QtCore import QFile, QIODevice, Qt, QThreadPool, QTimer, Slot
@@ -35,6 +35,11 @@ from FEXT.app.utils.constants import IMG_PATH, INFERENCE_INPUT_PATH
 from FEXT.app.utils.logger import logger
 from FEXT.app.utils.repository.database import database
 
+BUSY_DIALOG_TITLE = "Application is still busy"
+BUSY_TASK_MESSAGE = (
+    "A task is currently running, wait for it to finish and then try again"
+)
+PixmapSourceKey = Literal["train_images", "inference_images", "train_metrics"]
 
 ###############################################################################
 def apply_style(app: QApplication) -> QApplication:
@@ -328,7 +333,7 @@ class MainWindow:
         self.progress_bar.setValue(0) if self.progress_bar else None
 
     # -------------------------------------------------------------------------
-    def get_current_pixmaps_key(self) -> tuple[list[Any], str | None]:
+    def get_current_pixmaps_key(self) -> tuple[list[Any], PixmapSourceKey | None]:
         for radio, idx_key in self.pixmap_sources.items():
             if radio and radio.isChecked():
                 pixmaps = self.pixmaps.setdefault(idx_key, [])
@@ -354,88 +359,127 @@ class MainWindow:
                 view.setRenderHint(hint, True)
 
         self.graphics = {"view": view, "scene": scene, "pixmap_item": pixmap_item}
-        view_keys = ("train_images", "inference_images", "train_metrics")
-        self.pixmaps = {k: [] for k in view_keys}
-        self.current_fig = {k: 0 for k in view_keys}
-        self.pixmap_stream_index = {k: {} for k in view_keys}
-        self.img_paths = {
+        view_keys: tuple[PixmapSourceKey, ...] = (
+            "train_images",
+            "inference_images",
+            "train_metrics",
+        )
+        self.pixmaps: dict[PixmapSourceKey, list[Any]] = {k: [] for k in view_keys}
+        self.current_fig: dict[PixmapSourceKey, int] = dict.fromkeys(view_keys, 0)
+        self.pixmap_stream_index: dict[PixmapSourceKey, dict[str, int]] = {
+            k: {} for k in view_keys
+        }
+        self.img_paths: dict[str, str] = {
             "train_images": IMG_PATH,
             "inference_images": INFERENCE_INPUT_PATH,
         }
 
-        self.pixmap_sources = {
+        self.pixmap_sources: dict[QRadioButton, PixmapSourceKey] = {
             self.inference_img_view: "inference_images",
             self.train_img_view: "train_images",
             self.train_metrics_view: "train_metrics",
         }
 
     # -------------------------------------------------------------------------
+    def _set_progress_from_payload(self, payload: Any) -> bool:
+        if isinstance(payload, (int, float)):
+            if self.progress_bar:
+                self.progress_bar.setValue(int(payload))
+            return True
+        return False
+
+    # -------------------------------------------------------------------------
+    def _payload_to_pixmap(self, data: Any) -> QPixmap | None:
+        if isinstance(data, (bytes, bytearray)):
+            pixmap = QPixmap()
+            if not pixmap.loadFromData(bytes(data)):
+                return None
+            return pixmap
+        if isinstance(data, QPixmap):
+            return data
+        if isinstance(data, str):
+            try:
+                return self.graphic_handler.load_image_as_pixmap(data)
+            except Exception:
+                return None
+        return None
+
+    # -------------------------------------------------------------------------
+    def _parse_render_payload(
+        self, payload: Any
+    ) -> tuple[PixmapSourceKey, QPixmap, str | None] | None:
+        if not isinstance(payload, dict) or payload.get("kind") != "render":
+            return None
+
+        data = payload.get("data")
+        if not data:
+            return None
+
+        pixmap = self._payload_to_pixmap(data)
+        if pixmap is None:
+            return None
+
+        source = self._coerce_pixmap_source(payload.get("source", "train_metrics"))
+        stream = payload.get("stream")
+        return source, pixmap, stream
+
+    # -------------------------------------------------------------------------
+    def _coerce_pixmap_source(self, source: Any) -> PixmapSourceKey:
+        if source in self.pixmaps:
+            return cast(PixmapSourceKey, source)
+        return "train_metrics"
+
+    # -------------------------------------------------------------------------
+    def _update_pixmap_stream(
+        self, source: PixmapSourceKey, pixmap: QPixmap, stream: str | None
+    ) -> None:
+        pixmap_list = self.pixmaps.setdefault(source, [])
+        index_map = self.pixmap_stream_index.setdefault(source, {})
+        self.current_fig.setdefault(source, 0)
+
+        if stream:
+            idx = index_map.get(stream)
+            if idx is not None and idx < len(pixmap_list):
+                pixmap_list[idx] = pixmap
+            else:
+                idx = len(pixmap_list)
+                pixmap_list.append(pixmap)
+                index_map[stream] = idx
+                if len(pixmap_list) == 1:
+                    self.current_fig[source] = idx
+            if self.current_fig.get(source, 0) == idx:
+                self.update_graphics_view()
+            return
+
+        pixmap_list.append(pixmap)
+        self.current_fig[source] = len(pixmap_list) - 1
+        self.update_graphics_view()
+
+    # -------------------------------------------------------------------------
     @Slot(object)
     def on_worker_progress(self, payload: Any) -> None:
         try:
-            if isinstance(payload, (int, float)):
-                if self.progress_bar:
-                    self.progress_bar.setValue(int(payload))
+            if self._set_progress_from_payload(payload):
                 return
 
-            if not isinstance(payload, dict) or payload.get("kind") != "render":
+            parsed = self._parse_render_payload(payload)
+            if not parsed:
                 return
 
-            data = payload.get("data")
-            if not data:
-                return
-
-            source = payload.get("source", "train_metrics")
-            pixmap: QPixmap | None = None
-
-            if isinstance(data, (bytes, bytearray)):
-                pixmap = QPixmap()
-                if not pixmap.loadFromData(bytes(data)):
-                    return
-            elif isinstance(data, QPixmap):
-                pixmap = data
-            elif isinstance(data, str):
-                try:
-                    pixmap = self.graphic_handler.load_image_as_pixmap(data)
-                except Exception:
-                    return
-            else:
-                return
-
-            pixmap_list = self.pixmaps.setdefault(source, [])
-            index_map = self.pixmap_stream_index.setdefault(source, {})
-            self.current_fig.setdefault(source, 0)
-
-            stream = payload.get("stream")
-            if stream:
-                idx = index_map.get(stream)
-                if idx is not None and idx < len(pixmap_list):
-                    pixmap_list[idx] = pixmap
-                else:
-                    idx = len(pixmap_list)
-                    pixmap_list.append(pixmap)
-                    index_map[stream] = idx
-                    if len(pixmap_list) == 1:
-                        self.current_fig[source] = idx
-                if self.current_fig.get(source, 0) == idx:
-                    self.update_graphics_view()
-                return
-
-            pixmap_list.append(pixmap)
-            self.current_fig[source] = len(pixmap_list) - 1
-            self.update_graphics_view()
+            source, pixmap, stream = parsed
+            self._update_pixmap_stream(source, pixmap, stream)
         except Exception:
             logger.debug("Unable to handle progress payload", exc_info=True)
 
     # -------------------------------------------------------------------------
     def reset_train_metrics_stream(self) -> None:
-        for key in "train_metrics":
+        for key in ("train_metrics",):
             if key not in self.pixmaps:
                 continue
             self.pixmaps[key].clear()
             self.current_fig[key] = 0
             self.pixmap_stream_index[key] = {}
-            current_radio = getattr(self, f"{key}view", None)
+            current_radio = getattr(self, f"{key}_view", None)
             if current_radio and current_radio.isChecked():
                 self.update_graphics_view()
 
@@ -509,30 +553,40 @@ class MainWindow:
             getattr(widget, signal).connect(slot)
 
     # -------------------------------------------------------------------------
+    def _set_combobox_value(self, widget: QComboBox, value: Any) -> None:
+        if isinstance(value, str):
+            idx = widget.findText(value)
+            if idx != -1:
+                widget.setCurrentIndex(idx)
+            elif widget.isEditable():
+                widget.setEditText(value)
+        elif isinstance(value, int) and 0 <= value < widget.count():
+            widget.setCurrentIndex(value)
+
+    # -------------------------------------------------------------------------
+    def _apply_widget_value(self, widget: Any, value: Any) -> None:
+        if isinstance(widget, QComboBox):
+            self._set_combobox_value(widget, value)
+            return
+        if isinstance(value, bool) and hasattr(widget, "setChecked"):
+            widget.setChecked(value)
+            return
+        if isinstance(value, (int, float)) and hasattr(widget, "setValue"):
+            widget.setValue(value)
+            return
+        if isinstance(value, str) and hasattr(widget, "setPlainText"):
+            widget.setPlainText(value)
+            return
+        if isinstance(value, str) and hasattr(widget, "setText"):
+            widget.setText(value)
+
+    # -------------------------------------------------------------------------
     def set_widgets_from_configuration(self) -> None:
         cfg = self.config_manager.get_configuration()
         for attr, widget in self.widgets.items():
             if attr not in cfg:
                 continue
-            v = cfg[attr]
-
-            if hasattr(widget, "setChecked") and isinstance(v, bool):
-                widget.setChecked(v)
-            elif hasattr(widget, "setValue") and isinstance(v, (int, float)):
-                widget.setValue(v)
-            elif hasattr(widget, "setPlainText") and isinstance(v, str):
-                widget.setPlainText(v)
-            elif hasattr(widget, "setText") and isinstance(v, str):
-                widget.setText(v)
-            elif isinstance(widget, QComboBox):
-                if isinstance(v, str):
-                    idx = widget.findText(v)
-                    if idx != -1:
-                        widget.setCurrentIndex(idx)
-                    elif widget.isEditable():
-                        widget.setEditText(v)
-                elif isinstance(v, int) and 0 <= v < widget.count():
-                    widget.setCurrentIndex(v)
+            self._apply_widget_value(widget, cfg[attr])
 
     # [SLOT]
     ###########################################################################
@@ -670,7 +724,7 @@ class MainWindow:
     # -------------------------------------------------------------------------
     @Slot()
     def load_images(self) -> None:
-        pixmaps, idx_key = self.get_current_pixmaps_key()
+        _, idx_key = self.get_current_pixmaps_key()
         if not idx_key or idx_key not in self.img_paths.keys():
             return
 
@@ -689,10 +743,8 @@ class MainWindow:
     @Slot()
     def run_dataset_evaluation_pipeline(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         if not self.selected_metrics["dataset"]:
@@ -723,10 +775,8 @@ class MainWindow:
     @Slot()
     def train_from_scratch(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         self.configuration = self.config_manager.get_configuration()
@@ -750,10 +800,8 @@ class MainWindow:
     @Slot()
     def resume_training_from_checkpoint(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         if not self.selected_checkpoint:
@@ -802,10 +850,8 @@ class MainWindow:
     @Slot()
     def run_model_evaluation_pipeline(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         if not self.selected_metrics["model"] or not self.selected_checkpoint:
@@ -835,10 +881,8 @@ class MainWindow:
     @Slot()
     def get_checkpoints_summary(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         self.configuration = self.config_manager.get_configuration()
@@ -863,10 +907,8 @@ class MainWindow:
     @Slot()
     def encode_img_with_checkpoint(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
-            QMessageBox.warning(self.main_win, "Application is still busy", message)
+            message = BUSY_TASK_MESSAGE
+            QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
         if not self.selected_checkpoint:

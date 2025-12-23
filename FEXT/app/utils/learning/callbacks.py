@@ -101,10 +101,10 @@ class RealTimeHistory(Callback):
             return
 
         base_metrics = sorted(
-            set(
+            {
                 metric[4:] if metric.startswith("val_") else metric
                 for metric in metrics
-            )
+            }
         )
         if not base_metrics:
             return
