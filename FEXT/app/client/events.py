@@ -23,6 +23,12 @@ from FEXT.app.utils.validation.checkpoints import (
 )
 from FEXT.app.utils.validation.images import ImageAnalysis
 
+DEVICE_SETUP_MESSAGE = "Setting device for training operations"
+DATASET_SPLIT_MESSAGE = "Preparing dataset of images based on splitting sizes"
+DATALOADER_BUILD_MESSAGE = (
+    "Building model data loaders with prefetching and parallel processing"
+)
+
 
 ###############################################################################
 class GraphicsHandler:
@@ -152,11 +158,11 @@ class ValidationEvents:
         model.summary(expand_nested=True)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
         device.set_device()      
 
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = train_config.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -166,9 +172,7 @@ class ValidationEvents:
 
         # use tf.data.Dataset to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         loader = ImageDataLoader(train_config, shuffle=False)
         validation_dataset = loader.build_training_dataloader(validation_images)
 
@@ -217,7 +221,7 @@ class ModelEvents:
         progress_callback: Any | None = None,
         worker: ThreadWorker | ProcessWorker | None = None,
     ) -> None:
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = self.configuration.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -226,9 +230,7 @@ class ModelEvents:
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
         # create the tf.datasets using the previously initialized generators
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(self.configuration)
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
@@ -237,7 +239,7 @@ class ModelEvents:
         check_thread_status(worker)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
         device.set_device()
 
@@ -281,11 +283,11 @@ class ModelEvents:
         model.summary(expand_nested=True)
 
         # set device for training operations
-        logger.info("Setting device for training operations")
+        logger.info(DEVICE_SETUP_MESSAGE)
         device = DeviceConfig(self.configuration)
         device.set_device()
 
-        logger.info("Preparing dataset of images based on splitting sizes")
+        logger.info(DATASET_SPLIT_MESSAGE)
         sample_size = train_config.get("train_sample_size", 1.0)
         images_paths = self.serializer.get_img_path_from_directory(
             IMG_PATH, sample_size
@@ -294,9 +296,7 @@ class ModelEvents:
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
         # create the tf.datasets using the previously initialized generators
-        logger.info(
-            "Building model data loaders with prefetching and parallel processing"
-        )
+        logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(train_config)
         train_dataset = builder.build_training_dataloader(train_data)
         validation_dataset = builder.build_training_dataloader(validation_data)
