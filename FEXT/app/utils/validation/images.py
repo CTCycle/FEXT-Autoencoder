@@ -292,7 +292,7 @@ class ImageAnalysis:
         for i, path in enumerate(
             tqdm(images_path, desc="Color metrics", total=len(images_path), ncols=100)
         ):
-            bgr, gray = self.load_color_and_gray(path)
+            bgr, _ = self.load_color_and_gray(path)
             if bgr is None:
                 logger.warning(f"Warning: Unable to load image at {path}.")
                 continue
