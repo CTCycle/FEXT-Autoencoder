@@ -36,6 +36,9 @@ from FEXT.app.utils.logger import logger
 from FEXT.app.utils.repository.database import database
 
 BUSY_DIALOG_TITLE = "Application is still busy"
+BUSY_TASK_MESSAGE = (
+    "A task is currently running, wait for it to finish and then try again"
+)
 PixmapSourceKey = Literal["train_images", "inference_images", "train_metrics"]
 
 ###############################################################################
@@ -362,7 +365,7 @@ class MainWindow:
             "train_metrics",
         )
         self.pixmaps: dict[PixmapSourceKey, list[Any]] = {k: [] for k in view_keys}
-        self.current_fig: dict[PixmapSourceKey, int] = {k: 0 for k in view_keys}
+        self.current_fig: dict[PixmapSourceKey, int] = dict.fromkeys(view_keys, 0)
         self.pixmap_stream_index: dict[PixmapSourceKey, dict[str, int]] = {
             k: {} for k in view_keys
         }
@@ -550,30 +553,40 @@ class MainWindow:
             getattr(widget, signal).connect(slot)
 
     # -------------------------------------------------------------------------
+    def _set_combobox_value(self, widget: QComboBox, value: Any) -> None:
+        if isinstance(value, str):
+            idx = widget.findText(value)
+            if idx != -1:
+                widget.setCurrentIndex(idx)
+            elif widget.isEditable():
+                widget.setEditText(value)
+        elif isinstance(value, int) and 0 <= value < widget.count():
+            widget.setCurrentIndex(value)
+
+    # -------------------------------------------------------------------------
+    def _apply_widget_value(self, widget: Any, value: Any) -> None:
+        if isinstance(widget, QComboBox):
+            self._set_combobox_value(widget, value)
+            return
+        if isinstance(value, bool) and hasattr(widget, "setChecked"):
+            widget.setChecked(value)
+            return
+        if isinstance(value, (int, float)) and hasattr(widget, "setValue"):
+            widget.setValue(value)
+            return
+        if isinstance(value, str) and hasattr(widget, "setPlainText"):
+            widget.setPlainText(value)
+            return
+        if isinstance(value, str) and hasattr(widget, "setText"):
+            widget.setText(value)
+
+    # -------------------------------------------------------------------------
     def set_widgets_from_configuration(self) -> None:
         cfg = self.config_manager.get_configuration()
         for attr, widget in self.widgets.items():
             if attr not in cfg:
                 continue
-            v = cfg[attr]
-
-            if hasattr(widget, "setChecked") and isinstance(v, bool):
-                widget.setChecked(v)
-            elif hasattr(widget, "setValue") and isinstance(v, (int, float)):
-                widget.setValue(v)
-            elif hasattr(widget, "setPlainText") and isinstance(v, str):
-                widget.setPlainText(v)
-            elif hasattr(widget, "setText") and isinstance(v, str):
-                widget.setText(v)
-            elif isinstance(widget, QComboBox):
-                if isinstance(v, str):
-                    idx = widget.findText(v)
-                    if idx != -1:
-                        widget.setCurrentIndex(idx)
-                    elif widget.isEditable():
-                        widget.setEditText(v)
-                elif isinstance(v, int) and 0 <= v < widget.count():
-                    widget.setCurrentIndex(v)
+            self._apply_widget_value(widget, cfg[attr])
 
     # [SLOT]
     ###########################################################################
@@ -730,9 +743,7 @@ class MainWindow:
     @Slot()
     def run_dataset_evaluation_pipeline(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
@@ -764,9 +775,7 @@ class MainWindow:
     @Slot()
     def train_from_scratch(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
@@ -791,9 +800,7 @@ class MainWindow:
     @Slot()
     def resume_training_from_checkpoint(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
@@ -843,9 +850,7 @@ class MainWindow:
     @Slot()
     def run_model_evaluation_pipeline(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
@@ -876,9 +881,7 @@ class MainWindow:
     @Slot()
     def get_checkpoints_summary(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
@@ -904,9 +907,7 @@ class MainWindow:
     @Slot()
     def encode_img_with_checkpoint(self) -> None:
         if self.worker:
-            message = (
-                "A task is currently running, wait for it to finish and then try again"
-            )
+            message = BUSY_TASK_MESSAGE
             QMessageBox.warning(self.main_win, BUSY_DIALOG_TITLE, message)
             return
 
