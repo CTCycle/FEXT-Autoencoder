@@ -42,14 +42,14 @@ class FeXTAutoEncoders:
 
     # -------------------------------------------------------------------------
     def compile_model(self, model: Model, model_summary: bool = True) -> Model:
-        initial_LR = self.configuration.get("initial_RL", 0.001)
-        LR_schedule = initial_LR
+        initial_lr = self.configuration.get("initial_LR", 0.001)
+        LR_schedule = initial_lr
         if self.configuration.get("use_scheduler", False):
             constant_LR_steps = self.configuration.get("constant_steps", 1000)
             decay_steps = self.configuration.get("decay_steps", 500)
             target_LR = self.configuration.get("target_LR", 0.0001)
             LR_schedule = LinearDecayLRScheduler(
-                initial_LR, constant_LR_steps, decay_steps, target_LR
+                initial_lr, constant_LR_steps, decay_steps, target_LR
             )
 
         opt = optimizers.Adam(learning_rate=LR_schedule)  # type: ignore

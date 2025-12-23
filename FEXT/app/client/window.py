@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import partial
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from matplotlib.figure import Figure
 from PySide6.QtCore import QFile, QIODevice, Qt, QThreadPool, QTimer, Slot
@@ -36,6 +36,7 @@ from FEXT.app.utils.logger import logger
 from FEXT.app.utils.repository.database import database
 
 BUSY_DIALOG_TITLE = "Application is still busy"
+PixmapSourceKey = Literal["train_images", "inference_images", "train_metrics"]
 
 ###############################################################################
 def apply_style(app: QApplication) -> QApplication:
@@ -329,7 +330,7 @@ class MainWindow:
         self.progress_bar.setValue(0) if self.progress_bar else None
 
     # -------------------------------------------------------------------------
-    def get_current_pixmaps_key(self) -> tuple[list[Any], str | None]:
+    def get_current_pixmaps_key(self) -> tuple[list[Any], PixmapSourceKey | None]:
         for radio, idx_key in self.pixmap_sources.items():
             if radio and radio.isChecked():
                 pixmaps = self.pixmaps.setdefault(idx_key, [])
@@ -355,16 +356,22 @@ class MainWindow:
                 view.setRenderHint(hint, True)
 
         self.graphics = {"view": view, "scene": scene, "pixmap_item": pixmap_item}
-        view_keys = ("train_images", "inference_images", "train_metrics")
-        self.pixmaps = {k: [] for k in view_keys}
-        self.current_fig = dict.fromkeys(view_keys, 0)
-        self.pixmap_stream_index = {k: {} for k in view_keys}
-        self.img_paths = {
+        view_keys: tuple[PixmapSourceKey, ...] = (
+            "train_images",
+            "inference_images",
+            "train_metrics",
+        )
+        self.pixmaps: dict[PixmapSourceKey, list[Any]] = {k: [] for k in view_keys}
+        self.current_fig: dict[PixmapSourceKey, int] = {k: 0 for k in view_keys}
+        self.pixmap_stream_index: dict[PixmapSourceKey, dict[str, int]] = {
+            k: {} for k in view_keys
+        }
+        self.img_paths: dict[str, str] = {
             "train_images": IMG_PATH,
             "inference_images": INFERENCE_INPUT_PATH,
         }
 
-        self.pixmap_sources = {
+        self.pixmap_sources: dict[QRadioButton, PixmapSourceKey] = {
             self.inference_img_view: "inference_images",
             self.train_img_view: "train_images",
             self.train_metrics_view: "train_metrics",
@@ -397,7 +404,7 @@ class MainWindow:
     # -------------------------------------------------------------------------
     def _parse_render_payload(
         self, payload: Any
-    ) -> tuple[str, QPixmap, str | None] | None:
+    ) -> tuple[PixmapSourceKey, QPixmap, str | None] | None:
         if not isinstance(payload, dict) or payload.get("kind") != "render":
             return None
 
@@ -409,13 +416,19 @@ class MainWindow:
         if pixmap is None:
             return None
 
-        source = payload.get("source", "train_metrics")
+        source = self._coerce_pixmap_source(payload.get("source", "train_metrics"))
         stream = payload.get("stream")
         return source, pixmap, stream
 
     # -------------------------------------------------------------------------
+    def _coerce_pixmap_source(self, source: Any) -> PixmapSourceKey:
+        if source in self.pixmaps:
+            return cast(PixmapSourceKey, source)
+        return "train_metrics"
+
+    # -------------------------------------------------------------------------
     def _update_pixmap_stream(
-        self, source: str, pixmap: QPixmap, stream: str | None
+        self, source: PixmapSourceKey, pixmap: QPixmap, stream: str | None
     ) -> None:
         pixmap_list = self.pixmaps.setdefault(source, [])
         index_map = self.pixmap_stream_index.setdefault(source, {})
@@ -457,13 +470,13 @@ class MainWindow:
 
     # -------------------------------------------------------------------------
     def reset_train_metrics_stream(self) -> None:
-        for key in "train_metrics":
+        for key in ("train_metrics",):
             if key not in self.pixmaps:
                 continue
             self.pixmaps[key].clear()
             self.current_fig[key] = 0
             self.pixmap_stream_index[key] = {}
-            current_radio = getattr(self, f"{key}view", None)
+            current_radio = getattr(self, f"{key}_view", None)
             if current_radio and current_radio.isChecked():
                 self.update_graphics_view()
 
