@@ -170,7 +170,7 @@ class ValidationEvents:
         splitter = TrainValidationSplit(train_config)
         _, validation_images = splitter.split_train_and_validation(images_paths)
 
-        # use tf.data.Dataset to build the model dataloader with a larger batch size
+        # use torch DataLoader to build the model dataloader with a larger batch size
         # the dataset is built on top of the training and validation data
         logger.info(DATALOADER_BUILD_MESSAGE)
         loader = ImageDataLoader(train_config, shuffle=False)
@@ -229,7 +229,7 @@ class ModelEvents:
         splitter = TrainValidationSplit(self.configuration)
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
-        # create the tf.datasets using the previously initialized generators
+        # create the torch dataloaders using the previously initialized generators
         logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(self.configuration)
         train_dataset = builder.build_training_dataloader(train_data)
@@ -295,7 +295,7 @@ class ModelEvents:
         splitter = TrainValidationSplit(train_config)
         train_data, validation_data = splitter.split_train_and_validation(images_paths)
 
-        # create the tf.datasets using the previously initialized generators
+        # create the torch dataloaders using the previously initialized generators
         logger.info(DATALOADER_BUILD_MESSAGE)
         builder = ImageDataLoader(train_config)
         train_dataset = builder.build_training_dataloader(train_data)

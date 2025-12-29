@@ -8,17 +8,17 @@ from typing import Any, cast
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from keras import Model
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D as MplAxes3D
+from torch.utils.data import DataLoader
 
 from FEXT.app.client.workers import check_thread_status, update_progress_callback
 from FEXT.app.utils.constants import CHECKPOINT_PATH, EVALUATION_PATH
 from FEXT.app.utils.learning.callbacks import LearningInterruptCallback
 from FEXT.app.utils.logger import logger
 from FEXT.app.utils.repository.serializer import DataSerializer, ModelSerializer
-from FEXT.app.utils.services.loader import ImageDataLoader
+from FEXT.app.utils.services.loader import ImageDataLoader, ImageDataset
 
 
 # [LOAD MODEL]
@@ -106,7 +106,7 @@ class ModelEvaluationSummary:
 
     # -------------------------------------------------------------------------
     def get_evaluation_report(
-        self, validation_dataset: tf.data.Dataset, **kwargs
+        self, validation_dataset: DataLoader, **kwargs
     ) -> None:
         callbacks_list = [LearningInterruptCallback(kwargs.get("worker", None))]
         if self.model:
@@ -143,8 +143,35 @@ class ImageReconstruction:
         fig.savefig(out_path, bbox_inches="tight", dpi=self.img_resolution)
 
     # -------------------------------------------------------------------------
-    def get_images(self, data: list[str]) -> list[Any]:
+    def get_images(self, data: list[str] | DataLoader) -> list[Any]:
         loader = ImageDataLoader(self.configuration)
+        if isinstance(data, DataLoader):
+            dataset = data.dataset
+            if isinstance(dataset, ImageDataset):
+                sample_size = min(self.num_images, len(dataset.images))
+                sampled_paths = secrets.SystemRandom().sample(dataset.images, sample_size)
+                images = [
+                    loader.load_image(path, as_array=True) for path in sampled_paths
+                ]
+                return [loader.image_normalization(img) for img in images]
+            images: list[np.ndarray] = []
+            for batch in data:
+                if isinstance(batch, tuple) and len(batch) == 2:
+                    inputs = batch[0]
+                else:
+                    inputs = batch
+                if hasattr(inputs, "detach"):
+                    inputs = inputs.detach().cpu().numpy()
+                else:
+                    inputs = np.asarray(inputs)
+                for item in inputs:
+                    images.append(item)
+                    if len(images) >= self.num_images:
+                        break
+                if len(images) >= self.num_images:
+                    break
+            return images
+
         images = [
             loader.load_image(path, as_array=True)
             for path in secrets.SystemRandom().sample(data, self.num_images)
@@ -155,7 +182,7 @@ class ImageReconstruction:
 
     # -------------------------------------------------------------------------
     def visualize_reconstructed_images(
-        self, validation_data: list[str], **kwargs
+        self, validation_data: list[str] | DataLoader, **kwargs
     ) -> Figure:
         val_images = self.get_images(data=validation_data)
         logger.info(
@@ -221,7 +248,7 @@ class EmbeddingsVisualization:
 
     # -------------------------------------------------------------------------
     def visualize_encoder_embeddings(
-        self, validation_dataset: tf.data.Dataset, **kwargs
+        self, validation_dataset: DataLoader, **kwargs
     ) -> Figure:
         # Extract embeddings from encoder across the validation dataset
         embeddings: list[np.ndarray] = []
