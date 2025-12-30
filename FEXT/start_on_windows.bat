@@ -17,7 +17,7 @@ set "uv_exe=%uv_dir%\uv.exe"
 set "uv_zip_path=%uv_dir%\uv.zip"
 set "UV_CACHE_DIR=%setup_dir%\uv_cache"
 
-set "py_version=3.12.10"
+set "py_version=3.14.2"
 set "python_zip_filename=python-%py_version%-embed-amd64.zip"
 set "python_zip_url=https://www.python.org/ftp/python/%py_version%/%python_zip_filename%"
 set "python_zip_path=%python_dir%\%python_zip_filename%"
