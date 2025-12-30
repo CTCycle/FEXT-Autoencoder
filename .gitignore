@@ -1,9 +1,6 @@
 docs/**
-FEXT/resources/database/dataset/*
-FEXT/resources/database/validation/*
-FEXT/resources/database/inference/images/*
-FEXT/resources/checkpoints/*
-
+FEXT/resources/database/**
+FEXT/resources/checkpoints/**
 FEXT/setup/python/*
 FEXT/setup/uv/*
 FEXT/setup/.env
@@ -13,11 +10,8 @@ __pycache__
 *.db
 *.log
 *.npy
-
-
 *.lock
 *.venv
 !.gitkeep
 
-AGENTS.md
 
