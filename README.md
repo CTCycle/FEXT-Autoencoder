@@ -1,16 +1,39 @@
+> **Archived - no longer maintained.**
+
 # FeXT AutoEncoder: Extraction of Images Features
 
-## 1. Introduction
+Desktop pipeline for inspecting image datasets, training convolutional autoencoders, exporting latent representations, and inspecting results in one UI.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Status: Archived](https://img.shields.io/badge/Status-Archived-lightgrey.svg)]()
+
+## Table of Contents
+
+- [Archived notice](#archived-notice)
+- [Overview](#overview)
+- [FeXT AutoEncoder model](#fext-autoencoder-model)
+- [Training dataset](#training-dataset)
+- [Technology Stack](#technology-stack)
+- [Installation (legacy)](#installation-legacy)
+- [How to use](#how-to-use)
+- [Screenshots](#screenshots)
+- [Configuration](#configuration)
+- [Documentation links](#documentation-links)
+- [License](#license)
+
+## Archived notice
+
+This project is no longer actively maintained and will not receive future updates. Bugs or issues may exist; reports are welcome but fixes are not guaranteed.
+
+## Overview
+
 FeXT AutoEncoder is a desktop-first pipeline for inspecting image datasets, training convolutional autoencoders, exporting latent representations, and inspecting results without leaving a single UI. The application combines a PySide6 + Qt Material interface with a PyTorch/Triton-powered backend to deliver GPU-accelerated training, resumable sessions, and rich logging. Inspired by the VGG16 family (https://keras.io/api/applications/vgg/), FeXT focuses on compact representations that can be reused for anomaly detection, similarity search, or any downstream feature-driven task.
 
 Key capabilities include automated dataset validation, configurable training and inference flows, background workers that keep the UI responsive, and built-in viewers for both intermediate plots and reconstructed images. Everything runs locally, so datasets never leave your machine.
 
 > **No further updates**: This project is no longer being actively maintained and will not receive future updates. Bugs or issues may exist; you may report them, but fixes are not guaranteed.
 
-![VGG16 encoder](FEXT/assets/VGG16_encoder.png)
-Architecture of the VGG16 encoder
+## FeXT AutoEncoder model
 
-## 2. FeXT AutoEncoder model
 The FeXT AutoEncoder is a deep convolutional autoencoder that compresses images into expressive latent vectors and reconstructs them with minimal loss. Core architectural traits:
 
 - Residual convolutional blocks with layer normalization provide stable training while keeping kernels small and efficient.
@@ -21,28 +44,43 @@ The FeXT AutoEncoder is a deep convolutional autoencoder that compresses images 
 
 FeXT ships with three model families so you can balance fidelity and throughput:
 
-- **FextAE Redux** — minimal channels, fast experimentation, ideal for laptops.
-- **FextAE Medium** — the recommended preset for most datasets; includes richer residual stacks and deeper compression.
-- **FextAE Large** — maximizes capacity with wider convolutions and deeper decoder stages; best suited for high-resolution input and powerful GPUs.
+- **FextAE Redux** - minimal channels, fast experimentation, ideal for laptops.
+- **FextAE Medium** - the recommended preset for most datasets; includes richer residual stacks and deeper compression.
+- **FextAE Large** - maximizes capacity with wider convolutions and deeper decoder stages; best suited for high-resolution input and powerful GPUs.
 
 Every training run creates versioned checkpoints, captures the training configuration, and stores reconstructed examples plus metrics so you can resume later, compare models, or export embeddings at any point.
 
-## 3. Training dataset
+## Training dataset
+
 The reference model was trained and evaluated on the Flickr 30K dataset (https://www.kaggle.com/datasets/hsankesara/flickr-image-dataset). The pipeline is dataset-agnostic: drop any JPEG or PNG set into `FEXT/resources/database/images` and FeXT will resize, normalize, and split it according to the selected configuration. The validation service computes descriptive statistics (mean, standard deviation, noise ratios), pixel distributions, and train/validation drift checks so you can spot outliers before training.
 
-## 4. Installation
-The project targets Windows 10/11 and requires roughly 2 GB of free disk space for the embedded Python runtime, dependencies, checkpoints, and datasets. A CUDA-capable NVIDIA GPU is recommended but not mandatory. Ensure you have the latest GPU drivers installed when enabling TorchInductor + Triton acceleration.
+## Technology Stack
+
+| Technology | Version |
+|---|---|
+| Python | >=3.14 |
+| PyTorch (CUDA 13.0) | 2.9.0 |
+| Keras | 3.12 |
+| Triton (Windows) | 3.4.0.post20 |
+| PySide6 / Qt Material | 6.9.1 / 2.17 |
+| uv | unspecified |
+
+## Installation (legacy)
+
+The project targets Windows 10/11 and requires roughly 2 GB of free disk space for the embedded Python runtime, dependencies, checkpoints, and datasets. A CUDA-capable NVIDIA GPU is recommended but not mandatory. Ensure you have the latest GPU drivers installed when enabling TorchInductor + Triton acceleration.
 
 1. **Download the project**: clone the repository or extract the release archive into a writable location (avoid paths that require admin privileges).
 2. **Configure environment variables**: copy `FEXT/resources/templates/.env` into `FEXT/setup/.env` and adjust values (e.g., backend selection).
-3. **Run `start_on_windows.bat`**: the bootstrapper installs a portable Python 3.12 build, downloads Astral’s `uv`, syncs dependencies from `pyproject.toml`, prunes caches, then launches the UI through `uv run`. The script is idempotent—rerun it any time to repair the environment or re-open the app.
+3. **Run `start_on_windows.bat`**: the bootstrapper installs a portable Python 3.12 build, downloads Astral's `uv`, syncs dependencies from `pyproject.toml`, prunes caches, then launches the UI through `uv run`. The script is idempotent; rerun it any time to repair the environment or re-open the app.
 
 Running the script the first time can take several minutes depending on bandwidth. Subsequent runs reuse the cached Python runtime and only re-sync packages when `pyproject.toml` changes.
 
-### 4.1 Just-In-Time (JIT) Compiler
+### Just-In-Time (JIT) Compiler
+
 `torch.compile` is enabled throughout the training and inference pipelines. TorchInductor optimizes the computation graph, performs kernel fusion, and lowers operations to Triton-generated kernels on NVIDIA GPUs or to optimized CPU kernels otherwise. Triton is bundled automatically so no separate CUDA toolkit installation is required.
 
-### 4.2 Manual or developer installation
+### Manual or developer installation
+
 If you prefer managing Python yourself (for debugging or CI):
 
 1. Install Python 3.12.x and `uv` (https://github.com/astral-sh/uv).
@@ -50,10 +88,11 @@ If you prefer managing Python yourself (for debugging or CI):
 3. Copy `.env` as described earlier and ensure the `KERAS_BACKEND` is set to `torch`.
 4. Launch the UI with `uv run python FEXT/app/app.py`.
 
-## 5. How to use
+## How to use
+
 Launch the application by double-clicking `start_on_windows.bat` (or via `uv run python FEXT/app/app.py`). On startup the UI loads the last-used configuration, scans the resources folder, and initializes worker pools so long-running jobs (training, inference, validation) do not block the interface.
 
-1. **Prepare data**: verify that `resources/database/images` (training) and `resources/database/inference` (inference) contain the expected files. 
+1. **Prepare data**: verify that `resources/database/images` (training) and `resources/database/inference` (inference) contain the expected files.
 2. **Adjust configuration**: use the toolbar to load/save configuration templates or modify each parameter manually from the UI.
 3. **Run a pipeline**: pick an action under the Data, Model, or Viewer tabs. Progress bars, log panes, and popup notifications keep you informed. Background workers can be interrupted at any time.
 
@@ -63,8 +102,6 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - Compare train vs. validation distributions, verify class balance, and export the generated plots to `resources/database/validation`.
 - Build SQLite-based summaries so you can filter runs later or inspect metadata with DB Browser for SQLite.
 
-![data tab](FEXT/assets/data_tab.png)
-
 **Model tab:** training, evaluation, and encoding.
 
 - Train any FeXT variant from scratch with on-the-fly data loaders (`tf.data` with caching, prefetching, and parallel decoding).
@@ -72,38 +109,57 @@ Launch the application by double-clicking `start_on_windows.bat` (or via `uv run
 - Evaluate checkpoints with reconstruction metrics (MSE, MAE) and qualitative visualizations (random reconstructions, embedding plots) saved under `resources/checkpoints/<run>/evaluation`.
 - Run inference to encode arbitrary folders of images; latent vectors are exported as `.npy` files under `resources/database/inference`.
 
-![model tab](FEXT/assets/model_tab.png)
-
 **Viewer tab:** visualization hub.
 
 - Browse raw training images, inference inputs, reconstructed samples, and any plots generated during dataset or model evaluation.
 - Useful for quick sanity checks without leaving the application.
 
-![viewer tab](FEXT/assets/viewer_tab.png)
+### Setup and Maintenance
 
-## 5.1 Setup and Maintenance
 `setup_and_maintenance.bat` launches a lightweight maintenance console with these options:
 
 - **Update project**: performs a `git pull` (or fetches release artifacts) so the local checkout stays in sync.
 - **Remove logs**: clears `resources/logs` to save disk space or to reset diagnostics before a new run.
 - **Open tools**: quick shortcuts to DB Browser for SQLite or other external utilities defined in the script.
 
-### 5.2 Resources
-The `FEXT/resources` tree keeps all mutable assets, making backups and migrations straightforward:
+## Screenshots
 
-- **checkpoints** — versioned folders containing saved models, training history, evaluation reports, reconstructed samples, and the JSON configuration that produced them. These folders are what you load when resuming training or running inference.
-- **configurations** — reusable JSON presets saved through the UI dialogs.
-- **database** — includes sub-folders for `images` (training data), `inference` (raw inputs and exported `.npy` embeddings), `metadata` (SQLite records), and `validation` (plots + stats reports).
-- **logs** — rotating application logs for troubleshooting. Attach these when reporting issues.
-- **templates** — contains `.env` and other templates that need to be copied into write-protected directories (`FEXT/app`).
+<kbd>![VGG16 encoder](FEXT/assets/VGG16_encoder.png)</kbd>
+*Archived screenshot: architecture of the VGG16 encoder*
 
-Environmental variables reside in `FEXT/setup/.env`. Copy the template from `resources/templates/.env` and adjust as needed:
+<kbd>![Data tab](FEXT/assets/data_tab.png)</kbd>
+*Archived screenshot: data tab*
 
-| Variable              | Description                                                               |
-|-----------------------|---------------------------------------------------------------------------|
-| KERAS_BACKEND         | Backend for Keras 3; keep `torch` unless you explicitly need TensorFlow.  |
-| TF_CPP_MIN_LOG_LEVEL  | Controls TensorFlow logging verbosity (set to `2` to suppress INFO logs). |
-| MPLBACKEND            | Matplotlib backend; `Agg` keeps plotting headless for worker threads.     |
+<kbd>![Model tab](FEXT/assets/model_tab.png)</kbd>
+*Archived screenshot: model tab*
 
-## 6. License
-This project is licensed under the terms of the MIT license. See the LICENSE file for details.
+<kbd>![Viewer tab](FEXT/assets/viewer_tab.png)</kbd>
+*Archived screenshot: viewer tab*
+
+## Configuration
+
+Environment variables reside in `FEXT/setup/.env`. Copy the template from `resources/templates/.env` and adjust as needed:
+
+| Variable | Description |
+|---|---|
+| KERAS_BACKEND | Backend for Keras 3; keep `torch` unless you explicitly need TensorFlow. |
+| TF_CPP_MIN_LOG_LEVEL | Controls TensorFlow logging verbosity (set to `2` to suppress INFO logs). |
+| MPLBACKEND | Matplotlib backend; `Agg` keeps plotting headless for worker threads. |
+
+The `FEXT/resources` tree keeps all mutable assets:
+
+- **checkpoints** - versioned folders containing saved models, training history, evaluation reports, reconstructed samples, and the JSON configuration that produced them.
+- **configurations** - reusable JSON presets saved through the UI dialogs.
+- **database** - includes sub-folders for `images` (training data), `inference` (raw inputs and exported `.npy` embeddings), `metadata` (SQLite records), and `validation` (plots + stats reports).
+- **logs** - rotating application logs for troubleshooting. Attach these when reporting issues.
+- **templates** - contains `.env` and other templates that need to be copied into write-protected directories (`FEXT/app`).
+
+## Documentation links
+
+- [Architecture overview](docs/ARCHITECTURE.md)
+- [General rules](docs/GENERAL_RULES.md)
+- [Python guidelines](docs/GUIDELINES_PYTHON.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).
